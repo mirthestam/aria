@@ -1,0 +1,3 @@
+ - [ ] Code in GIT
+ - [ ] Explore Kodi as integration
+ - [ ] Explore Lyrion Music Server (LMS) as integration

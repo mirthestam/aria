@@ -1,0 +1,42 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
+<!-- Created with Cambalache 0.96.3 -->
+<cambalache-project version="0.96.0" target_tk="gtk-4.0">
+  <ui template-class="emptyCollectionStatusPage" filename="EmptyCollectionStatusPage.ui" sha256="f35d1486d0fa4a4a69e10c1ab11a28be71d4166f9d7b26dd8ab727e9a67ec383"/>
+  <ui filename="../../../../../Projects/aria.ui" sha256="24bd169a867ec990895f5348d2a69a27c843798768b81d0a1be37424c30db066"/>
+  <ui template-class="connectStatusPage">
+    <content><![CDATA[<interface>
+  <requires lib="gtk" version="4.18"/>
+  <requires lib="libadwaita" version="1.0"/>
+  <template class="connectStatusPage" parent="AdwStatusPage">
+    <property name="child">
+      <object class="GtkBox">
+        <property name="halign">center</property>
+        <property name="orientation">vertical</property>
+        <property name="spacing">12</property>
+        <child>
+          <object class="GtkButton">
+            <property name="css-classes">pill
+                                  suggested-action</property>
+            <property name="label">_Connect</property>
+            <property name="use-underline">True</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkButton">
+            <property name="css-classes">pill</property>
+            <property name="label">Connect _Manually</property>
+            <property name="use-underline">True</property>
+          </object>
+        </child>
+      </object>
+    </property>
+    <property name="description">To use Plattenalbum, an instance of the Music Player Daemon needs to be set up and running on this device or another one on the network</property>
+    <property name="icon-name">audio-player</property>
+    <property name="title">Connect to Your Music</property>
+  </template>
+</interface>
+]]></content>
+  </ui>
+  <ui filename="MainWindow.ui" sha256="50495c190dd7ddb87825f15e8e07da46b9219352299d2f808e32acfe7ec5dd78"/>
+</cambalache-project>

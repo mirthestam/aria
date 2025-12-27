@@ -1,0 +1,33 @@
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa]rm/
+[Aa]rm64/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# .NET Core
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# NuGet Packages
+*.nupkg
+*.snupkg
+**/packages/*
+project.assets.json
+project.nuget.cache
+project.packagespec.json
+*.nuget.props
+*.nuget.targets
+*.nuget.dgspec.json
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+*.sln.DotSettings.user
+rider.project.restore.info
+rider.project.model.nuget.info

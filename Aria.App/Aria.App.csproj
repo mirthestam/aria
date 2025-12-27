@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Aria.Integrations.MPD\Aria.Integrations.MPD.csproj" />
+      <ProjectReference Include="..\Aria\Aria.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="UI\MainWindow.ui" />
+      <None Remove="SampleTestDialog.4.ui" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="GirCore.Adw-1" Version="0.7.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\AUTHORS">
+        <Link>Info\AUTHORS</Link>
+      </Content>
+      <Content Include="..\LICENSE">
+        <Link>Info\LICENSE</Link>
+      </Content>
+      <Content Include="..\README.md">
+        <Link>Info\README.md</Link>
+      </Content>
+    </ItemGroup>
+
+</Project>

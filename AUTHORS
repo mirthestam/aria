@@ -1,0 +1,13 @@
+# AUTHORS - List of contributors to the project
+
+Developer:
+- Mirthe Stam <mirthe@nuvina.nl>
+
+Based upon:
+- "Plattenalbum" (https://github.com/SoongNoonien/plattenalbum)  
+  - The UI is based upon the excellent work of SoongNoonien (Martin Wagner).  
+  - GPL 3.0 Licence
+
+- "Stylophone" (https://github.com/Difegue/Stylophone)  
+  - The MPD integration is based upon the MPD connection logic in Stylophone by Difegue.  
+  - MIT Licence

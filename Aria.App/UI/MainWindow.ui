@@ -1,0 +1,101 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.96.3 -->
+<interface>
+  <!-- interface-name MainWindow.ui -->
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.4"/>
+  <object class="AdwApplicationWindow" id="main-window">
+    <property name="content">
+      <object class="AdwToastOverlay">
+        <property name="child">
+          <object class="GtkStack" id="status_page_stack">
+            <property name="visible-child-name">status-page</property>
+            <child>
+              <object class="GtkStackPage" id="content">
+                <property name="child">
+                  <object class="AdwMultiLayoutView">
+                    <property name="layout-name">sheet-layout</property>
+                    <child>
+                      <object class="AdwLayout" id="sidebar-layout">
+                        <property name="content">
+                          <object class="AdwOverlaySplitView">
+                            <property name="content">
+                              <object class="AdwLayoutSlot">
+                                <property name="id">browser-container</property>
+                                <child>
+                                  <object class="GtkLabel"/>
+                                </child>
+                              </object>
+                            </property>
+                            <property name="max-sidebar-width">500.0</property>
+                            <property name="min-sidebar-width">300.0</property>
+                            <property name="pin-sidebar">True</property>
+                            <property name="sidebar">
+                              <object class="AdwLayoutSlot">
+                                <property name="id">player</property>
+                              </object>
+                            </property>
+                            <property name="sidebar-position">end</property>
+                          </object>
+                        </property>
+                        <property name="name">sidebar</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwLayout" id="bottom-sheet-layout">
+                        <property name="content">
+                          <object class="AdwBottomSheet"/>
+                        </property>
+                        <property name="name">bottom-sheet</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkStack" id="browser-container">
+                        <child>
+                          <object class="GtkStackPage" id="empty-collection">
+                            <property name="child">
+                              <object class="GtkLabel">
+                                <property name="label">Empty Page</property>
+                              </object>
+                            </property>
+                            <property name="name">empty-collection</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkStackPage" id="browser">
+                            <property name="child">
+                              <object class="GtkLabel">
+                                <property name="label">Empty Page</property>
+                              </object>
+                            </property>
+                            <property name="name">browser</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkLabel" id="player">
+                        <property name="label">player</property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+                <property name="name">content</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage">
+                <property name="child">
+                  <object class="GtkLabel">
+                    <property name="label">Empty Page</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </property>
+    <property name="title">Aria</property>
+  </object>
+</interface>
