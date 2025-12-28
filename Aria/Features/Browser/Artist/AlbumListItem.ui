@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.99.8 -->
+<interface>
+    <!-- interface-name MainWindow.ui -->
+    <requires lib="gtk" version="4.0"/>
+    <requires lib="libadwaita" version="1.4"/>
+    <template class="AriaFeaturesBrowserArtistAlbumListItem" parent="GtkBox">
+        <child>
+            <object class="GtkCenterBox">
+                <property name="center-widget">
+                    <object class="AdwAvatar"/>
+                </property>
+                <property name="end-widget">
+                    <object class="GtkLabel" id="name-label"/>
+                </property>
+                <property name="hexpand">True</property>
+                <property name="orientation">vertical</property>
+            </object>
+        </child>
+    </template>
+</interface>

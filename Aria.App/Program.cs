@@ -1,64 +1,81 @@
-﻿using System.Net;
-using Aria;
-using Aria.App;
-using Aria.Integrations;
-using Aria.Integrations.MPD;
+﻿using Aria.App.Infrastructure;
+using Aria.Core;
+using Aria.Features.Browser;
+using Aria.Features.Browser.Artist;
+using Aria.Features.Browser.Artists;
+using Aria.Features.Player;
+using Aria.Features.PlayerBar;
+using Aria.Hosting;
+using Aria.Hosting.Extensions;
+using Aria.Infrastructure;
+using Aria.Infrastructure.Tagging;
+using Aria.Main;
+using Aria.MusicServers.MPD;
+using CommunityToolkit.Mvvm.Messaging;
+using Gio;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Task = System.Threading.Tasks.Task;
 
+namespace Aria.App;
 
-var application = Adw.Application.New("org.gir.core", Gio.ApplicationFlags.FlagsNone);
-application.OnActivate += (sender, args) =>
+public class Program
 {
-    //var window = MainWindow.New(application);
-    var window = new MainWindow();
-    
-    // The code tutorials do MainWindow.New(application).
-    // That would automatically set the application.
-    // However, that creates an empty window, whereas my class implements builder.
-    // So, my own workaround was to let the MainWindow load itself then set the applcation as below.
-    window.SetApplication(application);
-    window.Title = "Aria";
-    
-    window.Show();
-};
+    public static async Task Main(string[] args)
+    {
+        var builder = CreateHostBuilder(args);
+        var host = builder.Build();
+        await host.RunAsync();
+    }
 
-// Ik denkj dat ik wil dat de WINDOW het optuigen van de integratie doet.
-// Immers, die window moet eerst staan, en  ook nog mogelijkheid geven welke integratie moet worden geladen.
+    private static IHostBuilder CreateHostBuilder(string[] args)
+    {
+        return Host.CreateDefaultBuilder(args)
+            //.UseWolverine()
+            .ConfigureServices(x =>
+            {
+                // Messaging
+                x.AddSingleton<IMessenger>(_ => WeakReferenceMessenger.Default);
 
-// Wire up a quick MPD instance
-IIntegration integration = new MPDIntegration();
-var mpdIntegration = (MPDIntegration) integration;
+                // Infrastructure
+                x.AddSingleton<AppSession>();
+                x.AddSingleton<IAppSession>(sp => sp.GetRequiredService<AppSession>());
+                x.AddSingleton<IPlaybackApi>(sp => sp.GetRequiredService<AppSession>());
+                x.AddTransient<IBackendConnectionFactory, BackendConnectionFactory>();
+                x.AddTransient<IConnectionProfileProvider, ConnectionProfileProvider>();
+                x.AddTransient<ITagParser, MPDTagParser>();
 
-integration.SongChanged += (sender, args) =>
-{
-    Console.WriteLine($"Song changed: {args.NewSongId}");
-};
+                // Main
+                x.AddSingleton<MainWindow>();
+                x.AddSingleton<MainWindowPresenter>();
+                x.AddSingleton<MainPagePresenter>();
+                x.AddSingleton<WelcomePagePresenter>();
 
-integration.ConnectionChanged += (sender, args) =>
-{
-    Console.WriteLine($"Connection changed: {integration.IsConnected}");
-};
+                // Features - Browser
+                x.AddSingleton<BrowserNavigationState>();
+                x.AddSingleton<BrowserPresenter>();
+                x.AddSingleton<ArtistPagePresenter>();
+                x.AddSingleton<ArtistsPagePresenter>();
 
-integration.StatusChanged += (sender, args) =>
-{
-    Console.WriteLine($"{integration.Status.Song.Id} - {integration.Status.Song.Elapsed}  / {integration.Status.Song.Duration} - {integration.Status.Playlist.CurrentSongIndex + 1} / {integration.Status.Playlist.Length} ({integration.Status.Playlist.Id})");
-    Console.WriteLine($"{integration.Status.Song.AudioBits}-bit {integration.Status.Song.AudioChannels} ch {integration.Status.Song.AudioSampleRate / 1000.0:F1} kHz {integration.Status.Song.Bitrate}");
-    Console.WriteLine($"{integration.Status.Player.Id} - {integration.Status.Player.State} - {integration.Status.Player.Volume}%");
-    Console.WriteLine();
-};
+                // Features - Player
+                x.AddSingleton<PlayerPresenter>();
 
-integration.PlaylistsChanged += (sender, args) =>
-{
-    Console.WriteLine($"Playlists changed");
-};
+                // Feature - PlayerBar
+                x.AddSingleton<PlayerBarPresenter>();
+            })
+            .UseGtk(a =>
+            {
+                a.GtkApplicationType = GtkApplicationType.Adw;
+                a.ApplicationId = "nl.nuvina.aria";
+                a.ApplicationFlags = ApplicationFlags.FlagsNone;
 
-integration.QueueChanged += (sender, args) =>
-{
-    Console.WriteLine($"Queue changed");
-};
+                a.UseWindow<MainWindow>();
 
-mpdIntegration.SetCredentials(new MPDCredentials("192.168.10.10", 6600, ""));
-await mpdIntegration.InitializeAsync();
-
-// TODO: Set up MPRIS integration
-
-return application.RunWithSynchronizationContext(null);
+                // GObject registrations (GType)
+                a.WithMainGTypes();
+                a.WithBrowserGTypes();
+                a.WithPlayerGTypes();
+                a.WithPlayerBarGTypes();
+            });
+    }
+}

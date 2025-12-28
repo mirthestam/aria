@@ -1,1 +1,0 @@
-- FEAT: Auto discovery of connectable integrations for autoconnect (or AUTO suggest)

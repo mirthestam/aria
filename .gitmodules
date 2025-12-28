@@ -1,0 +1,6 @@
+[submodule "lib/gir.code"]
+	path = lib/gir.code
+	url = https://github.com/mirthestam/gir.core
+[submodule "lib/gircore"]
+	path = lib/gircore
+	url = https://github.com/mirthestam/gir.core

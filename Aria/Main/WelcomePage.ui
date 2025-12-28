@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.99.8 -->
+<interface>
+    <!-- interface-name WelcomePage.ui -->
+    <requires lib="gtk" version="4.0"/>
+    <requires lib="libadwaita" version="1.4"/>
+    <template class="AriaMainWelcomePage" parent="GtkBox">
+        <property name="hexpand">True</property>
+        <property name="orientation">vertical</property>
+        <property name="vexpand">True</property>
+        <child>
+            <object class="AdwToolbarView" id="toolbar">
+                <property name="content">
+                    <object class="AdwStatusPage">
+                        <property name="child">
+                            <object class="GtkBox">
+                                <property name="halign">center</property>
+                                <property name="orientation">vertical</property>
+                                <property name="spacing">12</property>
+                                <child>
+                                    <object class="GtkButton" id="connect-button">
+                                        <property name="css-classes">suggested-action
+                                            pill
+                                        </property>
+                                        <property name="label">_Connect</property>
+                                        <property name="use-underline">True</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </property>
+                        <property name="description">To use Aria, you must have a compatible music server available on
+                            your network. Click the Connect button to be guided through the connection setup process.
+                        </property>
+                        <property name="icon-name">folder-music-symbolic</property>
+                        <property name="title">Connect to Your Music</property>
+                    </object>
+                </property>
+                <child type="top">
+                    <object class="AdwHeaderBar">
+                        <child type="end">
+                            <object class="GtkMenuButton" id="menu-button">
+                                <property name="icon-name">open-menu-symbolic</property>
+                                <property name="primary">True</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+            </object>
+        </child>
+    </template>
+</interface>

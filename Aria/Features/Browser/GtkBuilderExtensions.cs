@@ -1,0 +1,24 @@
+using Aria.Features.Browser.Album;
+using Aria.Features.Browser.Artist;
+using Aria.Features.Browser.Artists;
+using Aria.Hosting;
+
+namespace Aria.Features.Browser;
+
+public static class GtkBuilderExtensions
+{
+    extension(IGtkBuilder builder)
+    {
+        public void WithBrowserGTypes()
+        {
+            builder.WithGType<AlbumPage>();
+            builder.WithGType<ArtistPage>();
+            builder.WithGType<EmptyPage>();
+            builder.WithGType<ArtistModel>();
+            builder.WithGType<ArtistListItem>();
+            builder.WithGType<ArtistsPage>();
+            builder.WithGType<Browser>();
+            builder.WithGType<EmptyCollectionPage>();
+        }
+    }
+}

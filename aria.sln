@@ -4,9 +4,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aria", "Aria\Aria.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aria.App", "Aria.App\Aria.App.csproj", "{FE28F325-4659-4C59-826B-82AA5DC5F9A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aria.Integrations.MPD", "Aria.Integrations.MPD\Aria.Integrations.MPD.csproj", "{1785C3A8-E1F0-4211-AEE5-4B4C1791B57E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aria.Backends.MPD", "Aria.Integrations.MPD\Aria.Backends.MPD.csproj", "{1785C3A8-E1F0-4211-AEE5-4B4C1791B57E}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Integrations", "Integrations", "{BD75453D-3CA3-4024-9B1B-7C3903BF3E0D}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "GirCore", "GirCore", "{C78002D9-D3A3-4D46-B16F-2ED28BDF7F31}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aria.Hosting", "Aria.Hosting\Aria.Hosting.csproj", "{E7A7B995-8341-4E78-9C1C-C8DE4A186A2C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Adw-1", "lib\gircore\src\Libs\Adw-1\Adw-1.csproj", "{79C5E102-192D-4592-9711-C406740E9C70}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GObject-2.0.Integration", "lib\gircore\src\Extensions\GObject-2.0.Integration\GObject-2.0.Integration.csproj", "{16EA8442-A2BA-4B2F-B363-21554C3F47D2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gtk-4.0.Integration", "lib\gircore\src\Extensions\Gtk-4.0.Integration\Gtk-4.0.Integration.csproj", "{F1A92499-A26C-4BDD-8BDD-7C9A59D31905}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -26,8 +34,26 @@ Global
 		{1785C3A8-E1F0-4211-AEE5-4B4C1791B57E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1785C3A8-E1F0-4211-AEE5-4B4C1791B57E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1785C3A8-E1F0-4211-AEE5-4B4C1791B57E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E7A7B995-8341-4E78-9C1C-C8DE4A186A2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E7A7B995-8341-4E78-9C1C-C8DE4A186A2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E7A7B995-8341-4E78-9C1C-C8DE4A186A2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E7A7B995-8341-4E78-9C1C-C8DE4A186A2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{79C5E102-192D-4592-9711-C406740E9C70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{79C5E102-192D-4592-9711-C406740E9C70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{79C5E102-192D-4592-9711-C406740E9C70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{79C5E102-192D-4592-9711-C406740E9C70}.Release|Any CPU.Build.0 = Release|Any CPU
+		{16EA8442-A2BA-4B2F-B363-21554C3F47D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{16EA8442-A2BA-4B2F-B363-21554C3F47D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{16EA8442-A2BA-4B2F-B363-21554C3F47D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{16EA8442-A2BA-4B2F-B363-21554C3F47D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1A92499-A26C-4BDD-8BDD-7C9A59D31905}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1A92499-A26C-4BDD-8BDD-7C9A59D31905}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1A92499-A26C-4BDD-8BDD-7C9A59D31905}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1A92499-A26C-4BDD-8BDD-7C9A59D31905}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{1785C3A8-E1F0-4211-AEE5-4B4C1791B57E} = {BD75453D-3CA3-4024-9B1B-7C3903BF3E0D}
+		{79C5E102-192D-4592-9711-C406740E9C70} = {C78002D9-D3A3-4D46-B16F-2ED28BDF7F31}
+		{16EA8442-A2BA-4B2F-B363-21554C3F47D2} = {C78002D9-D3A3-4D46-B16F-2ED28BDF7F31}
+		{F1A92499-A26C-4BDD-8BDD-7C9A59D31905} = {C78002D9-D3A3-4D46-B16F-2ED28BDF7F31}
 	EndGlobalSection
 EndGlobal

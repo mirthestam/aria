@@ -3,11 +3,22 @@
 Developer:
 - Mirthe Stam <mirthe@nuvina.nl>
 
-Based upon:
+Honorable Mentions (Alphabetical Order):
+ 
+- "Denaro" (https://github.com/NickvisionApps/Denaro)
+  - This app served as a reference for working with Gir.Core.
+  - MIT License  
+  
+- "Gir.Core" (https://github.com/gircore/gir.core)
+  - Aria utilizes the libraries developed by the Gir.Core team.
+    Their work has made it possible for us to develop with GTK4 in C#.   
+  - MIT License
+  
 - "Plattenalbum" (https://github.com/SoongNoonien/plattenalbum)  
   - The UI is based upon the excellent work of SoongNoonien (Martin Wagner).  
-  - GPL 3.0 Licence
+  - GPL 3.0 License
 
 - "Stylophone" (https://github.com/Difegue/Stylophone)  
   - The MPD integration is based upon the MPD connection logic in Stylophone by Difegue.  
-  - MIT Licence
+  - MIT License
+  

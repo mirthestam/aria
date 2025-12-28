@@ -5,32 +5,38 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
+
     <ItemGroup>
-      <ProjectReference Include="..\Aria.Integrations.MPD\Aria.Integrations.MPD.csproj" />
-      <ProjectReference Include="..\Aria\Aria.csproj" />
+        <ProjectReference Include="..\Aria.Hosting\Aria.Hosting.csproj"/>
+        <ProjectReference Include="..\Aria.Integrations.MPD\Aria.Backends.MPD.csproj"/>
+        <ProjectReference Include="..\Aria\Aria.csproj"/>
+        <ProjectReference Include="..\lib\gircore\src\Libs\Adw-1\Adw-1.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-      <EmbeddedResource Include="UI\MainWindow.ui" />
-      <None Remove="SampleTestDialog.4.ui" />
+        <Content Include="..\AUTHORS">
+            <Link>AUTHORS</Link>
+        </Content>
+        <Content Include="..\DOCS.md">
+          <Link>DOCS.md</Link>
+        </Content>
+        <Content Include="..\LICENSE">
+            <Link>LICENSE</Link>
+        </Content>
+        <Content Include="..\README.md">
+            <Link>README.md</Link>
+        </Content>
     </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="GirCore.Adw-1" Version="0.7.0" />
-    </ItemGroup>
 
     <ItemGroup>
-      <Content Include="..\AUTHORS">
-        <Link>Info\AUTHORS</Link>
-      </Content>
-      <Content Include="..\LICENSE">
-        <Link>Info\LICENSE</Link>
-      </Content>
-      <Content Include="..\README.md">
-        <Link>Info\README.md</Link>
-      </Content>
+        <PackageReference Include="JetBrains.Annotations" Version="2025.2.4"/>
+        <PackageReference Include="Lamar" Version="15.0.1"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1"/>
+        <PackageReference Include="MpcNET" Version="1.6.6"/>
     </ItemGroup>
 
 </Project>

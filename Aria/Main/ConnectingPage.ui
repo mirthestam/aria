@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.99.8 -->
+<interface>
+    <!-- interface-name WelcomePage.ui -->
+    <requires lib="gtk" version="4.0"/>
+    <requires lib="libadwaita" version="1.4"/>
+    <template class="AriaMainConnectingPage" parent="GtkBox">
+        <property name="hexpand">True</property>
+        <property name="orientation">vertical</property>
+        <property name="vexpand">True</property>
+        <child>
+            <object class="AdwToolbarView" id="toolbar">
+                <property name="content">
+                    <object class="AdwStatusPage">
+                        <property name="child">
+                            <object class="GtkBox">
+                                <property name="halign">center</property>
+                                <property name="orientation">vertical</property>
+                                <property name="spacing">12</property>
+                                <child>
+                                    <object class="GtkButton" id="cancel-connect-button">
+                                        <property name="css-classes">pill</property>
+                                        <property name="label">_Cancel</property>
+                                        <property name="use-underline">True</property>
+                                    </object>
+                                </child>
+                            </object>
+                        </property>
+                        <property name="description">Aria is connecting to your music library.</property>
+                        <property name="icon-name">network-transmit-symbolic</property>
+                        <property name="title">Connecting</property>
+                    </object>
+                </property>
+                <child type="top">
+                    <object class="AdwHeaderBar">
+                        <child type="end">
+                            <object class="GtkMenuButton" id="menu-button">
+                                <property name="icon-name">open-menu-symbolic</property>
+                                <property name="primary">True</property>
+                            </object>
+                        </child>
+                    </object>
+                </child>
+            </object>
+        </child>
+    </template>
+</interface>
