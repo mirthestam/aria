@@ -1,0 +1,21 @@
+using System.Globalization;
+
+namespace Aria.Infrastructure.Tagging;
+
+public static class DateTagParser
+{
+    public static DateTime? ParseDate(string dateTag)
+    {
+        // TODO: add unit tests to cover all kinds of unusual date formats
+        if (string.IsNullOrWhiteSpace(dateTag)) return null;
+        
+        string[] formats = ["yyyy-MM-dd", "yyyy-MM", "yyyy"];
+
+        if (DateTime.TryParseExact(dateTag, formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out var result))
+        {
+            return result;
+        }
+
+        return null;
+    }
+}

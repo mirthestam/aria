@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+	<gresource prefix="/nl/mirthestam/aria">
+		<file>nl.mirthestam.aria.metainfo.xml</file>
+	</gresource>
+</gresources>

@@ -1,6 +1,0 @@
-<?xml version='1.0' encoding='UTF-8' standalone='no'?>
-<!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
-<cambalache-project version="0.96.0" target_tk="gtk-4.0">
-  <ui template-class="AriaBackendsMPDUIConnectConnectDialog" filename="UI/Connect/ConnectDialog.ui" sha256="efcfe3ea90cd0d76e3ef87a9ca1e3de4d38696564c72bc92db341ea81f1a02ce">
-  </ui
-</cambalache-project>

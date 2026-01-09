@@ -4,3 +4,6 @@
 [submodule "lib/gircore"]
 	path = lib/gircore
 	url = https://github.com/mirthestam/gir.core
+[submodule "lib/flatpak-builder-tools"]
+	path = lib/flatpak-builder-tools
+	url = https://github.com/flatpak/flatpak-builder-tools

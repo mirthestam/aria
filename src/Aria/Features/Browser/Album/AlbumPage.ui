@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.99.9 -->
+<interface>
+  <!-- interface-name MainWindow.ui -->
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.4"/>
+  <template class="AriaFeaturesBrowserAlbumAlbumPage" parent="AdwNavigationPage">
+    <property name="title">Album</property>
+    <child>
+      <object class="AdwToolbarView">
+        <property name="content">
+          <object class="GtkStack">
+            <child>
+              <object class="GtkScrolledWindow">
+                <property name="child">
+                  <object class="GtkBox">
+                    <property name="margin-bottom">24</property>
+                    <property name="margin-end">12</property>
+                    <property name="margin-start">12</property>
+                    <property name="margin-top">6</property>
+                    <property name="orientation">vertical</property>
+                    <child>
+                      <object class="AdwClamp" id="cover-clamp">
+                        <property name="maximum-size">200</property>
+                        <child>
+                          <object class="GtkPicture" id="cover-picture">
+                            <property name="alternative-text">Album cover</property>
+                            <property name="content-fit">scale-down</property>
+                            <property name="halign">center</property>
+                            <property name="height-request">180</property>
+                            <property name="hexpand">False</property>
+                            <property name="keep-aspect-ratio">True</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkBox" id="info-box">
+                        <property name="margin-bottom">18</property>
+                        <property name="margin-top">9</property>
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">3</property>
+                        <child>
+                          <object class="GtkLabel" id="suptitle-label">
+                            <property name="css-classes">dimmed
+caption</property>
+                            <property name="ellipsize">end</property>
+                            <property name="single-line-mode">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="title-label">
+                            <property name="css-classes">title-4</property>
+                            <property name="wrap">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="subtitle-label">
+                            <property name="ellipsize">end</property>
+                            <property name="single-line-mode">True</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkLabel" id="duration-label">
+                            <property name="css-classes">numeric
+dimmed
+caption</property>
+                            <property name="single-line-mode">True</property>
+                          </object>
+                        </child>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwClamp">
+                        <property name="child">
+                          <object class="GtkListBox" id="songs-listbox">
+                            <property name="css-classes">boxed-list</property>
+                            <property name="selection-mode">none</property>
+                            <property name="tab-behavior">item</property>
+                            <property name="valign">start</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                  </object>
+                </property>
+                <property name="hscrollbar-policy">never</property>
+              </object>
+            </child>
+          </object>
+        </property>
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <property name="show-title">False</property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
+</interface>

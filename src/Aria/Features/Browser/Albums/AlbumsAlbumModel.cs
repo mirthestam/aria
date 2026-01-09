@@ -1,0 +1,39 @@
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using Aria.Core.Library;
+using Gdk;
+using GObject;
+using Object = GObject.Object;
+
+namespace Aria.Features.Browser.Albums;
+
+[Subclass<Object>]
+public partial class AlbumsAlbumModel  : INotifyPropertyChanged
+{
+    public AlbumsAlbumModel(AlbumInfo album) : this()
+    {
+        Album = album;
+    }
+
+    public AlbumInfo Album { get; }
+    
+    public Texture? CoverTexture
+    {
+        get;
+        set => SetField(ref field, value);
+    }    
+    
+    public event PropertyChangedEventHandler? PropertyChanged;
+    
+    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    private void SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    {
+        if (EqualityComparer<T>.Default.Equals(field, value)) return;
+        field = value;
+        OnPropertyChanged(propertyName);
+    }    
+}

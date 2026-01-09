@@ -7,12 +7,12 @@ A music library client that makes exploring and discovering your collection easy
 > This project is under heavy development and is not yet ready for use. It may not compile and could require unavailable
 > dependencies.
 
-"Currently, I rely on the main branch of `Gir.Core` , as the features I need from this library are still under development."  
-
-
 1. Glone this repo recursive with `git clone --recurse-submodules`
-2. Compile `Gir.Core` in `lib/gircore` using the steps as documented [here](https://github.com/mirthestam/gir.core/blob/main/readme.md#build). Ignore the clone part, as it is a submodule in this repository. It is expected that compiling `Gir.Core` some errors and a lot of warnings.
-3. Compile Aria using `dotnet build`
+2. Navigate to the cloned directory
+2. Run the `./build.sh` script
+
+# Dependencies
+- [.NET 10](https://dotnet.microsoft.com/en-us/)
 
 ## Design Philosophy
 
