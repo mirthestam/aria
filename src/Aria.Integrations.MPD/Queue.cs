@@ -65,6 +65,26 @@ public class Queue(Session session, IMessenger messenger, ITagParser parser, ILo
         }
     }
 
+    public async Task EnqueueAlbum(AlbumInfo album)
+    {
+        try
+        {
+            // Using a command list here as we want MPD to process these commands sequentially.
+            var commandList = new CommandList();
+            foreach (var song in album.Songs)
+            {
+                commandList.Add(new AddCommand(song.FileName));            
+            }
+            
+            await session.SendCommandAsync(commandList);
+
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to enqueue album");
+        }
+    }
+
     public async Task UpdateFromStatusAsync(MpdStatus e)
     {
         // We received new information from MPD. Get all relevant information for this playlist.

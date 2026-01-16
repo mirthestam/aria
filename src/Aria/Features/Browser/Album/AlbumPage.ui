@@ -99,6 +99,12 @@ caption</property>
                 <property name="icon-name">media-play</property>
               </object>
             </child>
+            <child type="end">
+              <object class="GtkButton" id="enqueue-button">
+                <property name="action-name">album.enqueue</property>
+                <property name="icon-name">add</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>

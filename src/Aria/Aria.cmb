@@ -18,7 +18,7 @@
   <ui template-class="AriaFeaturesBrowserArtistsArtistsPage" filename="Features/Browser/Artists/ArtistsPage.ui" sha256="c69177d5f0cbc401630561d1724c490b134d7777f123e69fd38dcfad938bc06c"/>
   <ui template-class="AriaFeaturesBrowserAlbumsAlbumsAlbumListItem" filename="Features/Browser/Albums/AlbumsAlbumListItem.ui" sha256="5fdf86f4975d36b6353108388913105788bd25d6457a2423498336fe349a88a8"/>
   <ui template-class="AriaFeaturesBrowserAlbumsAlbumsPage" filename="Features/Browser/Albums/AlbumsPage.ui" sha256="1378a7830a1040bf6a545e7794d37bae21dfe1c3c6cb4950286ff93e2e0ee569"/>
-  <ui template-class="AriaFeaturesBrowserAlbumAlbumPage" filename="Features/Browser/Album/AlbumPage.ui" sha256="483b2f24195b0874d88e68c65737e01efa17baeb9379ad6fc98294102da25bd7"/>
+  <ui template-class="AriaFeaturesBrowserAlbumAlbumPage" filename="Features/Browser/Album/AlbumPage.ui" sha256="77d92c7988b9a537448b86b3eb52e254cd6d904638787a0a13b78d4260ac73dd"/>
   <ui template-class="AriaFeaturesBrowserArtistArtistPage" filename="Features/Browser/Artist/ArtistPage.ui" sha256="16696bddcf6c19e5e03663cbc292a99788b0f4dbafd6c3215d0038eec6a400b0">
     <requires>AriaFeaturesBrowserArtistEmptyPage</requires>
   </ui>

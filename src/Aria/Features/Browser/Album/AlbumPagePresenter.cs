@@ -29,6 +29,13 @@ public partial class AlbumPagePresenter
     {
         View = view;
         View.PlayAlbumAction.OnActivate += PlayAlbumActionOnOnActivate; 
+        View.EnqueueAlbumAction.OnActivate += EnqueueAlbumActionOnOnActivate;
+    }
+
+    private void EnqueueAlbumActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        if (_album.Id == null) return;
+        _ = _playbackApi.Queue.EnqueueAlbum(_album);
     }
 
     private void PlayAlbumActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)

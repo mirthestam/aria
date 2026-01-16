@@ -26,12 +26,15 @@ public partial class AlbumPage
     [Connect("play-button")] private Button _playButton;
     
     public SimpleAction PlayAlbumAction { get; private set; }
+    public SimpleAction EnqueueAlbumAction { get; private set; }
     
     partial void Initialize()
     {
         var actionGroup = SimpleActionGroup.New();
         PlayAlbumAction = SimpleAction.New("play", null);
+        EnqueueAlbumAction = SimpleAction.New("enqueue", null);
         actionGroup.AddAction(PlayAlbumAction);
+        actionGroup.AddAction(EnqueueAlbumAction);
 
         InsertActionGroup("album", actionGroup);
     }

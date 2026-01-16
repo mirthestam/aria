@@ -33,4 +33,5 @@ public interface IQueue
     public Task PlayAsync(int index);
 
     public Task PlayAlbum(AlbumInfo album);
+    public Task EnqueueAlbum(AlbumInfo album);
 }

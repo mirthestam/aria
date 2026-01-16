@@ -27,6 +27,7 @@ public class SessionQueue : IQueue
     public SongInfo? CurrentSong => _active?.CurrentSong;
     public Task PlayAsync(int index) => _active?.PlayAsync(index) ?? Task.CompletedTask;
     public Task PlayAlbum(AlbumInfo album) => _active?.PlayAlbum(album) ?? Task.CompletedTask;
+    public Task EnqueueAlbum(AlbumInfo album) => _active?.EnqueueAlbum(album) ?? Task.CompletedTask;
 
     internal void Attach(IQueue queue)
     {
