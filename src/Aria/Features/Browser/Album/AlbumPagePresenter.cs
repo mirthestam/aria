@@ -1,7 +1,10 @@
 using Aria.Core;
 using Aria.Core.Library;
 using Aria.Infrastructure;
+using Gio;
+using GObject;
 using Microsoft.Extensions.Logging;
+using Task = System.Threading.Tasks.Task;
 
 namespace Aria.Features.Browser.Album;
 
@@ -9,11 +12,13 @@ public partial class AlbumPagePresenter
 {
     private readonly ILogger<AlbumPagePresenter> _logger;
     private readonly ResourceTextureLoader _textureLoader;
-
-    public AlbumPagePresenter(ILogger<AlbumPagePresenter> logger, ResourceTextureLoader textureLoader)
+    private readonly IPlaybackApi _playbackApi;
+    
+    public AlbumPagePresenter(ILogger<AlbumPagePresenter> logger, ResourceTextureLoader textureLoader, IPlaybackApi playbackApi)
     {
         _logger = logger;
         _textureLoader = textureLoader;
+        _playbackApi = playbackApi;
     }
 
     public AlbumPage View { get; private set; }
@@ -23,18 +28,25 @@ public partial class AlbumPagePresenter
     public void Attach(AlbumPage view)
     {
         View = view;
+        View.PlayAlbumAction.OnActivate += PlayAlbumActionOnOnActivate; 
+    }
+
+    private void PlayAlbumActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        if (_album.Id == null) return;
+        _ = _playbackApi.Queue.PlayAlbum(_album);
     }
 
     public async Task LoadAsync(AlbumInfo album)
     {
+        _album = album;
+        
         try
         {
             View.LoadAlbum(album);
-
-            var texture =
-                await _textureLoader.LoadFromAlbumResourceAsync(album.FrontCover != null
-                    ? album.FrontCover.Id
-                    : Id.Empty);
+            
+            var assetId = album.Assets.FrontCover?.Id ?? Id.Empty;
+            var texture = await _textureLoader.LoadFromAlbumResourceAsync(assetId);
             if (texture == null)
             {
                 LogCouldNotLoadAlbumCoverForAlbum(album.Id ?? Id.Empty);

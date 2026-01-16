@@ -1,7 +1,7 @@
 namespace Aria.Core.Playlist;
 
 [Flags]
-public enum PlaylistStateChangedFlags
+public enum QueueStateChangedFlags
 {
     None = 0,
     Id = 1 << 0,

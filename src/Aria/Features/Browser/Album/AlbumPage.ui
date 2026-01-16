@@ -26,6 +26,7 @@
                           <object class="GtkPicture" id="cover-picture">
                             <property name="alternative-text">Album cover</property>
                             <property name="content-fit">scale-down</property>
+                            <property name="css-classes">cover</property>
                             <property name="halign">center</property>
                             <property name="height-request">180</property>
                             <property name="hexpand">False</property>
@@ -92,6 +93,12 @@ caption</property>
         <child type="top">
           <object class="AdwHeaderBar">
             <property name="show-title">False</property>
+            <child type="end">
+              <object class="GtkButton" id="play-button">
+                <property name="action-name">album.play</property>
+                <property name="icon-name">media-play</property>
+              </object>
+            </child>
           </object>
         </child>
       </object>

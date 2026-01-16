@@ -29,8 +29,7 @@ public interface IPlayer
     public bool CanXFade { get; }
 
     public PlaybackProgress Progress { get; }
-
-    public SongInfo? CurrentSong { get; }
+    
     Task PlayAsync();
 
     Task PauseAsync();

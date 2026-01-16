@@ -1,18 +1,18 @@
 namespace Aria.Core.Library;
 
-public sealed record AlbumResource
+public sealed record AssetInfo
 {
     public Id Id { get; init; }
     
     /// <summary>
     /// The type of the album resource.
     /// </summary>
-    public ResourceType Type { get; init; }
+    public AssetType Type { get; init; }
 
     /// <summary>
     /// The MIME type of the album resource, representing the media type or format of the resource.
     /// </summary>
-    public string MimeType { get; init; }
+    public string? MimeType { get; init; }
 
     /// <summary>
     /// A brief description of the album resource. This property can be used to provide

@@ -11,12 +11,12 @@ public class AppSession(
     // The Session implementations are wrappers around the backend implementations, so we can easily exchange them at runtime, without having the UI to rebind to events.
     private readonly SessionLibrary _library = new();
     private readonly SessionPlayer _player = new();
-    private readonly SessionPlaylist _playlist = new();
+    private readonly SessionQueue _queue = new();
 
     private IBackendConnection? _backend;
 
     public IPlayer Player => _player;
-    public IPlaylist Playlist => _playlist;
+    public IQueue Queue => _queue;
     public ILibrary Library => _library;
 
     public bool IsBackendLoaded => _backend != null;
@@ -44,7 +44,7 @@ public class AppSession(
     {
         await _backend?.DisconnectAsync();
         _player.Detach();
-        _playlist.Detach();
+        _queue.Detach();
         _library.Detach();
         _backend?.Dispose();
         _backend = null;        
@@ -63,7 +63,7 @@ public class AppSession(
             if (_backend != null)
             {
                 _player.Detach();
-                _playlist.Detach();
+                _queue.Detach();
                 _library.Detach();
 
                 _backend.Dispose();
@@ -74,7 +74,7 @@ public class AppSession(
             _backend = await provider.CreateAsync(connectionProfile);
 
             _player.Attach(_backend.Player);
-            _playlist.Attach(_backend.Playlist);
+            _queue.Attach(_backend.Queue);
             _library.Attach(_backend.Library);
 
             //  Initialize the backend. This is where it will connect.
@@ -83,7 +83,7 @@ public class AppSession(
         catch
         {
             _player.Detach();
-            _playlist.Detach();
+            _queue.Detach();
             _library.Detach();
             _backend?.Dispose();
             _backend = null;

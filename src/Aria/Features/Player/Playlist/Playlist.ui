@@ -16,7 +16,8 @@
                 <property name="propagate-natural-height">True</property>
                 <child>
                   <object class="GtkListView" id="songs-list-view">
-                    <property name="css-classes">navigation-sidebar</property>
+                    <property name="css-classes">navigation-sidebar
+playlist</property>
                     <property name="tab-behavior">item</property>
                   </object>
                 </child>

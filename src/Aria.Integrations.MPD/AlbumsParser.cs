@@ -82,33 +82,25 @@ public class AlbumsParser(ITagParser tagParser)
                     .DistinctBy(a => a.Artist.Id)
                     .ToList();
 
+                // var albumArtId = Id.Empty;
+                //
+                // // MPD uses the fileName of a song to search for `cover` art files in its containing path.
+                // // Therefore, we use a song on this album to query MPD.
+                // var artTemplate = uniqueAlbumInfos.LastOrDefault(a => a.Id == template.Id);
+                // if (artTemplate is { Songs.Count: > 0 })
+                // {
+                //     var referenceSong = artTemplate.Songs[0];
+                //     if (referenceSong is { Id: SongId id })
+                //     {
+                //         albumArtId = new AssetId(id);
+                //     }
+                // }
 
-                var albumArtId = Id.Empty;
-
-                // MPD uses the fileName of a song to search for `cover` art files in its containing path.
-                // Therefore, we use a song on this album to query MPD.
-                var artTemplate = uniqueAlbumInfos.LastOrDefault(a => a.Id == template.Id);
-                if (artTemplate is { Songs.Count: > 0 })
-                {
-                    var referenceSong = artTemplate.Songs[0];
-                    if (referenceSong is { Id: SongId id })
-                    {
-                        albumArtId = new AlbumArtId(id);
-                    }
-                }
-
+                var firstSong = consolidatedSongs.First();
+                
                 return template with
                 {
-                    Resources =
-                    [
-                        new AlbumResource
-                        {
-                            Description = "Dummy cover",
-                            Id = albumArtId,
-                            Type = ResourceType.FrontCover,
-                            MimeType = "image/jpeg"
-                        }
-                    ],
+                    Assets = firstSong.Assets, // Take the assets from the first song
                     Songs = consolidatedSongs,
                     CreditsInfo = template.CreditsInfo with
                     {
@@ -122,6 +114,24 @@ public class AlbumsParser(ITagParser tagParser)
     private (AlbumInfo Album, SongInfo Song) ParseAlbumInformation(List<Tag> songTags)
     {
         var songInfo = tagParser.ParseSongInformation(songTags);
+
+        if (songInfo.FileName != null)
+        {
+            // For MPD we want to look up album art by filename
+            songInfo = songInfo with
+            {
+                Assets =
+                [
+                    new AssetInfo
+                    {
+                        Id = new AssetId(songInfo.FileName),
+                        Type = AssetType.FrontCover
+                    }
+                ]
+            };
+        }
+
+
         var albumInfo = tagParser.ParseAlbumInformation(songTags);
 
         return (albumInfo, songInfo);

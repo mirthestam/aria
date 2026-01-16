@@ -1,6 +1,7 @@
 using Adw;
 using Aria.Core.Library;
 using Gdk;
+using Gio;
 using GObject;
 using Gtk;
 using Humanizer;
@@ -20,7 +21,20 @@ public partial class AlbumPage
     
     [Connect("songs-listbox")] private ListBox _songsListBox;
     
-    [Connect("cover-picture")] private Picture _coverPicture;    
+    [Connect("cover-picture")] private Picture _coverPicture;
+    
+    [Connect("play-button")] private Button _playButton;
+    
+    public SimpleAction PlayAlbumAction { get; private set; }
+    
+    partial void Initialize()
+    {
+        var actionGroup = SimpleActionGroup.New();
+        PlayAlbumAction = SimpleAction.New("play", null);
+        actionGroup.AddAction(PlayAlbumAction);
+
+        InsertActionGroup("album", actionGroup);
+    }
 
     public void SetCover(Texture texture)
     {

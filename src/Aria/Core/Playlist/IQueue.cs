@@ -3,9 +3,9 @@ using Aria.Core.Library;
 namespace Aria.Core.Playlist;
 
 /// <summary>
-/// Controls the active playlist (or sometimes queue) and provides basic information about its state.
+/// Controls the active queue (or sometimes playlist) and provides basic information about its state.
 /// </summary>
-public interface IPlaylist
+public interface IQueue
 {
     public Id Id { get; }
     public int Length { get; }
@@ -20,8 +20,17 @@ public interface IPlaylist
     Task SetConsumeAsync(bool enabled);
     
     /// <summary>
-    /// Gets detailed information about the songs in this playlist
+    /// Gets detailed information about the songs in this queue
     /// </summary>
     /// <returns></returns>
     Task<IEnumerable<SongInfo>> GetSongsAsync();
+    
+    /// <summary>
+    /// Gets detailed information about the currently playing song.
+    /// </summary>
+    public SongInfo? CurrentSong { get; }
+    
+    public Task PlayAsync(int index);
+
+    public Task PlayAlbum(AlbumInfo album);
 }

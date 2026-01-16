@@ -20,7 +20,7 @@ public abstract class BackendConnection : IBackendConnection
 
     public abstract IPlayer Player { get; }
 
-    public abstract IPlaylist Playlist { get; }
+    public abstract IQueue Queue { get; }
 
     public abstract ILibrary Library { get; }
     

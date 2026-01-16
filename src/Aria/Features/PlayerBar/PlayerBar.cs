@@ -1,6 +1,7 @@
 using Aria.Core;
 using Aria.Core.Library;
 using Aria.Core.Player;
+using Aria.Core.Playlist;
 using GObject;
 using Gtk;
 
@@ -15,24 +16,12 @@ public partial class PlayerBar
     [Connect("title-label")] private Label _titleLabel;
 
     // TODO: The mini-player progress bar is visible only in numeric mode, which is turned off.
-    
-    public void PlayerStateChanged(PlayerStateChangedFlags flags, IPlaybackApi api)
+
+    public void QueueStateChanged(QueueStateChangedFlags flags, IPlaybackApi api)
     {
-        if (flags.HasFlag(PlayerStateChangedFlags.State))
+        if (flags.HasFlag(QueueStateChangedFlags.PlaybackOrder))
         {
-            var elapsedBarVisible = api.Player.State switch
-            {
-                PlaybackState.Unknown or PlaybackState.Stopped => false,
-                PlaybackState.Playing or PlaybackState.Paused => true,
-                _ => false
-            };
-
-            _progressBar.Visible = elapsedBarVisible;
-        }
-
-        if (flags.HasFlag(PlayerStateChangedFlags.CurrentSong))
-        {
-            var song = api.Player.CurrentSong;
+            var song = api.Queue.CurrentSong;
 
             var titleText = song?.Title ?? "Unnamed song";
             if (song?.Work.ShowMovement ?? false)
@@ -62,8 +51,23 @@ public partial class PlayerBar
 
             _titleLabel.Label_ = titleText;
             _subTitleLabel.Label_ = subTitleText;
-        }
+        }        
+    }
+    
+    public void PlayerStateChanged(PlayerStateChangedFlags flags, IPlaybackApi api)
+    {
+        if (flags.HasFlag(PlayerStateChangedFlags.PlaybackState))
+        {
+            var elapsedBarVisible = api.Player.State switch
+            {
+                PlaybackState.Unknown or PlaybackState.Stopped => false,
+                PlaybackState.Playing or PlaybackState.Paused => true,
+                _ => false
+            };
 
+            _progressBar.Visible = elapsedBarVisible;
+        }
+        
         if (flags.HasFlag(PlayerStateChangedFlags.Progress))
             _progressBar.Fraction =
                 api.Player.Progress.Elapsed.TotalSeconds / api.Player.Progress.Duration.TotalSeconds;

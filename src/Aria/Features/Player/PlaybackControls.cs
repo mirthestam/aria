@@ -1,5 +1,6 @@
 using Aria.Core;
 using Aria.Core.Player;
+using Aria.Core.Playlist;
 using GObject;
 using Gtk;
 
@@ -14,15 +15,19 @@ public partial class PlaybackControls
     [Connect("playlist-progress-label")] private Label _playlistProgressLabel;
     [Connect("remaining-time-label")] private Label _remainingTimeLabel;
     [Connect("media-controls")] private MediaControls _mediaControls;
-
+    
+    public void QueueStateChanged(QueueStateChangedFlags flags, IPlaybackApi api)
+    {
+        if (flags.HasFlag(QueueStateChangedFlags.PlaybackOrder))
+        {
+            // This contains the current song.
+            SetPlaylistInfo(api.Queue.Order.CurrentIndex, api.Queue.Length);
+            SetProgress(api.Player.Progress.Elapsed, api.Player.Progress.Duration);            
+        }
+    }
+    
     public void PlayerStateChanged(PlayerStateChangedFlags flags, IPlaybackApi api)
     {
-        if (flags.HasFlag(PlayerStateChangedFlags.CurrentSong))
-        {
-            SetPlaylistInfo(api.Playlist.Order.CurrentIndex, api.Playlist.Length);
-            SetProgress(api.Player.Progress.Elapsed, api.Player.Progress.Duration);
-        }
-
         if (flags.HasFlag(PlayerStateChangedFlags.Progress))
         {
             SetElapsed(api.Player.Progress.Elapsed);

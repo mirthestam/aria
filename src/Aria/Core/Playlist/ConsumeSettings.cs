@@ -1,3 +1,13 @@
 namespace Aria.Core.Playlist;
 
-public record ConsumeSettings(bool Enabled, bool Supported);
+public readonly record struct ConsumeSettings
+{
+    public required bool Enabled { get; init; }
+    public required bool Supported { get; init; }
+    
+    public static ConsumeSettings Default => new ConsumeSettings
+    {
+        Enabled = false,
+        Supported = false
+    };
+}

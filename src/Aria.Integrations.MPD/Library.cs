@@ -117,8 +117,8 @@ public class Library(Session session, ITagParser tagParser, ILogger<Library> log
     {
         if (resourceId == Id.Empty) return await GetDefaultAlbumResourceStreamAsync();
 
-        var albumArtId = (AlbumArtId)resourceId;
-        var fileName = albumArtId.Value.Value;
+        var albumArtId = (AssetId)resourceId;
+        var fileName = albumArtId.Value;
 
         using var scope = await session.CreateConnectionScopeAsync(token);
 

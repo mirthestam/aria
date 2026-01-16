@@ -1,5 +1,6 @@
 using Aria.Core;
 using Aria.Core.Player;
+using Aria.Core.Playlist;
 using Aria.Main;
 using CommunityToolkit.Mvvm.Messaging;
 using Gio;
@@ -7,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Aria.Features.PlayerBar;
 
-public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>
+public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>, IRecipient<QueueChangedMessage>
 {
     private readonly ILogger<PlayerBarPresenter> _logger;
     private readonly IMessenger _messenger;
@@ -19,13 +20,19 @@ public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>
         _logger = logger;
         _api = api;
         _messenger = messenger;
-        messenger.Register(this);
+        messenger.Register<PlayerStateChangedMessage>(this);
+        messenger.Register<QueueChangedMessage>(this);
     }
 
     public void Receive(PlayerStateChangedMessage message)
     {
         _view?.PlayerStateChanged(message.Value, _api);
     }
+    
+    public void Receive(QueueChangedMessage message)
+    {
+        _view?.QueueStateChanged(message.Value, _api);
+    }    
 
     public void Attach(PlayerBar bar)
     {
@@ -59,5 +66,6 @@ public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>
     }
     
     [LoggerMessage(LogLevel.Error, "Player action failed: {action}")]
-    partial void PlayerActionFailed(Exception e, string? action);    
+    partial void PlayerActionFailed(Exception e, string? action);
+    
 }

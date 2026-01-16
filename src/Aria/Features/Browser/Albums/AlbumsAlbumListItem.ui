@@ -15,6 +15,7 @@
         <child>
           <object class="GtkPicture" id="cover-picture">
             <property name="content-fit">scale-down</property>
+            <property name="css-classes">cover</property>
             <property name="halign">center</property>
             <property name="height-request">100</property>
             <property name="keep-aspect-ratio">True</property>

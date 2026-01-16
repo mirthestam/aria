@@ -45,7 +45,6 @@ public class SessionPlayer : IPlayer
     public bool CanXFade => _active?.CanXFade ?? false;
     public int? Volume => _active?.Volume;
     public PlaybackProgress Progress => _active?.Progress ?? new PlaybackProgress();
-    public SongInfo? CurrentSong => _active?.CurrentSong;
 
     internal void Attach(IPlayer player)
     {

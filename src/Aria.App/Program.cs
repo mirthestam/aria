@@ -21,6 +21,7 @@ using CommunityToolkit.Mvvm.Messaging;
 using Gio;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using BackendConnection = Aria.MusicServers.MPD.BackendConnection;
 using Task = System.Threading.Tasks.Task;
 
 namespace Aria.App;
@@ -78,6 +79,13 @@ public class Program
 
                 // Feature - PlayerBar
                 x.AddSingleton<PlayerBarPresenter>();
+                
+                // MPD
+                x.AddSingleton<BackendConnection>();
+                x.AddSingleton<Queue>();
+                x.AddSingleton<Library>();
+                x.AddSingleton<Session>();
+                x.AddSingleton<MusicServers.MPD.Player>();
             })
             .UseGtk(a =>
             {

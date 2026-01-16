@@ -9,7 +9,7 @@ public interface IBackendConnection : IDisposable
 {
     IPlayer Player { get; }
 
-    IPlaylist Playlist { get; }
+    IQueue Queue { get; }
 
     ILibrary Library { get; }
 

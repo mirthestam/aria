@@ -1,6 +1,6 @@
 namespace Aria.Core.Library;
 
-public record SongInfo
+public record SongInfo : IHasAssets
 {
     public Id? Id { get; init; }
 
@@ -21,4 +21,6 @@ public record SongInfo
     public required DateTime? ReleaseDate { get; init; }
     
     public string? FileName { get; init; }
+
+    public IReadOnlyCollection<AssetInfo> Assets { get; init; } = [];
 }

@@ -78,7 +78,7 @@ public partial class ArtistPagePresenter
     
     private async Task LoadArtForModelAsync(AlbumModel model)
     {
-        var artId = model.Album.Resources.FirstOrDefault(r => r.Type == ResourceType.FrontCover)?.Id;
+        var artId = model.Album.Assets.FirstOrDefault(r => r.Type == AssetType.FrontCover)?.Id;
         if (artId == null) return;
 
         try

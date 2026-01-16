@@ -2,5 +2,6 @@
 <gresources>
 	<gresource prefix="/nl/mirthestam/aria">
 		<file>nl.mirthestam.aria.metainfo.xml</file>
+		<file>style.css</file>
 	</gresource>
 </gresources>

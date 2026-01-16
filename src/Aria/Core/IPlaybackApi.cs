@@ -8,7 +8,7 @@ public interface IPlaybackApi
 {
     public IPlayer Player { get; }
 
-    public IPlaylist Playlist { get; }
+    public IQueue Queue { get; }
 
     public ILibrary Library { get; }
 }

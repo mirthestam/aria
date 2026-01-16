@@ -62,7 +62,7 @@ public partial class AlbumsPagePresenter :   IRecipient<LibraryUpdatedMessage>,
     {
         // TODO: I currently load artwork for all albums.
         // However, it may be better to start loading artwork only when an album enters the UI view.
-        var artId = model.Album.Resources.FirstOrDefault(r => r.Type == ResourceType.FrontCover)?.Id;
+        var artId = model.Album.Assets.FirstOrDefault(r => r.Type == AssetType.FrontCover)?.Id;
         if (artId == null) return;
 
         try
