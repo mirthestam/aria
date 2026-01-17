@@ -1,3 +1,5 @@
+using Aria.Backends.MPD.Connection;
+using Aria.Core.Extraction;
 using Aria.Core.Player;
 using Aria.Infrastructure;
 using Aria.Infrastructure.Tagging;
@@ -5,15 +7,15 @@ using CommunityToolkit.Mvvm.Messaging;
 using MpcNET;
 using MpcNET.Commands.Playback;
 
-namespace Aria.MusicServers.MPD;
+namespace Aria.Backends.MPD;
 
-public class Player(Session session, IMessenger messenger, ITagParser parser) : BasePlayer
+public class Player(Client client) : BasePlayer
 {
-    public override async Task PlayAsync() => await session.SendCommandAsync(new PlayCommand(0));
-    public override async Task PauseAsync() => await session.SendCommandAsync(new PauseResumeCommand(true));
-    public override async Task NextAsync() => await session.SendCommandAsync(new NextCommand());
-    public override async Task PreviousAsync() => await session.SendCommandAsync(new PreviousCommand());
-    public override async Task StopAsync() => await session.SendCommandAsync(new StopCommand());
+    public override async Task PlayAsync() => await client.SendCommandAsync(new PlayCommand(0)).ConfigureAwait(false);
+    public override async Task PauseAsync() => await client.SendCommandAsync(new PauseResumeCommand(true)).ConfigureAwait(false);
+    public override async Task NextAsync() => await client.SendCommandAsync(new NextCommand()).ConfigureAwait(false);
+    public override async Task PreviousAsync() => await client.SendCommandAsync(new PreviousCommand()).ConfigureAwait(false);
+    public override async Task StopAsync() => await client.SendCommandAsync(new StopCommand()).ConfigureAwait(false);
     
     public async Task UpdateFromStatusAsync(MpdStatus s)
     {
@@ -52,7 +54,7 @@ public class Player(Session session, IMessenger messenger, ITagParser parser) : 
         
         if (flags != PlayerStateChangedFlags.None)
         {
-            messenger.Send(new PlayerStateChangedMessage(flags));
+            OnStateChanged(flags);
         }
     }
 }

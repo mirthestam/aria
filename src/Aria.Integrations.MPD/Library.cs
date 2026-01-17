@@ -1,37 +1,52 @@
-using System.Diagnostics;
-using Aria.Core;
+using Aria.Backends.MPD.Connection;
+using Aria.Backends.MPD.Extraction;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Infrastructure;
-using Aria.Infrastructure.Tagging;
 using Microsoft.Extensions.Logging;
 using MpcNET;
 using MpcNET.Commands.Database;
 using MpcNET.Tags;
-using FindCommand = Aria.MusicServers.MPD.Commands.FindCommand;
+using FindCommand = Aria.Backends.MPD.Connection.Commands.FindCommand;
 
-namespace Aria.MusicServers.MPD;
+namespace Aria.Backends.MPD;
 
-public class Library(Session session, ITagParser tagParser, ILogger<Library> logger) : BaseLibrary
+public class Library(Client client, ITagParser tagParser, ILogger<Library> logger) : BaseLibrary
 {
     private readonly AlbumsParser _albumsParser = new(tagParser);
 
-    public override async Task<IEnumerable<ArtistInfo>> GetArtists()
+    public void ServerUpdated()
+    {
+        OnUpdated();
+    }
+    
+    public override async Task<ArtistInfo?> GetArtist(Id artistId, CancellationToken cancellationToken = default)
+    {
+        // TODO: This is pulling in all artists.
+        // Implement a specific call that only searches for ONE artist
+        // Or, use a cache here
+        var artists = await GetArtists(cancellationToken).ConfigureAwait(false);
+        return artists.FirstOrDefault(artist => artist.Id == artistId);
+    }
+    
+    public override async Task<IEnumerable<ArtistInfo>> GetArtists(CancellationToken cancellationToken = default)
     {
         var artistMap = new Dictionary<Id, ArtistInfo>();
 
-        using var scope = await session.CreateConnectionScopeAsync();
-        await FetchAndAdd(new ListCommand(MpdTags.Artist), ArtistRoles.Performer, scope);
-        await FetchAndAdd(new ListCommand(MpdTags.Composer), ArtistRoles.Composer, scope);
-        await FetchAndAdd(new ListCommand(MpdTags.Performer), ArtistRoles.Performer, scope);
-        await FetchAndAdd(new ListCommand(ExtraMpdTags.Conductor), ArtistRoles.Conductor, scope);
-        await FetchAndAdd(new ListCommand(ExtraMpdTags.Ensemble), ArtistRoles.Ensemble, scope);
+        using var scope = await client.CreateConnectionScopeAsync(cancellationToken).ConfigureAwait(false);
+        await FetchAndAdd(new ListCommand(MpdTags.Artist), ArtistRoles.Performer, scope).ConfigureAwait(false);
+        await FetchAndAdd(new ListCommand(MpdTags.Composer), ArtistRoles.Composer, scope).ConfigureAwait(false);
+        await FetchAndAdd(new ListCommand(MpdTags.Performer), ArtistRoles.Performer, scope).ConfigureAwait(false);
+        await FetchAndAdd(new ListCommand(ExtraMpdTags.Conductor), ArtistRoles.Conductor, scope).ConfigureAwait(false);
+        await FetchAndAdd(new ListCommand(ExtraMpdTags.Ensemble), ArtistRoles.Ensemble, scope).ConfigureAwait(false);
 
         return artistMap.Values;
 
         async Task FetchAndAdd(IMpcCommand<IEnumerable<string>> command, ArtistRoles role,
             ConnectionScope connectionScope)
         {
-            var (isSuccess, names) = await connectionScope.SendCommandAsync(command);
+            cancellationToken.ThrowIfCancellationRequested();
+            var (isSuccess, names) = await connectionScope.SendCommandAsync(command).ConfigureAwait(false);
             if (isSuccess && names != null)
             {
                 foreach (var name in names) AddOrUpdate(name, role);
@@ -63,17 +78,18 @@ public class Library(Session session, ITagParser tagParser, ILogger<Library> log
         }
     }
 
-    public override async Task<IEnumerable<AlbumInfo>> GetAlbums()
+    public override async Task<IEnumerable<AlbumInfo>> GetAlbums(CancellationToken cancellationToken = default)
     {
-        var artists = (await GetArtists()).ToList();
+        var artists = (await GetArtists(cancellationToken).ConfigureAwait(false)).ToList();
         var allTags = new List<Tag>();
 
-        using (var scope = await session.CreateConnectionScopeAsync())
+        using (var scope = await client.CreateConnectionScopeAsync(cancellationToken).ConfigureAwait(false))
         {
             var tasks = artists
-                .Select(artist => scope.SendCommandAsync(new FindCommand(MpdTags.AlbumArtist, artist.Name))).ToList();
+                .Select(artist => scope.SendCommandAsync(new FindCommand(MpdTags.AlbumArtist, artist.Name)))
+                .ToList();
 
-            var responses = await Task.WhenAll(tasks);
+            var responses = await Task.WhenAll(tasks).ConfigureAwait(false);
 
             foreach (var response in responses)
             {
@@ -84,14 +100,16 @@ public class Library(Session session, ITagParser tagParser, ILogger<Library> log
             }
         }
 
+        // This is CPU-bound parsing. Since ConfigureAwait(false) was used earlier,
+        // this code is assumed to be running on a background thread.
         return _albumsParser.GetAlbums(allTags).DistinctBy(album => album.Id);
     }
 
-    public override async Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId)
+    public override async Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId, CancellationToken cancellationToken = default)
     {
         var mpdArtistId = (ArtistId)artistId;
 
-        using var scope = await session.CreateConnectionScopeAsync();
+        using var scope = await client.CreateConnectionScopeAsync(cancellationToken).ConfigureAwait(false);
         
         var tasks = new[]
         {
@@ -102,7 +120,7 @@ public class Library(Session session, ITagParser tagParser, ILogger<Library> log
             scope.SendCommandAsync(new FindCommand(MpdTags.Performer, mpdArtistId.Value))
         };
 
-        var results = await Task.WhenAll(tasks);
+        var results = await Task.WhenAll(tasks).ConfigureAwait(false);
         
         var allTags = results
             .Where(r => r is { IsSuccess: true, Content: not null })
@@ -115,12 +133,12 @@ public class Library(Session session, ITagParser tagParser, ILogger<Library> log
 
     public override async Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken token)
     {
-        if (resourceId == Id.Empty) return await GetDefaultAlbumResourceStreamAsync();
+        if (resourceId == Id.Empty) return await GetDefaultAlbumResourceStreamAsync(token).ConfigureAwait(false);
 
         var albumArtId = (AssetId)resourceId;
         var fileName = albumArtId.Value;
 
-        using var scope = await session.CreateConnectionScopeAsync(token);
+        using var scope = await client.CreateConnectionScopeAsync(token).ConfigureAwait(false);
 
 
         // Try to find the cover from directory the song resides in by looking for a file called cover.png, cover.jpg, or cover.webp.
@@ -132,7 +150,7 @@ public class Library(Session session, ITagParser tagParser, ILogger<Library> log
 
             do
             {
-                var (isSuccess, content) = await scope.SendCommandAsync(new AlbumArtCommand(fileName, currentSize));
+                var (isSuccess, content) = await scope.SendCommandAsync(new AlbumArtCommand(fileName, currentSize)).ConfigureAwait(false);
                 if (!isSuccess) break;
                 if (content == null) break;
 
@@ -148,6 +166,10 @@ public class Library(Session session, ITagParser tagParser, ILogger<Library> log
                 return new MemoryStream(data.ToArray());
             }
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }        
         catch (Exception e)
         {
             logger.LogError(e, "Failed to get album art from MPD");
@@ -177,6 +199,10 @@ public class Library(Session session, ITagParser tagParser, ILogger<Library> log
                 return new MemoryStream(data.ToArray());
             }
         }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }                
         catch (Exception e)
         {
             logger.LogError(e, "Failed to get album art from MPD");

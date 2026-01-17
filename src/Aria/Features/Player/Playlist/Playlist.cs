@@ -1,5 +1,5 @@
-using System.ComponentModel.Design.Serialization;
 using Aria.Core;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
 using GObject;
 using Gtk;
@@ -11,8 +11,6 @@ namespace Aria.Features.Player.Playlist;
 [Template<AssemblyResource>("Aria.Features.Player.Playlist.Playlist.ui")]
 public partial class Playlist
 {
-    public event EventHandler<uint>? SongSelectionChanged;
-
     public enum PlaylistPages
     {
         Songs,
@@ -23,26 +21,15 @@ public partial class Playlist
     private const string SongsPageName = "playlist-page";
 
     private bool _initialized;
-    private bool _suppressSelectionEvent;
-
-    [Connect("songs-list-view")] private ListView _songsListView;
-
-    private ListStore _songsListStore;
-    private SingleSelection _songsSelection;
     private SignalListItemFactory _signalListItemFactory;
 
-    public void TogglePage(PlaylistPages page)
-    {
-        var pageName = page switch
-        {
-            PlaylistPages.Songs => SongsPageName,
-            PlaylistPages.Empty => EmptyPageName,
-            _ => throw new ArgumentOutOfRangeException(nameof(page), page, null)
-        };
+    private ListStore _songsListStore;
 
-        SetVisibleChildName(pageName);
-    }
-
+    [Connect("songs-list-view")] private ListView _songsListView;
+    private SingleSelection _songsSelection;
+    private bool _suppressSelectionEvent;
+    public event EventHandler<uint>? SongSelectionChanged;
+    
     partial void Initialize()
     {
         if (_initialized) return;
@@ -68,33 +55,37 @@ public partial class Playlist
         _songsSelection = SingleSelection.New(_songsListStore);
         _songsListView.SetFactory(_signalListItemFactory);
         _songsListView.SetModel(_songsSelection);
-        
-        _songsSelection.OnSelectionChanged += (b, args) =>
+
+        _songsSelection.OnSelectionChanged += (_, _) =>
         {
-            if (!_suppressSelectionEvent)
-            {
-                SongSelectionChanged?.Invoke(this, _songsSelection.GetSelected());
-            }
+            if (!_suppressSelectionEvent) SongSelectionChanged?.Invoke(this, _songsSelection.GetSelected());
         };
-
-
+        
         // TODO: Add context menus to songs.
         // Should provide access to  playlist functions as well as quick navigation to the artists.
     }
+    
+    public void TogglePage(PlaylistPages page)
+    {
+        var pageName = page switch
+        {
+            PlaylistPages.Songs => SongsPageName,
+            PlaylistPages.Empty => EmptyPageName,
+            _ => throw new ArgumentOutOfRangeException(nameof(page), page, null)
+        };
 
+        SetVisibleChildName(pageName);
+    }
+    
     public void SelectSongIndex(int? index)
     {
         _suppressSelectionEvent = true;
         try
         {
             if (index == null)
-            {
                 _songsSelection.UnselectAll();
-            }
             else
-            {
                 _songsSelection.SelectItem((uint)index, true);
-            }
         }
         finally
         {

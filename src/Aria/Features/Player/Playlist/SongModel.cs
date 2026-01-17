@@ -1,4 +1,5 @@
 using Aria.Core;
+using Aria.Core.Extraction;
 using GObject;
 using Object = GObject.Object;
 
@@ -20,9 +21,9 @@ public partial class SongModel
         Duration = duration;
     }
 
-    public Id Id { get; set; }
-    public string Title { get; set; }
-    public string Subtitle { get; set; }
-    public string ComposerLine { get; set; }
-    public TimeSpan Duration { get; set; }
+    public Id Id { get; }
+    public string Title { get; }
+    public string Subtitle { get; }
+    public string ComposerLine { get; }
+    public TimeSpan Duration { get; }
 }

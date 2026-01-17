@@ -1,4 +1,3 @@
-using Gio;
 using GObject;
 using Gtk;
 

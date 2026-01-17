@@ -1,0 +1,8 @@
+using Aria.Core.Extraction;
+
+namespace Aria.Backends.MPD.Extraction;
+
+/// <summary>
+/// In MPD, players are implemented as partitions.
+/// </summary>
+public class PlayerId(string name) : Id.TypedId<string>(name, "PLR");

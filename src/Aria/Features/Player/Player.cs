@@ -1,6 +1,6 @@
 using Aria.Core;
 using Aria.Core.Player;
-using Aria.Core.Playlist;
+using Aria.Core.Queue;
 using Gdk;
 using Gio;
 using GObject;
@@ -12,12 +12,14 @@ namespace Aria.Features.Player;
 [Template<AssemblyResource>("Aria.Features.Player.Player.ui")]
 public partial class Player
 {
+    [Connect("album-picture")] private Picture _coverPicture;
     [Connect("playback-controls")] private PlaybackControls _playbackControls;
     [Connect("playlist")] private Playlist.Playlist _playlist;
-    [Connect("album-picture")] private Picture _coverPicture;
 
     public SimpleAction NextAction { get; private set; }
     public SimpleAction PrevAction { get; private set; }
+
+    public Playlist.Playlist Playlist => _playlist;
 
     partial void Initialize()
     {
@@ -32,14 +34,12 @@ public partial class Player
         InsertActionGroup("player", actionGroup);
     }
 
-    public Playlist.Playlist Playlist => _playlist;
-
-    public void QueueStateChanged(QueueStateChangedFlags flags, IPlaybackApi api)
+    public void QueueStateChanged(QueueStateChangedFlags flags, IAria api)
     {
         _playbackControls.QueueStateChanged(flags, api);
     }
-    
-    public void PlayerStateChanged(PlayerStateChangedFlags flags, IPlaybackApi api)
+
+    public void PlayerStateChanged(PlayerStateChangedFlags flags, IAria api)
     {
         _playbackControls.PlayerStateChanged(flags, api);
     }
@@ -47,5 +47,10 @@ public partial class Player
     public void LoadCover(Texture texture)
     {
         _coverPicture.SetPaintable(texture);
+    }
+
+    public void ClearCover()
+    {
+        _coverPicture.SetPaintable(null);
     }
 }

@@ -1,3 +1,5 @@
+using Aria.Core.Extraction;
+
 namespace Aria.Core.Library;
 
 /// <summary>
@@ -8,18 +10,23 @@ public interface ILibrary
     /// <summary>
     /// Gets the artists from the library
     /// </summary>
-    Task<IEnumerable<ArtistInfo>> GetArtists();
+    Task<IEnumerable<ArtistInfo>> GetArtists(CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Gets detailed information about the specified artist.
+    /// </summary>
+    Task<ArtistInfo?> GetArtist(Id artistId, CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Gets basic information about all albums in the library.
     /// </summary>
     /// <returns></returns>
-    Task<IEnumerable<AlbumInfo>> GetAlbums();
+    Task<IEnumerable<AlbumInfo>> GetAlbums(CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets detailed information about all albums where the specified artist participates on.
     /// </summary>
-    Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId);
+    Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Retrieves a resource stream from the library based on the specified resource identifier.

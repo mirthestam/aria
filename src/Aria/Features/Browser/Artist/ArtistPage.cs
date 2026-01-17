@@ -1,5 +1,4 @@
 using Adw;
-using Aria.Core;
 using Aria.Core.Library;
 using GObject;
 using Gtk;
@@ -11,8 +10,6 @@ namespace Aria.Features.Browser.Artist;
 [Template<AssemblyResource>("Aria.Features.Browser.Artist.ArtistPage.ui")]
 public partial class ArtistPage
 {
-    public event Action<AlbumInfo, ArtistInfo>? AlbumSelected;
-
     public enum ArtistPages
     {
         Artist,
@@ -22,26 +19,15 @@ public partial class ArtistPage
     private const string EmptyPageName = "empty-stack-page";
     private const string ArtistPageName = "artist-stack-page";
 
-    private ArtistInfo _artist;
-
     [Connect("albums-grid-view")] private GridView _albumsGridView;
-    [Connect("artist-stack")] private Stack _artistStack;
 
     private ListStore _albumsListStore;
     private SingleSelection _albumsSelection;
+
+    private ArtistInfo _artist;
+    [Connect("artist-stack")] private Stack _artistStack;
     private SignalListItemFactory _signalListItemFactory;
-
-    public void TogglePage(ArtistPages page)
-    {
-        var pageName = page switch
-        {
-            ArtistPages.Artist => ArtistPageName,
-            ArtistPages.Empty => EmptyPageName,
-            _ => throw new ArgumentOutOfRangeException(nameof(page), page, null)
-        };
-
-        _artistStack.VisibleChildName = pageName;
-    }
+    public event Action<AlbumInfo, ArtistInfo>? AlbumSelected;
 
     partial void Initialize()
     {
@@ -67,11 +53,16 @@ public partial class ArtistPage
         _albumsGridView.OnActivate += AlbumsGridViewOnOnActivate;
     }
 
-    private void AlbumsGridViewOnOnActivate(GridView sender, GridView.ActivateSignalArgs args)
+    public void TogglePage(ArtistPages page)
     {
-        if (_albumsSelection.SelectedItem is not AlbumModel selectedModel) return;
+        var pageName = page switch
+        {
+            ArtistPages.Artist => ArtistPageName,
+            ArtistPages.Empty => EmptyPageName,
+            _ => throw new ArgumentOutOfRangeException(nameof(page), page, null)
+        };
 
-        AlbumSelected?.Invoke(selectedModel.Album, _artist);
+        _artistStack.VisibleChildName = pageName;
     }
 
     public void ShowArtist(ArtistInfo artistInfo, IReadOnlyList<AlbumModel> albumModels)
@@ -82,5 +73,12 @@ public partial class ArtistPage
         SetTitle(artistInfo.Name);
 
         foreach (var album in albumModels) _albumsListStore.Append(album);
+    }
+
+    private void AlbumsGridViewOnOnActivate(GridView sender, GridView.ActivateSignalArgs args)
+    {
+        if (_albumsSelection.SelectedItem is not AlbumModel selectedModel) return;
+
+        AlbumSelected?.Invoke(selectedModel.Album, _artist);
     }
 }

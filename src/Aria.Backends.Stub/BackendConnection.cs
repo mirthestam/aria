@@ -1,18 +1,18 @@
-using Aria.Core.Library;
-using Aria.Core.Player;
-using Aria.Core.Playlist;
-using Aria.Infrastructure;
+using Aria.Core.Connection;
+using Aria.Infrastructure.Connection;
 using CommunityToolkit.Mvvm.Messaging;
 
 namespace Aria.Backends.Stub;
 
-public class BackendConnection(Player player, Queue queue, IMessenger messenger, Library library) : BaseBackendConnection(player, queue, messenger, library)
+public class BackendConnection(Player player, Queue queue, Library library) : BaseBackendConnection(player, queue, library)
 {
-    public override async Task InitializeAsync()
+    public const int ConnectDelay = 1;
+    public const int Delay = 1;
+
+    public override async Task ConnectAsync(CancellationToken cancellationToken = default)
     {
-        await base.InitializeAsync();
-        Messenger.Send(new LibraryUpdatedMessage());
-        Messenger.Send(new PlayerStateChangedMessage(PlayerStateChangedFlags.All));
-        Messenger.Send(new QueueChangedMessage(QueueStateChangedFlags.All));
+        OnConnectionStateChanged(ConnectionState.Connecting);
+        await Task.Delay(ConnectDelay, cancellationToken).ConfigureAwait(false);
+        OnConnectionStateChanged(ConnectionState.Connected);
     }
 }

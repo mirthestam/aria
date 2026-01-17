@@ -1,10 +1,13 @@
 using Aria.Core;
+using Aria.Core.Extraction;
 using Aria.Core.Player;
 
 namespace Aria.Infrastructure;
 
-public abstract class BasePlayer : IPlayer
+public abstract class BasePlayer : IPlayerSource
 {
+    public virtual event Action<PlayerStateChangedFlags>? StateChanged;
+    
     public virtual Id Id { get; protected set;  } = Id.Empty;
     
     public virtual int? Volume { get; protected set;  }
@@ -28,4 +31,9 @@ public abstract class BasePlayer : IPlayer
     public virtual Task PreviousAsync() => Task.CompletedTask;
 
     public virtual Task StopAsync() => Task.CompletedTask;
+    
+    protected void OnStateChanged(PlayerStateChangedFlags flags)
+    {
+        StateChanged?.Invoke(flags);
+    }    
 }

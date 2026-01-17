@@ -9,29 +9,26 @@ namespace Aria.Features.Browser.Albums;
 public partial class AlbumsAlbumListItem
 {
     [Connect("cover-picture")] private Picture _coverPicture;
-    [Connect("title-label")] private Label _titleLabel;
-    [Connect("subtitle-label")] private Label _subTitleLabel;
-    
+
     private AlbumsAlbumModel? _model;
-    
+    [Connect("subtitle-label")] private Label _subTitleLabel;
+    [Connect("title-label")] private Label _titleLabel;
+
     public void Initialize(AlbumsAlbumModel model)
     {
-        if (_model != null)
-        {
-            _model.PropertyChanged -= ModelOnPropertyChanged;
-        }
+        if (_model != null) _model.PropertyChanged -= ModelOnPropertyChanged;
 
         _model = model;
         _model.PropertyChanged += ModelOnPropertyChanged;
-        
+
         var artistsLine = string.Join(", ", model.Album.CreditsInfo.AlbumArtists.Select(a => a.Name));
-        
+
         _titleLabel.SetLabel(model.Album.Title);
         _subTitleLabel.SetLabel(artistsLine);
-        
-        SetCoverPicture();        
+
+        SetCoverPicture();
     }
-    
+
     private void ModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(AlbumsAlbumModel.CoverTexture)) return;
@@ -42,5 +39,5 @@ public partial class AlbumsAlbumListItem
     {
         if (_model?.CoverTexture == null) return;
         _coverPicture.SetPaintable(_model.CoverTexture);
-    }    
+    }
 }

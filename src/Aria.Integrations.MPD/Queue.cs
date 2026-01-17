@@ -1,22 +1,26 @@
+using Aria.Backends.MPD.Connection;
+using Aria.Backends.MPD.Connection.Commands;
+using Aria.Backends.MPD.Extraction;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
-using Aria.Core.Playlist;
+using Aria.Core.Queue;
 using Aria.Infrastructure;
 using Aria.Infrastructure.Tagging;
-using Aria.MusicServers.MPD.Commands;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using MpcNET;
 using MpcNET.Commands.Playback;
 using MpcNET.Commands.Queue;
 using MpcNET.Commands.Reflection;
+using PlaylistInfoCommand = Aria.Backends.MPD.Connection.Commands.PlaylistInfoCommand;
 
-namespace Aria.MusicServers.MPD;
+namespace Aria.Backends.MPD;
 
-public class Queue(Session session, IMessenger messenger, ITagParser parser, ILogger<Queue> logger) : BaseQueue
+public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : BaseQueue
 {
     public override async Task<IEnumerable<SongInfo>> GetSongsAsync()
     {
-        var (isSuccess, tagPairs) = await session.SendCommandAsync(new Commands.PlaylistInfoCommand());
+        var (isSuccess, tagPairs) = await client.SendCommandAsync(new PlaylistInfoCommand()).ConfigureAwait(false);
         if (!isSuccess) throw new InvalidOperationException("Failed to get playlist info");
         if (tagPairs == null) throw new InvalidOperationException("No playlist info found");
 
@@ -26,7 +30,7 @@ public class Queue(Session session, IMessenger messenger, ITagParser parser, ILo
     
     public override async Task PlayAsync(int index)
     {
-        await session.SendCommandAsync(new PlayCommand(index));
+        await client.SendCommandAsync(new PlayCommand(index)).ConfigureAwait(false);
     }
 
     public override async Task PlayAlbum(AlbumInfo album)
@@ -43,7 +47,7 @@ public class Queue(Session session, IMessenger messenger, ITagParser parser, ILo
 
             commandList.Add(new PlayCommand(0));        
         
-            await session.SendCommandAsync(commandList);
+            await client.SendCommandAsync(commandList).ConfigureAwait(false);
 
         }
         catch (Exception e)
@@ -63,7 +67,7 @@ public class Queue(Session session, IMessenger messenger, ITagParser parser, ILo
                 commandList.Add(new AddCommand(song.FileName));            
             }
             
-            await session.SendCommandAsync(commandList);
+            await client.SendCommandAsync(commandList).ConfigureAwait(false);
 
         }
         catch (Exception e)
@@ -76,18 +80,7 @@ public class Queue(Session session, IMessenger messenger, ITagParser parser, ILo
     {
         // We received new information from MPD. Get all relevant information for this playlist.
         var flags = QueueStateChangedFlags.None;
-
-        // Order
-        if (Order.CurrentIndex != e.Song)
-        {
-            Order = new PlaybackOrder
-            {
-                CurrentIndex = e.Song,
-                HasNext = e.NextSongId > 0
-            };
-            flags |= QueueStateChangedFlags.PlaybackOrder;
-        }
-
+        
         // Consume
         if (Consume.Enabled != e.Consume || !Consume.Supported)
         {
@@ -124,16 +117,45 @@ public class Queue(Session session, IMessenger messenger, ITagParser parser, ILo
 
         // Playlist 
         var newPlaylistId = new QueueId(e.Playlist);
-        if (Id is not QueueId oldId || newPlaylistId.Value != oldId.Value)
+
+        if (Id is not QueueId)
+        {
+            // This is the first time we are processing, this instance.
+            // Therefore, just force an update of the playbackOrder.
+            // We will NOT update the ID; as this would case the player to
+            // reload the playlist it had loaded at the connection.
+            Id = newPlaylistId;
+            flags |= QueueStateChangedFlags.PlaybackOrder;
+        }
+        
+        // Skip comparison unless a playlist ID is present to prevent loading the playlist unnecessarily from the app.
+        else if (Id is not QueueId oldId || newPlaylistId.Value != oldId.Value)
         {
             flags |= QueueStateChangedFlags.Id;
+            flags |= QueueStateChangedFlags.PlaybackOrder;
+            
+            // // The playback order changed implicitly, even though the current song may still be at the same index.
+            // // This will trigger an order chaange
+            // Order = PlaybackOrder.Default;
+            
             Id = newPlaylistId;
             Length = e.PlaylistLength;
         }
-
+        
+        // Order
+        if (Order.CurrentIndex != e.Song)
+        {
+            Order = new PlaybackOrder
+            {
+                CurrentIndex = e.Song,
+                HasNext = e.NextSongId > 0
+            };
+            flags |= QueueStateChangedFlags.PlaybackOrder;
+        }
+        
         if (flags.HasFlag(QueueStateChangedFlags.PlaybackOrder))
         {
-            var (isSuccess, keyValuePairs) = await session.SendCommandAsync(new GetCurrentSongInfoCommand());
+            var (isSuccess, keyValuePairs) = await client.SendCommandAsync(new GetCurrentSongInfoCommand()).ConfigureAwait(false);
             if (!isSuccess) throw new InvalidOperationException("Failed to get current song info");
             if (keyValuePairs == null) throw new InvalidOperationException("No current song info found");
 
@@ -167,6 +189,9 @@ public class Queue(Session session, IMessenger messenger, ITagParser parser, ILo
             }
         }
 
-        if (flags != QueueStateChangedFlags.None) messenger.Send(new QueueChangedMessage(flags));
+        if (flags != QueueStateChangedFlags.None)
+        {
+            OnStateChanged(flags);
+        }
     }
 }

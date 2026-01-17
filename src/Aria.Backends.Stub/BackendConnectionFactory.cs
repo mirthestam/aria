@@ -1,4 +1,5 @@
 using Aria.Infrastructure;
+using Aria.Infrastructure.Connection;
 
 namespace Aria.Backends.Stub;
 

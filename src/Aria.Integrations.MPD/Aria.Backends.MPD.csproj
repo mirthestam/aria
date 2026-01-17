@@ -4,7 +4,6 @@
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <RootNamespace>Aria.MusicServers.MPD</RootNamespace>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <PackageId>Aria.Backends.MPD</PackageId>
     </PropertyGroup>
@@ -21,12 +20,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Resources\" />
-        <Folder Include="UI\"/>
+        <Folder Include="Features\" />
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="UI\Connect\ConnectDialog.ui"/>
+        <EmbeddedResource Include="Features\Connect\ConnectDialog.ui" />
         <None Remove="Resources\cover.jpg" />
         <None Remove="Resources\vinyl-record.png" />
     </ItemGroup>

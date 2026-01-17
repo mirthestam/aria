@@ -1,4 +1,3 @@
-using Aria.Core;
 using Aria.Core.Library;
 using GObject;
 using Object = GObject.Object;
@@ -12,6 +11,6 @@ public partial class ArtistModel
     {
         Artist = artist;
     }
-    
-    public ArtistInfo Artist { get; set; }
+
+    public ArtistInfo Artist { get; }
 }

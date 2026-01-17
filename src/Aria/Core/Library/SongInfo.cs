@@ -1,3 +1,5 @@
+using Aria.Core.Extraction;
+
 namespace Aria.Core.Library;
 
 public record SongInfo : IHasAssets
@@ -18,7 +20,7 @@ public record SongInfo : IHasAssets
     
     public WorkInfo? Work { get; init; } 
     
-    public required DateTime? ReleaseDate { get; init; }
+    public DateTime? ReleaseDate { get; init; }
     
     public string? FileName { get; init; }
 

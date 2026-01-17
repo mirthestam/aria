@@ -1,11 +1,14 @@
 using Aria.Core;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
-using Aria.Core.Playlist;
+using Aria.Core.Queue;
 
 namespace Aria.Infrastructure;
 
-public abstract class BaseQueue : IQueue
+public abstract class BaseQueue : IQueueSource
 {
+    public virtual event Action<QueueStateChangedFlags>? StateChanged;
+    
     public virtual Id Id { get; protected set; } = Id.Empty;
 
     public virtual int Length  { get; protected set; }
@@ -33,4 +36,9 @@ public abstract class BaseQueue : IQueue
     public virtual Task PlayAlbum(AlbumInfo album) => Task.CompletedTask;
 
     public virtual Task EnqueueAlbum(AlbumInfo album) => Task.CompletedTask;
+    
+    protected void OnStateChanged(QueueStateChangedFlags flags)
+    {
+        StateChanged?.Invoke(flags);
+    }        
 }

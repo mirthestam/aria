@@ -10,16 +10,13 @@ namespace Aria.Features.Browser.Albums;
 [Template<AssemblyResource>("Aria.Features.Browser.Albums.AlbumsPage.ui")]
 public partial class AlbumsPage
 {
-    public event Action<AlbumInfo, ArtistInfo>? AlbumSelected;    
-    
-
     [Connect("albums-grid-view")] private GridView _albumsGridView;
-
     private ListStore _albumsListStore;
     private SingleSelection _albumsSelection;
     [Connect("artist-stack")] private Stack _artistStack;
     private SignalListItemFactory _signalListItemFactory;
 
+    public event Action<AlbumInfo, ArtistInfo>? AlbumSelected;
 
     partial void Initialize()
     {
@@ -41,22 +38,22 @@ public partial class AlbumsPage
         _albumsSelection = SingleSelection.New(_albumsListStore);
         _albumsGridView.SetFactory(_signalListItemFactory);
         _albumsGridView.SetModel(_albumsSelection);
-        
+
         _albumsGridView.OnActivate += AlbumsGridViewOnOnActivate;
     }
 
-    private void AlbumsGridViewOnOnActivate(GridView sender, GridView.ActivateSignalArgs args)
-    {
-        if (_albumsSelection.SelectedItem is not AlbumsAlbumModel selectedModel) return;
-        
-        // We just use the first album artist as the artist to show in the hierarchy. 
-        AlbumSelected?.Invoke(selectedModel.Album, selectedModel.Album.CreditsInfo.AlbumArtists[0]);
-    }
-    
     public void ShowAlbums(IReadOnlyList<AlbumsAlbumModel> albums)
     {
         _albumsListStore.RemoveAll();
         var albumsList = albums.ToList();
         foreach (var album in albumsList) _albumsListStore.Append(album);
+    }
+
+    private void AlbumsGridViewOnOnActivate(GridView sender, GridView.ActivateSignalArgs args)
+    {
+        if (_albumsSelection.SelectedItem is not AlbumsAlbumModel selectedModel) return;
+
+        // We just use the first album artist as the artist to show in the hierarchy. 
+        AlbumSelected?.Invoke(selectedModel.Album, selectedModel.Album.CreditsInfo.AlbumArtists[0]);
     }
 }

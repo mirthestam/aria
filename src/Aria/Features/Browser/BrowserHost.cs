@@ -13,15 +13,14 @@ public partial class BrowserHost
         Browser,
         EmptyCollection
     }
-    
-    [Connect("browser-state-stack")] private Stack _browserStateStack;
-    [Connect("browser-page")] private BrowserPage _browserPage;    
-    
+
     private const string EmptyStatePage = "empty-state-page";
-    private const string BrowserStatePage = "browser-state-page";    
-    
+    private const string BrowserStatePage = "browser-state-page";
+    [Connect("browser-page")] private BrowserPage _browserPage;
+    [Connect("browser-state-stack")] private Stack _browserStateStack;
+
     public BrowserPage BrowserPage => _browserPage;
-    
+
     public void ToggleState(BrowserState state)
     {
         var pageName = state switch
@@ -33,6 +32,4 @@ public partial class BrowserHost
 
         _browserStateStack.VisibleChildName = pageName;
     }
-
-
 }

@@ -8,7 +8,7 @@ using Object = GObject.Object;
 namespace Aria.Features.Browser.Albums;
 
 [Subclass<Object>]
-public partial class AlbumsAlbumModel  : INotifyPropertyChanged
+public sealed partial class AlbumsAlbumModel : INotifyPropertyChanged
 {
     public AlbumsAlbumModel(AlbumInfo album) : this()
     {
@@ -16,16 +16,16 @@ public partial class AlbumsAlbumModel  : INotifyPropertyChanged
     }
 
     public AlbumInfo Album { get; }
-    
+
     public Texture? CoverTexture
     {
         get;
         set => SetField(ref field, value);
-    }    
-    
+    }
+
     public event PropertyChangedEventHandler? PropertyChanged;
-    
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
@@ -35,5 +35,5 @@ public partial class AlbumsAlbumModel  : INotifyPropertyChanged
         if (EqualityComparer<T>.Default.Equals(field, value)) return;
         field = value;
         OnPropertyChanged(propertyName);
-    }    
+    }
 }

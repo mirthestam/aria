@@ -1,5 +1,8 @@
-using Aria.Infrastructure;
-using Aria.MusicServers.MPD;
+using Aria.Backends.MPD;
+using Aria.Backends.MPD.Connection;
+using Aria.Core.Connection;
+using Aria.Infrastructure.Connection;
+
 using Zeroconf;
 
 namespace Aria.App.Infrastructure;

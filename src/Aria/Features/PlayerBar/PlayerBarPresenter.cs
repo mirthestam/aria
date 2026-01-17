@@ -1,53 +1,61 @@
 using Aria.Core;
 using Aria.Core.Player;
-using Aria.Core.Playlist;
-using Aria.Main;
+using Aria.Core.Queue;
+using Aria.Features.Shell;
 using CommunityToolkit.Mvvm.Messaging;
 using Gio;
 using Microsoft.Extensions.Logging;
+using Task = System.Threading.Tasks.Task;
 
 namespace Aria.Features.PlayerBar;
 
-public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>, IRecipient<QueueChangedMessage>
+public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>, IRecipient<QueueStateChangedMessage>
 {
+    private readonly IAria _api;
     private readonly ILogger<PlayerBarPresenter> _logger;
     private readonly IMessenger _messenger;
-    private readonly IPlaybackApi _api;
     private PlayerBar? _view;
-    
-    public PlayerBarPresenter(IPlaybackApi api, IMessenger messenger, ILogger<PlayerBarPresenter> logger)
+
+    public PlayerBarPresenter(IAria api, IMessenger messenger, ILogger<PlayerBarPresenter> logger)
     {
         _logger = logger;
         _api = api;
         _messenger = messenger;
         messenger.Register<PlayerStateChangedMessage>(this);
-        messenger.Register<QueueChangedMessage>(this);
+        messenger.Register<QueueStateChangedMessage>(this);
     }
+    
+    public async Task RefreshAsync()
+    {
+        // TODO: Implement here logic like on the player
+    }
+
+    public void Reset(){}
+    
+    public void Attach(PlayerBar bar)
+    {
+        _view = bar;
+    }    
 
     public void Receive(PlayerStateChangedMessage message)
     {
         _view?.PlayerStateChanged(message.Value, _api);
     }
-    
-    public void Receive(QueueChangedMessage message)
+
+    public void Receive(QueueStateChangedMessage message)
     {
         _view?.QueueStateChanged(message.Value, _api);
-    }    
-
-    public void Attach(PlayerBar bar)
-    {
-        _view = bar;
     }
 
     private async void PrevActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         try
         {
-            await _api.Player.PreviousAsync();
+            await _api.PlayerProxy.PreviousAsync();
         }
-        catch(Exception e)
+        catch (Exception e)
         {
-            PlayerActionFailed(e, sender.Name);            
+            PlayerActionFailed(e, sender.Name);
             _messenger.Send(new ShowToastMessage("Failed to go to previous song"));
         }
     }
@@ -56,16 +64,15 @@ public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>,
     {
         try
         {
-            await _api.Player.NextAsync();
+            await _api.PlayerProxy.NextAsync();
         }
-        catch(Exception e)
+        catch (Exception e)
         {
-            PlayerActionFailed(e, sender.Name);            
+            PlayerActionFailed(e, sender.Name);
             _messenger.Send(new ShowToastMessage("Failed to go to next song"));
         }
     }
-    
+
     [LoggerMessage(LogLevel.Error, "Player action failed: {action}")]
     partial void PlayerActionFailed(Exception e, string? action);
-    
 }

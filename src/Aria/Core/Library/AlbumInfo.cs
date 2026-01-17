@@ -1,3 +1,5 @@
+using Aria.Core.Extraction;
+
 namespace Aria.Core.Library;
 
 public sealed record AlbumInfo : IHasAssets
@@ -8,24 +10,16 @@ public sealed record AlbumInfo : IHasAssets
     /// The Title of the album
     /// </summary>
     public required string Title { get; init; }
-    
+
     public required DateTime? ReleaseDate { get; init; }
     
-    public IReadOnlyCollection<AssetInfo> Assets { get; init; } = [];
-    
     public AlbumCreditsInfo CreditsInfo { get; init; } = new();
-    
+
     /// <summary>
     /// Optional list of songs.
     /// </summary>
     /// <remarks>Can be empty if this information is not loaded.</remarks>
     public IReadOnlyList<SongInfo> Songs { get; init; } = [];
-}
-
-public static class HasAssetsExtensions
-{
-    extension(IReadOnlyCollection<AssetInfo> assets)
-    {
-        public AssetInfo? FrontCover => assets.FirstOrDefault(r => r.Type == AssetType.FrontCover);
-    }
+    
+    public IReadOnlyCollection<AssetInfo> Assets { get; init; } = [];
 }

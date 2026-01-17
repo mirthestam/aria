@@ -1,4 +1,5 @@
 using Aria.Core;
+using Aria.Core.Extraction;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Aria.Features.Browser;

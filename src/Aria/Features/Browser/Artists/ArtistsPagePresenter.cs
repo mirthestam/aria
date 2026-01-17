@@ -1,41 +1,51 @@
 using Aria.Core;
+using Aria.Core.Connection;
 using Aria.Core.Library;
+using Aria.Features.Shell;
 using Aria.Infrastructure;
-using Aria.Main;
 using CommunityToolkit.Mvvm.Messaging;
-using Gio;
-using GLib;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
 
 namespace Aria.Features.Browser.Artists;
 
-public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>, IRecipient<ConnectionChangedMessage>
+public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
 {
     private readonly ILogger<ArtistsPagePresenter> _logger;
     private readonly IMessenger _messenger;
-    private readonly BrowserNavigationState _navigationState;
-    private readonly IPlaybackApi _playbackApi;
+    private readonly IAria _aria;
+
+    private CancellationTokenSource? _refreshCancellationTokenSource;
+
     private ArtistsPage? _view;
 
-    
-
-    public ArtistsPagePresenter(BrowserNavigationState navigationState, IMessenger messenger, IPlaybackApi playbackApi,ILogger<ArtistsPagePresenter> logger)
+    public ArtistsPagePresenter(ILogger<ArtistsPagePresenter> logger, IMessenger messenger, IAria aria)
     {
         _logger = logger;
-        _navigationState = navigationState;
         _messenger = messenger;
-        _playbackApi = playbackApi;
+        _aria = aria;
 
-        messenger.Register<LibraryUpdatedMessage>(this);
-        messenger.Register<ConnectionChangedMessage>(this);
+        messenger.Register(this);
     }
 
-    public void Receive(ConnectionChangedMessage message)
+    public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
-        if (message.Value == ConnectionState.Connected) _ = RefreshArtistsAsync();
-    }
-
+        await  RefreshArtistsAsync(cancellationToken);
+    }    
+    
+    public void Reset()
+    {
+        try
+        {
+            AbortRefresh();
+            _view?.RefreshArtists([]);
+        }
+        catch (Exception e)
+        {
+            LogFailedToResetArtistsPage(e);
+        }
+    }    
+    
     public void Receive(LibraryUpdatedMessage message)
     {
         _ = RefreshArtistsAsync();
@@ -44,32 +54,56 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>, I
     public void Attach(ArtistsPage view)
     {
         _view = view;
-        _view.ArtistSelected += id =>
-        {
-            _messenger.Send(new ShowArtistDetailsMessage(id));
-        };
-        _view.AllAlbumsRequested += () =>
-        {
-            _messenger.Send(new ShowAllAlbumsMessage());
-        };
+        _view.ArtistSelected += id => { _messenger.Send(new ShowArtistDetailsMessage(id)); };
+        _view.AllAlbumsRequested += () => { _messenger.Send(new ShowAllAlbumsMessage()); };
     }
-
-    private async Task RefreshArtistsAsync()
+    
+    private void AbortRefresh()
     {
+        _refreshCancellationTokenSource?.Cancel();
+        _refreshCancellationTokenSource?.Dispose();
+        _refreshCancellationTokenSource = null;
+    }    
+
+    private async Task RefreshArtistsAsync(CancellationToken externalCancellationToken = default)
+    {
+        LogRefreshingArtists();
+        AbortRefresh();
+        
+        _refreshCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(externalCancellationToken);
+        var cancellationToken = _refreshCancellationTokenSource.Token;
+
         try
         {
-            var artists = await _playbackApi.Library.GetArtists();
-            artists = artists.Where(a => a.Roles.HasFlag(ArtistRoles.Composer));
-            // TODO: Remove this filter here.We need something clever on the UI
-            _view?.RefreshArtists(artists);
+            var artists = await _aria.LibraryProxy.GetArtists(cancellationToken);
+
+            if (_view != null)
+            {
+                //await _view.ReadyAsync(cancellationToken);
+                _view.RefreshArtists(artists);
+            }
+            
+            LogArtistsRefreshed();
         }
         catch (Exception e)
         {
-            LogCouldNotLoadArtists(e);
-            _messenger.Send(new ShowToastMessage("Could not load artists"));
+            if (!cancellationToken.IsCancellationRequested)
+            {
+                LogCouldNotLoadArtists(e);
+                _messenger.Send(new ShowToastMessage("Could not load artists"));
+            }
         }
     }
-    
+
     [LoggerMessage(LogLevel.Error, "Could not load artists")]
-    partial void LogCouldNotLoadArtists(Exception e);    
+    partial void LogCouldNotLoadArtists(Exception e);
+
+    [LoggerMessage(LogLevel.Debug, "Refreshing artists")]
+    partial void LogRefreshingArtists();
+
+    [LoggerMessage(LogLevel.Debug, "Artists refreshed")]
+    partial void LogArtistsRefreshed();
+
+    [LoggerMessage(LogLevel.Error, "Failed to reset artists page")]
+    partial void LogFailedToResetArtistsPage(Exception e);
 }

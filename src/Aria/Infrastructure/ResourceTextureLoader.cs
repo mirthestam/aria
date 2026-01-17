@@ -1,42 +1,71 @@
-using Aria.Core;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Gdk;
+using GLib.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace Aria.Infrastructure;
 
 public partial class ResourceTextureLoader(ILogger<ResourceTextureLoader> logger, ILibrary library)
 {
-    public async Task<Texture?> LoadFromAlbumResourceAsync(Id resourceId)
+    public async Task<Texture?> LoadFromAlbumResourceAsync(Id resourceId, CancellationToken cancellationToken = default)
     {
+        using var pixelBufferLoader = new GdkPixbuf.PixbufLoader();
         try
         {
-            await using var stream = await library.GetAlbumResourceStreamAsync(resourceId);
+            await using var stream = await library.GetAlbumResourceStreamAsync(resourceId, cancellationToken)
+                .ConfigureAwait(false);
             if (stream == Stream.Null)
             {
                 LogResourceNotFound(resourceId);
                 return null;
             }
 
-            using var loader = new GdkPixbuf.PixbufLoader();
             using var ms = new MemoryStream();
-            await stream.CopyToAsync(ms);
-            
-            loader.Write(ms.ToArray());
-            loader.Close();
+            await stream.CopyToAsync(ms, cancellationToken).ConfigureAwait(false);
 
-            using var pixbuf = loader.GetPixbuf();
-            if (pixbuf != null) return Texture.NewForPixbuf(pixbuf);
-            
+            pixelBufferLoader.Write(ms.ToArray());
+            pixelBufferLoader.Close();
+
+            using var pixelBuffer = pixelBufferLoader.GetPixbuf();
+            if (pixelBuffer != null) return Texture.NewForPixbuf(pixelBuffer);
+
             LogCouldNotDecodeResource(resourceId);
             return null;
 
         }
+        catch (OperationCanceledException)
+        {
+            try
+            {
+                pixelBufferLoader.Close();
+            }
+            catch
+            {
+                // Ignored.
+                // The pixelBufferLoader is closed before cancellation to avoid GTK warnings.
+                // If it is closed while loading is still in progress, it may throw exceptions
+                // (e.g., "Unrecognized image file format").
+                // This is expected, as the load operation was canceled midway.
+            }            
+            throw;
+        }
         catch (Exception ex)
         {
+            if (cancellationToken.IsCancellationRequested) return null;
+            
             LogExceptionLoadingResource(ex, resourceId);
+            try
+            {
+                pixelBufferLoader.Close();
+            }
+            catch(Exception innerEx)
+            {
+                LogFailedToClosePixbufLoader(logger, innerEx);
+            }
             return null;
         }
+
     }
     
     [LoggerMessage(LogLevel.Warning, "Resource {resourceId} not found in library")]
@@ -47,4 +76,7 @@ public partial class ResourceTextureLoader(ILogger<ResourceTextureLoader> logger
 
     [LoggerMessage(LogLevel.Error, "Exception while loading resource {resourceId}")]
     partial void LogExceptionLoadingResource(Exception ex, Id resourceId);
+
+    [LoggerMessage(LogLevel.Warning, "Failed to close pixbuf loader")]
+    static partial void LogFailedToClosePixbufLoader(ILogger<ResourceTextureLoader> logger, Exception e);
 }

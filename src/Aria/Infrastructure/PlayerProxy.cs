@@ -1,0 +1,71 @@
+using Aria.Core.Extraction;
+using Aria.Core.Player;
+using CommunityToolkit.Mvvm.Messaging;
+
+namespace Aria.Infrastructure;
+
+/// <summary>
+/// Simple decorator for actual backend instances, providing a fallback when no backend is loaded.
+/// </summary>
+public class PlayerProxy : IPlayerSource
+{
+    //  Simple decorator because underlying integrations can change
+    private IPlayerSource? _innerPlayer;
+
+    public event Action<PlayerStateChangedFlags>? StateChanged;    
+    
+    public Task PlayAsync()
+    {
+        return _innerPlayer?.PlayAsync() ?? Task.CompletedTask;
+    }
+
+    public Task PauseAsync()
+    {
+        return _innerPlayer?.PauseAsync() ?? Task.CompletedTask;
+    }
+
+    public Task NextAsync()
+    {
+        return _innerPlayer?.NextAsync() ?? Task.CompletedTask;
+    }
+
+    public Task PreviousAsync()
+    {
+        return _innerPlayer?.PreviousAsync() ?? Task.CompletedTask;
+    }
+
+    public Task StopAsync()
+    {
+        return _innerPlayer?.StopAsync() ?? Task.CompletedTask;
+    }
+
+    public Id Id => _innerPlayer?.Id ?? null!;
+
+    public bool SupportsVolume => _innerPlayer?.SupportsVolume ?? false;
+    public PlaybackState State => _innerPlayer?.State ?? PlaybackState.Unknown;
+    public int? XFade => _innerPlayer?.XFade;
+    public bool CanXFade => _innerPlayer?.CanXFade ?? false;
+    public int? Volume => _innerPlayer?.Volume;
+    public PlaybackProgress Progress => _innerPlayer?.Progress ?? new PlaybackProgress();
+
+    internal void Attach(IPlayerSource player)
+    {
+        if (_innerPlayer != null) Detach();
+        _innerPlayer = player;
+        _innerPlayer.StateChanged += InnerPlayerOnStateChanged;
+    }
+    
+    internal void Detach()
+    {
+        if (_innerPlayer != null)
+        {
+            _innerPlayer.StateChanged -= InnerPlayerOnStateChanged;
+        }
+        _innerPlayer = null;
+    }
+    
+    private void InnerPlayerOnStateChanged(PlayerStateChangedFlags flags)
+    {
+        StateChanged?.Invoke(flags);
+    }
+}

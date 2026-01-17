@@ -1,12 +1,11 @@
-using Aria.Core;
-using Aria.Core.Library;
+using Microsoft.Extensions.Logging;
 
 namespace Aria.Features.Browser.Search;
 
-public class SearchPagePresenter(IPlaybackApi playbackApi)
+public partial class SearchPagePresenter(ILogger<SearchPagePresenter> logger)
 {
     private SearchPage View { get; set; } = null!;
-    
+
     public void Attach(SearchPage view)
     {
         View = view;
@@ -16,7 +15,6 @@ public class SearchPagePresenter(IPlaybackApi playbackApi)
     private void ViewOnSearchChanged(object? sender, string e)
     {
         // use the library to search
-        
         // give the view new search results
     }
 
@@ -24,4 +22,13 @@ public class SearchPagePresenter(IPlaybackApi playbackApi)
     {
         View.Clear();
     }
+
+    public void Reset()
+    {
+        LogResettingSearchPage(logger);
+        Clear();
+    }
+
+    [LoggerMessage(LogLevel.Debug, "Resetting search page")]
+    static partial void LogResettingSearchPage(ILogger<SearchPagePresenter> logger);
 }

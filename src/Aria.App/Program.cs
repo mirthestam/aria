@@ -1,5 +1,7 @@
 ﻿using Aria.App.Infrastructure;
 using Aria.Core;
+using Aria.Core.Connection;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Features.Browser;
 using Aria.Features.Browser.Album;
@@ -10,18 +12,18 @@ using Aria.Features.Browser.Search;
 using Aria.Features.Player;
 using Aria.Features.Player.Playlist;
 using Aria.Features.PlayerBar;
+using Aria.Features.Shell;
+using Aria.Features.Shell.Welcome;
 using Aria.Hosting;
 using Aria.Hosting.Extensions;
 using Aria.Infrastructure;
 using Aria.Infrastructure.Tagging;
-using Aria.Main;
-using Aria.Main.Welcome;
-using Aria.MusicServers.MPD;
 using CommunityToolkit.Mvvm.Messaging;
 using Gio;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using BackendConnection = Aria.MusicServers.MPD.BackendConnection;
+using Microsoft.Extensions.Logging;
+using MainWindow = Aria.Features.Shell.MainWindow;
 using Task = System.Threading.Tasks.Task;
 
 namespace Aria.App;
@@ -38,21 +40,29 @@ public class Program
     private static IHostBuilder CreateHostBuilder(string[] args)
     {
         return Host.CreateDefaultBuilder(args)
-            //.UseWolverine()
+            .ConfigureLogging(logging =>
+            {
+                logging.SetMinimumLevel(LogLevel.Debug);
+                logging.AddSimpleConsole(options =>
+                {
+                    options.TimestampFormat = "[HH:mm:ss] ";
+                    options.SingleLine = true;
+                    options.IncludeScopes = false;                    
+                });
+            })
             .ConfigureServices(x =>
             {
                 // Messaging
                 x.AddSingleton<IMessenger>(_ => WeakReferenceMessenger.Default);
 
                 // Infrastructure
-                x.AddSingleton<AppSession>();
-                x.AddSingleton<IAppSession>(sp => sp.GetRequiredService<AppSession>());
-                x.AddSingleton<IPlaybackApi>(sp => sp.GetRequiredService<AppSession>());
-                x.AddSingleton<ILibrary>(sp => sp.GetRequiredService<IPlaybackApi>().Library);
+                x.AddSingleton<AriaEngine>();
+                x.AddSingleton<IAriaControl>(sp => sp.GetRequiredService<AriaEngine>());
+                x.AddSingleton<IAria>(sp => sp.GetRequiredService<AriaEngine>());
+                x.AddSingleton<ILibrary>(sp => sp.GetRequiredService<IAria>().LibraryProxy);
                 
                 x.AddSingleton<IConnectionProfileProvider, ConnectionProfileProvider>();
                 x.AddTransient<ITagParser, MPDTagParser>();
-                x.AddTransient<IIdFactory, IdFactory>();// TODO: Have the connectionFactory handle this
                 x.AddSingleton<ResourceTextureLoader>();
 
                 // Main
@@ -62,7 +72,7 @@ public class Program
                 x.AddSingleton<WelcomePagePresenter>();
 
                 // Features - Browser
-                x.AddTransient<IAlbumPagePresenterFactory, PresenterFactory>();
+                x.AddSingleton<IAlbumPagePresenterFactory, PresenterFactory>();
                 x.AddSingleton<AlbumPagePresenter>();
                 x.AddSingleton<AlbumsPagePresenter>();                
                 x.AddSingleton<ArtistPagePresenter>();
@@ -80,19 +90,20 @@ public class Program
                 x.AddSingleton<PlayerBarPresenter>();
                 
                 // MPD
-                x.AddTransient<IBackendConnectionFactory, BackendConnectionFactory>();                
-                x.AddSingleton<BackendConnection>();
-                x.AddSingleton<Queue>();
-                x.AddSingleton<Library>();
-                x.AddSingleton<Session>();
-                x.AddSingleton<MusicServers.MPD.Player>();
+                x.AddSingleton<IBackendConnectionFactory, Backends.MPD.Connection.BackendConnectionFactory>();                
+                x.AddTransient<Backends.MPD.Connection.BackendConnection>();
+                x.AddScoped<Backends.MPD.Queue>();
+                x.AddScoped<Backends.MPD.Library>();
+                x.AddScoped<Backends.MPD.Connection.Client>();
+                x.AddScoped<Aria.Backends.MPD.Player>();
+                x.AddScoped<IIdFactory, Backends.MPD.Extraction.IdFactory>();                
                 
                 // Stub
-                x.AddTransient<IBackendConnectionFactory, Aria.Backends.Stub.BackendConnectionFactory>();
-                x.AddSingleton<Aria.Backends.Stub.BackendConnection>();
-                x.AddSingleton<Aria.Backends.Stub.Library>();
-                x.AddSingleton<Aria.Backends.Stub.Player>();
-                x.AddSingleton<Aria.Backends.Stub.Queue>();
+                x.AddSingleton<IBackendConnectionFactory, Backends.Stub.BackendConnectionFactory>();
+                x.AddTransient<Backends.Stub.BackendConnection>();
+                x.AddScoped<Backends.Stub.Library>();
+                x.AddScoped<Aria.Backends.Stub.Player>();
+                x.AddScoped<Backends.Stub.Queue>();
             })
             .UseGtk(a =>
             {

@@ -1,45 +1,32 @@
-using System.Runtime.CompilerServices;
 using Aria.Core;
+using Aria.Core.Connection;
 using Aria.Core.Library;
-using Aria.Features.Browser.Artist;
-using Aria.Features.Browser.Artists;
 using Aria.Infrastructure;
+using Aria.Infrastructure.Connection;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 
 namespace Aria.Features.Browser;
 
-public partial class BrowserHostPresenter : IRecipient<LibraryUpdatedMessage>, IRecipient<ConnectionChangedMessage>
+public partial class BrowserHostPresenter : IRecipient<LibraryUpdatedMessage>
 {
-    private readonly ILogger<BrowserHostPresenter> _logger;
-    private readonly IPlaybackApi _playerApi;
-    
     private readonly BrowserPagePresenter _browserPresenter;
+    private readonly ILogger<BrowserHostPresenter> _logger;
+    private readonly IAria _playerApi;
 
-    public BrowserHostPresenter(IPlaybackApi playerApi,
-        ILogger<BrowserHostPresenter> logger,
+    public BrowserHostPresenter(ILogger<BrowserHostPresenter> logger,
         IMessenger messenger,
+        IAria playerApi,
         BrowserPagePresenter browserPresenter)
     {
         _logger = logger;
         _playerApi = playerApi;
         _browserPresenter = browserPresenter;
 
-        messenger.Register<LibraryUpdatedMessage>(this);
-        messenger.Register<ConnectionChangedMessage>(this);
+        messenger.Register(this);
     }
 
     private BrowserHost View { get; set; } = null!;
-
-    public void Receive(ConnectionChangedMessage message)
-    {
-        if (message.Value == ConnectionState.Connected) _ = DeterminePageAsync();
-    }
-
-    public void Receive(LibraryUpdatedMessage message)
-    {
-        _ =  DeterminePageAsync();
-    }
 
     public void Attach(BrowserHost view)
     {
@@ -47,25 +34,50 @@ public partial class BrowserHostPresenter : IRecipient<LibraryUpdatedMessage>, I
         _browserPresenter.Attach(view.BrowserPage);
     }
     
-    private async Task DeterminePageAsync()
+    public async Task RefreshAsync(CancellationToken cancellationToken = default)
+    {
+        await DeterminePageAsync(cancellationToken);
+        await _browserPresenter.RefreshAsync(cancellationToken);
+    }    
+    
+    public void Reset()
+    {
+        View.ToggleState(BrowserHost.BrowserState.EmptyCollection);
+        _browserPresenter.Reset();
+    }
+    
+    public void Receive(LibraryUpdatedMessage message)
+    {
+        _ = DeterminePageAsync();
+    }
+    
+    private async Task DeterminePageAsync(CancellationToken cancellationToken = default)
     {
         try
         {
             // Update the page
-            var artists = await _playerApi.Library.GetArtists();
+            var artists = await _playerApi.LibraryProxy.GetArtists(cancellationToken);
             var artistsPresent = artists.Any();
-        
+
             // TODO: Expose a method in the library for this functionality.  
             // For MPD, it can be implemented using the COUNT commands.
-            View.ToggleState(artistsPresent ? BrowserHost.BrowserState.Browser : BrowserHost.BrowserState.EmptyCollection);
+            View.ToggleState(artistsPresent
+                ? BrowserHost.BrowserState.Browser
+                : BrowserHost.BrowserState.EmptyCollection);
+        }
+        catch (OperationCanceledException)
+        {
+            
         }
         catch (Exception e)
         {
+            if (cancellationToken.IsCancellationRequested) return;
+            
             LogCouldNotLoadLibrary(e);
             View.ToggleState(BrowserHost.BrowserState.EmptyCollection);
         }
     }
-    
+
     [LoggerMessage(LogLevel.Error, "Failed to load your library")]
-    partial void LogCouldNotLoadLibrary(Exception e);    
+    partial void LogCouldNotLoadLibrary(Exception e);
 }

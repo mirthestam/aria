@@ -1,6 +1,5 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using Aria.Core;
 using Aria.Core.Library;
 using Gdk;
 using GObject;
@@ -9,7 +8,7 @@ using Object = GObject.Object;
 namespace Aria.Features.Browser.Artist;
 
 [Subclass<Object>]
-public partial class AlbumModel : INotifyPropertyChanged
+public sealed partial class AlbumModel : INotifyPropertyChanged
 {
     public AlbumModel(AlbumInfo album) : this()
     {
@@ -26,7 +25,7 @@ public partial class AlbumModel : INotifyPropertyChanged
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }

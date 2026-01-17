@@ -1,0 +1,17 @@
+using MpcNET;
+
+namespace Aria.Backends.MPD.Connection.Commands;
+
+// ReSharper disable once UnusedType.Global
+public class GetCurrentSongInfoCommand : IMpcCommand<IEnumerable<KeyValuePair<string,string>>>
+{
+    public string Serialize()
+    {
+        return "currentsong";
+    }
+
+    public IEnumerable<KeyValuePair<string, string>> Deserialize(SerializedResponse response)
+    {
+        return response.ResponseValues.Count == 0 ? [] : response.ResponseValues;
+    }
+}

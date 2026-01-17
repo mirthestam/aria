@@ -4,7 +4,6 @@ using Gdk;
 using Gio;
 using GObject;
 using Gtk;
-using Humanizer;
 
 namespace Aria.Features.Browser.Album;
 
@@ -13,41 +12,43 @@ namespace Aria.Features.Browser.Album;
 public partial class AlbumPage
 {
     private AlbumInfo _album;
-    
+    [Connect("cover-picture")] private Picture _coverPicture;
+    [Connect("duration-label")] private Label _durationLabel;
+    [Connect("play-button")] private Button _playButton;
+    [Connect("songs-listbox")] private ListBox _songsListBox;
+    [Connect("subtitle-label")] private Label _subtitleLabel;
+
     [Connect("suptitle-label")] private Label _suptitleLabel;
     [Connect("title-label")] private Label _titleLabel;
-    [Connect("subtitle-label")] private Label _subtitleLabel;
-    [Connect("duration-label")] private Label _durationLabel;
-    
-    [Connect("songs-listbox")] private ListBox _songsListBox;
-    
-    [Connect("cover-picture")] private Picture _coverPicture;
-    
-    [Connect("play-button")] private Button _playButton;
-    
+
     public SimpleAction PlayAlbumAction { get; private set; }
     public SimpleAction EnqueueAlbumAction { get; private set; }
-    
+
     partial void Initialize()
     {
         var actionGroup = SimpleActionGroup.New();
-        PlayAlbumAction = SimpleAction.New("play", null);
-        EnqueueAlbumAction = SimpleAction.New("enqueue", null);
-        actionGroup.AddAction(PlayAlbumAction);
-        actionGroup.AddAction(EnqueueAlbumAction);
-
+        actionGroup.AddAction(PlayAlbumAction = SimpleAction.New("play", null));
+        actionGroup.AddAction(EnqueueAlbumAction = SimpleAction.New("enqueue", null));
         InsertActionGroup("album", actionGroup);
+    }
+
+    public void LoadAlbum(AlbumInfo album)
+    {
+        _album = album;
+        SetTitle(album.Title);
+        UpdateHeader();
+        UpdateSongsList();
     }
 
     public void SetCover(Texture texture)
     {
         _coverPicture.SetPaintable(texture);
     }
-    
+
     private void UpdateHeader()
     {
         var albumArtistsLine = string.Join(", ", _album.CreditsInfo.AlbumArtists.Select(a => a.Name));
-        
+
         // Year
         var releaseDate = _album.ReleaseDate;
         var yearLine = "";
@@ -56,11 +57,11 @@ public partial class AlbumPage
         {
             var date = releaseDate.Value;
             // Check if it's the first day of the year (01-01)
-            yearLine = date is { Month: 1, Day: 1 } 
-                ? $"{date.Year}" 
+            yearLine = date is { Month: 1, Day: 1 }
+                ? $"{date.Year}"
                 : $"{date:d}";
         }
-        
+
         _suptitleLabel.SetLabel(albumArtistsLine);
         _titleLabel.SetLabel(_album.Title);
         _subtitleLabel.SetLabel(yearLine);
@@ -74,11 +75,11 @@ public partial class AlbumPage
             _songsListBox.SetVisible(false);
             return;
         }
-        
+
         var albumArtistIds = _album.CreditsInfo.AlbumArtists
             .Select(a => a.Id)
             .ToHashSet();
-        
+
         foreach (var song in _album.Songs)
         {
             // If an album is by "AlbumArtist A", we don't want to repeat "Artist A" next to every song.
@@ -86,23 +87,15 @@ public partial class AlbumPage
             var guestArtists = song.CreditsInfo.Artists
                 .Where(artist => !albumArtistIds.Contains(artist.Artist.Id))
                 .ToList();
-            
+
             var subTitleLine = string.Join(", ", guestArtists.Select(a => a.Artist.Name));
-            
+
             var row = ActionRow.New();
             row.SetUseMarkup(false);
             row.SetTitle(song.Title);
             row.SetSubtitle(subTitleLine);
-            
+
             _songsListBox.Append(row);
         }
-    }
-
-    public void LoadAlbum(AlbumInfo album)
-    {
-        _album = album;
-        SetTitle(album.Title);
-        UpdateHeader();
-        UpdateSongsList();
     }
 }
