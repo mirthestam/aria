@@ -3,6 +3,7 @@ using Aria.Core.Library;
 using Aria.Infrastructure;
 using Gio;
 using GObject;
+using HarfBuzz.Internal;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
 

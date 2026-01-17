@@ -21,6 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <Folder Include="Resources\" />
         <Folder Include="UI\"/>
     </ItemGroup>
 
@@ -28,7 +29,6 @@
         <EmbeddedResource Include="UI\Connect\ConnectDialog.ui"/>
         <None Remove="Resources\cover.jpg" />
         <None Remove="Resources\vinyl-record.png" />
-        <EmbeddedResource Include="Resources\vinyl-record.png" />
     </ItemGroup>
     
 </Project>

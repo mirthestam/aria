@@ -20,6 +20,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "..\build\_build.c
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AriaTests", "AriaTests\AriaTests.csproj", "{1FD7B3B7-4078-47D1-832C-9FAA6C152A4B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aria.Backends.Stub", "Aria.Backends.Stub\Aria.Backends.Stub.csproj", "{D3A0EBD5-280F-42A3-92A8-44B2B2BD3A1D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,6 +62,10 @@ Global
 		{1FD7B3B7-4078-47D1-832C-9FAA6C152A4B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1FD7B3B7-4078-47D1-832C-9FAA6C152A4B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1FD7B3B7-4078-47D1-832C-9FAA6C152A4B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3A0EBD5-280F-42A3-92A8-44B2B2BD3A1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3A0EBD5-280F-42A3-92A8-44B2B2BD3A1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3A0EBD5-280F-42A3-92A8-44B2B2BD3A1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3A0EBD5-280F-42A3-92A8-44B2B2BD3A1D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{79C5E102-192D-4592-9711-C406740E9C70} = {C78002D9-D3A3-4D46-B16F-2ED28BDF7F31}

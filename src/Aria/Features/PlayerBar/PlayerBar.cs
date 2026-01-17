@@ -24,7 +24,7 @@ public partial class PlayerBar
             var song = api.Queue.CurrentSong;
 
             var titleText = song?.Title ?? "Unnamed song";
-            if (song?.Work.ShowMovement ?? false)
+            if (song?.Work?.ShowMovement ?? false)
                 // For  these kind of works, we ignore the
                 titleText = $"{song.Work.MovementName} ({song.Work.MovementNumber} {song.Title} ({song.Work.Work})";
 

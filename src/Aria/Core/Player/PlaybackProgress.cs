@@ -29,4 +29,6 @@ public class PlaybackProgress
     ///     i.e. 320 (kbps)
     /// </summary>
     public int Bitrate { get; set; }
+    
+    public static PlaybackProgress Default { get; } = new();
 }

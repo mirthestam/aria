@@ -1,6 +1,6 @@
-using Aria.Core;
 using Aria.Core.Library;
 using Aria.Core.Playlist;
+using Aria.Infrastructure;
 using Aria.Infrastructure.Tagging;
 using Aria.MusicServers.MPD.Commands;
 using CommunityToolkit.Mvvm.Messaging;
@@ -9,24 +9,12 @@ using MpcNET;
 using MpcNET.Commands.Playback;
 using MpcNET.Commands.Queue;
 using MpcNET.Commands.Reflection;
-using MpcNET.Types;
 
 namespace Aria.MusicServers.MPD;
 
-public class Queue(Session session, IMessenger messenger, ITagParser parser, ILogger<Queue> logger) : IQueue
+public class Queue(Session session, IMessenger messenger, ITagParser parser, ILogger<Queue> logger) : BaseQueue
 {
-    public Id Id { get; private set; } = Id.Empty;
-    public int Length { get; private set; }
-    public PlaybackOrder Order { get; private set; }
-    public ShuffleSettings Shuffle { get; private set; }
-    public RepeatSettings Repeat { get; private set; }
-    public ConsumeSettings Consume { get; private set; }
-
-    public Task SetShuffleAsync(bool enabled) => throw new NotImplementedException();
-    public Task SetRepeatAsync(bool enabled) => throw new NotImplementedException();
-    public Task SetConsumeAsync(bool enabled) => throw new NotImplementedException();
-
-    public async Task<IEnumerable<SongInfo>> GetSongsAsync()
+    public override async Task<IEnumerable<SongInfo>> GetSongsAsync()
     {
         var (isSuccess, tagPairs) = await session.SendCommandAsync(new Commands.PlaylistInfoCommand());
         if (!isSuccess) throw new InvalidOperationException("Failed to get playlist info");
@@ -35,14 +23,13 @@ public class Queue(Session session, IMessenger messenger, ITagParser parser, ILo
         var tags = tagPairs.Select(kvp => new Tag(kvp.Key, kvp.Value)).ToList();
         return parser.ParseSongsInformation(tags);
     }
-
-    public SongInfo? CurrentSong { get; private set; }
-    public async Task PlayAsync(int index)
+    
+    public override async Task PlayAsync(int index)
     {
         await session.SendCommandAsync(new PlayCommand(index));
     }
 
-    public async Task PlayAlbum(AlbumInfo album)
+    public override async Task PlayAlbum(AlbumInfo album)
     {
         try
         {
@@ -65,7 +52,7 @@ public class Queue(Session session, IMessenger messenger, ITagParser parser, ILo
         }
     }
 
-    public async Task EnqueueAlbum(AlbumInfo album)
+    public override async Task EnqueueAlbum(AlbumInfo album)
     {
         try
         {

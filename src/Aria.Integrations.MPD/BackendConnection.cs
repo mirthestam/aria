@@ -1,9 +1,5 @@
-using Aria.Core;
 using Aria.Core.Library;
-using Aria.Core.Player;
-using Aria.Core.Playlist;
 using Aria.Infrastructure;
-using Aria.Infrastructure.Tagging;
 using Aria.MusicServers.MPD.Events;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
@@ -16,22 +12,13 @@ namespace Aria.MusicServers.MPD;
 public partial class BackendConnection(
     IMessenger messenger,
     ILogger<BackendConnection> logger,
-    ITagParser tagParser,
     Player player,
     Queue queue,
     Session session,
     Library library)
-    : Infrastructure.BackendConnection
+    : BaseBackendConnection( player, queue, messenger, library)
 {
     public override bool IsConnected => session.IsConnected;
-
-    public override IPlayer Player => player;
-
-    public override IQueue Queue => queue;
-
-    public override ILibrary Library => library;
-
-    public override ITagParser TagParser { get; } = tagParser;
 
     public void SetCredentials(Credentials credentials)
     {
@@ -50,7 +37,7 @@ public partial class BackendConnection(
             else
                 state = ConnectionState.Disconnected;
 
-            messenger.Send(new ConnectionChangedMessage(state));
+            UpdateConnectionState(state);
         };
 
         session.IdleResponseReceived += SessionOnIdleResponseReceived;
@@ -90,7 +77,7 @@ public partial class BackendConnection(
         }
 
         if (subsystems.Contains("update"))
-            messenger.Send(new LibraryUpdatedMessage());
+            Messenger.Send(new LibraryUpdatedMessage());
         
         _ = session.UpdateStatusAsync(ConnectionType.Idle);
     }

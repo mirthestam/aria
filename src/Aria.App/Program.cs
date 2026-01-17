@@ -50,7 +50,6 @@ public class Program
                 x.AddSingleton<IPlaybackApi>(sp => sp.GetRequiredService<AppSession>());
                 x.AddSingleton<ILibrary>(sp => sp.GetRequiredService<IPlaybackApi>().Library);
                 
-                x.AddTransient<IBackendConnectionFactory, BackendConnectionFactory>();
                 x.AddSingleton<IConnectionProfileProvider, ConnectionProfileProvider>();
                 x.AddTransient<ITagParser, MPDTagParser>();
                 x.AddTransient<IIdFactory, IdFactory>();// TODO: Have the connectionFactory handle this
@@ -81,11 +80,19 @@ public class Program
                 x.AddSingleton<PlayerBarPresenter>();
                 
                 // MPD
+                x.AddTransient<IBackendConnectionFactory, BackendConnectionFactory>();                
                 x.AddSingleton<BackendConnection>();
                 x.AddSingleton<Queue>();
                 x.AddSingleton<Library>();
                 x.AddSingleton<Session>();
                 x.AddSingleton<MusicServers.MPD.Player>();
+                
+                // Stub
+                x.AddTransient<IBackendConnectionFactory, Aria.Backends.Stub.BackendConnectionFactory>();
+                x.AddSingleton<Aria.Backends.Stub.BackendConnection>();
+                x.AddSingleton<Aria.Backends.Stub.Library>();
+                x.AddSingleton<Aria.Backends.Stub.Player>();
+                x.AddSingleton<Aria.Backends.Stub.Queue>();
             })
             .UseGtk(a =>
             {

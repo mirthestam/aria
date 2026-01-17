@@ -16,13 +16,21 @@ public class ConnectionProfileProvider : IConnectionProfileProvider
 
     public async Task<IEnumerable<IConnectionProfile>> GetAllProfilesAsync()
     {
+        await Task.CompletedTask;
+        
         if (_connectionProfiles.Count != 0) return _connectionProfiles;
         
         // Initialize with default profiles
+        _connectionProfiles.Add(new Backends.Stub.ConnectionProfile
+        {
+            Name = "Stub server",
+            AutoConnect = false
+        });        
+        
         _connectionProfiles.Add(new ConnectionProfile
         {
             Id = Guid.NewGuid(),
-            Name = "This computer",
+            Name = "Local MPD Server",
             Host = "127.0.0.1",
             Port = 6600,
             AutoConnect = false

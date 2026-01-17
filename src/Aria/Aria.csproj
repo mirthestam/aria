@@ -39,6 +39,7 @@
         <EmbeddedResource Include="Main\ShortcutsDialog.ui" />
         <EmbeddedResource Include="Main\Welcome\ConnectionListItem.ui" />
         <EmbeddedResource Include="Main\Welcome\WelcomePage.ui" />
+        <EmbeddedResource Include="Resources\vinyl-record.png" />
     </ItemGroup>
 
     <ItemGroup>

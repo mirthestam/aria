@@ -1,4 +1,3 @@
-using Aria.Core;
 using Aria.Core.Library;
 using Aria.Core.Player;
 using Aria.Core.Playlist;

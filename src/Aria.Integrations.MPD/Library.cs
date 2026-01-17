@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using Aria.Core;
 using Aria.Core.Library;
+using Aria.Infrastructure;
 using Aria.Infrastructure.Tagging;
 using Microsoft.Extensions.Logging;
 using MpcNET;
@@ -10,12 +11,11 @@ using FindCommand = Aria.MusicServers.MPD.Commands.FindCommand;
 
 namespace Aria.MusicServers.MPD;
 
-// TODO: This file is a work in progress and requires significant performance optimizations.
-public class Library(Session session, ITagParser tagParser, ILogger<Library> logger) : ILibrary
+public class Library(Session session, ITagParser tagParser, ILogger<Library> logger) : BaseLibrary
 {
     private readonly AlbumsParser _albumsParser = new(tagParser);
 
-    public async Task<IEnumerable<ArtistInfo>> GetArtists()
+    public override async Task<IEnumerable<ArtistInfo>> GetArtists()
     {
         var artistMap = new Dictionary<Id, ArtistInfo>();
 
@@ -63,7 +63,7 @@ public class Library(Session session, ITagParser tagParser, ILogger<Library> log
         }
     }
 
-    public async Task<IEnumerable<AlbumInfo>> GetAlbums()
+    public override async Task<IEnumerable<AlbumInfo>> GetAlbums()
     {
         var artists = (await GetArtists()).ToList();
         var allTags = new List<Tag>();
@@ -87,7 +87,7 @@ public class Library(Session session, ITagParser tagParser, ILogger<Library> log
         return _albumsParser.GetAlbums(allTags).DistinctBy(album => album.Id);
     }
 
-    public async Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId)
+    public override async Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId)
     {
         var mpdArtistId = (ArtistId)artistId;
 
@@ -113,7 +113,7 @@ public class Library(Session session, ITagParser tagParser, ILogger<Library> log
         return _albumsParser.GetAlbums(allTags);
     }
 
-    public async Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken token = default)
+    public override async Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken token)
     {
         if (resourceId == Id.Empty) return await GetDefaultAlbumResourceStreamAsync();
 
@@ -184,23 +184,5 @@ public class Library(Session session, ITagParser tagParser, ILogger<Library> log
 
         // No album art found. Just return the default album art.
         return await GetDefaultAlbumResourceStreamAsync();
-    }
-
-    private static async Task<Stream> GetDefaultAlbumResourceStreamAsync()
-    {
-        var assembly = typeof(Library).Assembly;
-
-        await using var stream = assembly.GetManifestResourceStream("Aria.MusicServers.MPD.Resources.vinyl-record.png");
-
-        if (stream == null)
-        {
-            return Stream.Null;
-        }
-
-        using var ms = new MemoryStream();
-        await stream.CopyToAsync(ms);
-        var buffer = ms.ToArray();
-
-        return new MemoryStream(buffer);
     }
 }
