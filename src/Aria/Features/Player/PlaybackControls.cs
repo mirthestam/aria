@@ -1,6 +1,3 @@
-using Aria.Core;
-using Aria.Core.Player;
-using Aria.Core.Queue;
 using GObject;
 using Gtk;
 
@@ -16,48 +13,33 @@ public partial class PlaybackControls
     [Connect("playlist-progress-label")] private Label _playlistProgressLabel;
     [Connect("remaining-time-label")] private Label _remainingTimeLabel;
 
-    public void QueueStateChanged(QueueStateChangedFlags flags, IAria api)
-    {
-        if (!flags.HasFlag(QueueStateChangedFlags.PlaybackOrder)) return;
-        
-        // This contains the current song.
-        SetPlaylistInfo(api.Queue.Order.CurrentIndex, api.Queue.Length);
-        SetProgress(api.Player.Progress.Elapsed, api.Player.Progress.Duration);
-    }
+    private TimeSpan _shownDuration;
 
-    public void PlayerStateChanged(PlayerStateChangedFlags flags, IAria api)
+    public void SetProgress(TimeSpan songElapsed, TimeSpan songDuration)
     {
-        if (!flags.HasFlag(PlayerStateChangedFlags.Progress)) return;
-        
-        SetElapsed(api.Player.Progress.Elapsed);
-        SetRemaining(api.Player.Progress.Remaining);
-        SetProgress(api.Player.Progress.Elapsed);
-    }
+        if (_shownDuration != songDuration)
+        {
+            _elapsedScale.SetRange(0, songDuration.TotalSeconds);
+            _shownDuration = songDuration;
+        }
 
-    private void SetProgress(TimeSpan songElapsed, TimeSpan songDuration)
-    {
-        _elapsedScale.SetRange(0, songDuration.TotalSeconds);
         _elapsedScale.SetValue(songElapsed.TotalSeconds);
+
+        _elapsedTimeLabel.Label_ = songElapsed.ToString(@"mm\:ss");
+        _remainingTimeLabel.Label_ = (songDuration - songElapsed).ToString(@"mm\:ss");
     }
 
-    private void SetProgress(TimeSpan songElapsed)
+    public void SetPlaylistInfo(int? playlistCurrentSongIndex, int playlistLength)
     {
-        _elapsedScale.SetValue(songElapsed.TotalSeconds);
-    }
+        var hasLength = playlistLength > 0;
 
-    private void SetPlaylistInfo(int? playlistCurrentSongIndex, int playlistLength)
-    {
-        if (playlistLength == 0) _playlistProgressLabel.Label_ = "N/A";
-        _playlistProgressLabel.Label_ = $"{playlistCurrentSongIndex + 1}/{playlistLength}";
-    }
-
-    private void SetElapsed(TimeSpan time)
-    {
-        _elapsedTimeLabel.Label_ = time.ToString(@"mm\:ss");
-    }
-
-    private void SetRemaining(TimeSpan time)
-    {
-        _remainingTimeLabel.Label_ = time.ToString(@"mm\:ss");
+        if (_playlistProgressLabel.Visible != hasLength)
+        {
+            _playlistProgressLabel.Visible = hasLength;            
+        }
+        
+        _playlistProgressLabel.Label_ = hasLength
+            ? $"{playlistCurrentSongIndex + 1}/{playlistLength}"
+            : "0/0";
     }
 }

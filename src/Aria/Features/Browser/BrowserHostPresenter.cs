@@ -42,7 +42,12 @@ public partial class BrowserHostPresenter : IRecipient<LibraryUpdatedMessage>
     
     public void Reset()
     {
-        View.ToggleState(BrowserHost.BrowserState.EmptyCollection);
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            View.ToggleState(BrowserHost.BrowserState.EmptyCollection);
+            return false;
+        });            
+        
         _browserPresenter.Reset();
     }
     
@@ -61,9 +66,13 @@ public partial class BrowserHostPresenter : IRecipient<LibraryUpdatedMessage>
 
             // TODO: Expose a method in the library for this functionality.  
             // For MPD, it can be implemented using the COUNT commands.
-            View.ToggleState(artistsPresent
-                ? BrowserHost.BrowserState.Browser
-                : BrowserHost.BrowserState.EmptyCollection);
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                View.ToggleState(artistsPresent
+                    ? BrowserHost.BrowserState.Browser
+                    : BrowserHost.BrowserState.EmptyCollection);
+                return false;
+            });            
         }
         catch (OperationCanceledException)
         {
@@ -74,7 +83,12 @@ public partial class BrowserHostPresenter : IRecipient<LibraryUpdatedMessage>
             if (cancellationToken.IsCancellationRequested) return;
             
             LogCouldNotLoadLibrary(e);
-            View.ToggleState(BrowserHost.BrowserState.EmptyCollection);
+            
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                View.ToggleState(BrowserHost.BrowserState.EmptyCollection);
+                return false;
+            });            
         }
     }
 

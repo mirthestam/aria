@@ -39,8 +39,12 @@ public partial class PlaylistPresenter : IRecipient<QueueStateChangedMessage>, I
 
     public void Reset()
     {
-        _view?.TogglePage(Playlist.PlaylistPages.Empty);
-        _view?.RefreshSongs([]);
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            _view?.TogglePage(Playlist.PlaylistPages.Empty);
+            _view?.RefreshSongs([]);
+            return false;
+        });        
     }    
     
     public void Receive(PlayerStateChangedMessage message)
@@ -62,7 +66,13 @@ public partial class PlaylistPresenter : IRecipient<QueueStateChangedMessage>, I
             _ = RefreshSongs();
 
         if (message.Value.HasFlag(QueueStateChangedFlags.PlaybackOrder))
-            _view?.SelectSongIndex(_aria.Queue.Order.CurrentIndex);
+        {
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                _view?.SelectSongIndex(_aria.Queue.Order.CurrentIndex);
+                return false;
+            });        
+        }
     }
 
     private void ViewOnSongSelectionChanged(object? sender, uint e)
@@ -77,8 +87,12 @@ public partial class PlaylistPresenter : IRecipient<QueueStateChangedMessage>, I
             LogRefreshingPlaylist();
             var songs = (await _aria.Queue.GetSongsAsync()).ToList();
 
-            _view?.RefreshSongs(songs);
-            _view?.TogglePage(songs.Count != 0 ? Playlist.PlaylistPages.Songs : Playlist.PlaylistPages.Empty);
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                _view?.RefreshSongs(songs);
+                _view?.TogglePage(songs.Count != 0 ? Playlist.PlaylistPages.Songs : Playlist.PlaylistPages.Empty);
+                return false;
+            });            
         }
         catch (Exception e)
         {

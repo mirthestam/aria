@@ -75,8 +75,13 @@ public partial class BrowserPagePresenter :
     {
         LogRefreshingBrowserPage();
 
-        _view?.ShowAllAlbumsRoot();
-        //await _artistsPagePresenter.RefreshAsync(cancellationToken);
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            _view?.ShowAllAlbumsRoot();
+            return false;
+        });
+        
+        await _artistsPagePresenter.RefreshAsync(cancellationToken);
         await _albumsPagePresenter.RefreshAsync(cancellationToken);
 
         if (cancellationToken.IsCancellationRequested)
@@ -109,28 +114,42 @@ public partial class BrowserPagePresenter :
     {
         LogShowingAlbumDetailsForAlbum(message.Album.Id);
         
-        if (message.Artist != null) _browserNavigationState.SelectedArtistId = message.Artist.Id;
-
         _albumPagePresenter = _albumPagePresenterFactory.Create();
-        var albumPageView = _view?.PushAlbumPage();
-        if (albumPageView == null) return;
-        _albumPagePresenter.Attach(albumPageView);
+        
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            var albumPageView = _view?.PushAlbumPage();
+            if (albumPageView == null) return false;
+            _albumPagePresenter.Attach(albumPageView);
 
-        // TODO: CancellationToken ?
-        _ = _albumPagePresenter.LoadAsync(message.Album);
+            // TODO: CancellationToken ?
+            _ = _albumPagePresenter.LoadAsync(message.Album);            
+            return false;
+        });        
     }
 
     public void Receive(ShowAllAlbumsMessage message)
     {
         LogShowingAllAlbums();
         _browserNavigationState.SelectedArtistId = null;
-        _view?.ShowAllAlbumsRoot();
+
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            _view?.ShowAllAlbumsRoot();
+            return false;
+        });        
     }
 
     public void Receive(ShowArtistDetailsMessage message)
     {
         LogShowingArtistDetailsForArtist(message.Artist.Id ?? Id.Empty);
-        _view?.ShowArtistDetailRoot();
+        
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            _view?.ShowArtistDetailRoot();
+            return false;
+        });        
+        
         _browserNavigationState.SelectedArtistId = message.Artist.Id;
     }
 

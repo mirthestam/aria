@@ -18,16 +18,6 @@ public partial class Player
     
     public Playlist.Playlist Playlist => _playlist;
     
-    public void QueueStateChanged(QueueStateChangedFlags flags, IAria api)
-    {
-        _playbackControls.QueueStateChanged(flags, api);
-    }
-
-    public void PlayerStateChanged(PlayerStateChangedFlags flags, IAria api)
-    {
-        _playbackControls.PlayerStateChanged(flags, api);
-    }
-
     public void LoadCover(Texture texture)
     {
         _coverPicture.SetPaintable(texture);
@@ -36,5 +26,15 @@ public partial class Player
     public void ClearCover()
     {
         _coverPicture.SetPaintable(null);
+    }
+
+    public void SetProgress(TimeSpan progressElapsed, TimeSpan progressDuration)
+    {
+        _playbackControls.SetProgress(progressElapsed, progressDuration);
+    }
+
+    public void SetPlaylistInfo(int? orderCurrentIndex, int queueLength)
+    {
+        _playbackControls.SetPlaylistInfo(orderCurrentIndex, queueLength);
     }
 }

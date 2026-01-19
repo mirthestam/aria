@@ -39,11 +39,19 @@ public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>,
 
     public void Receive(PlayerStateChangedMessage message)
     {
-        _view?.PlayerStateChanged(message.Value, _api);
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            _view?.PlayerStateChanged(message.Value, _api);
+            return false;
+        });        
     }
 
     public void Receive(QueueStateChangedMessage message)
     {
-        _view?.QueueStateChanged(message.Value, _api);
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            _view?.QueueStateChanged(message.Value, _api);
+            return false;
+        });        
     }
 }

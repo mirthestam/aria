@@ -89,9 +89,9 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
             LogLoadingUiForConnectedBackend();
             Refresh(QueueStateChangedFlags.All);
             
-            //await _playerPresenter.RefreshAsync(cancellationToken);
-            //await _playerBarPresenter.RefreshAsync();
-            //await _browserHostPresenter.RefreshAsync(cancellationToken);
+            await _playerPresenter.RefreshAsync(cancellationToken);
+            await _playerBarPresenter.RefreshAsync();
+            await _browserHostPresenter.RefreshAsync(cancellationToken);
 
             _logger.LogInformation(cancellationToken.IsCancellationRequested
                 ? "UI refresh was cancelled before completion."
@@ -183,6 +183,23 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
         }
     }    
     
+    public void Receive(QueueStateChangedMessage message)
+    {
+        Refresh(message.Value);
+    }
+    
+    private void Refresh(QueueStateChangedFlags flags)
+    {
+        if (!flags.HasFlag(QueueStateChangedFlags.PlaybackOrder)) return;
+
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            _view?.PrevAction.SetEnabled(_aria.Queue.Order.CurrentIndex > 0);
+            _view?.NextAction.SetEnabled(_aria.Queue.Order.HasNext);
+            return false;
+        });        
+    }    
+    
     [LoggerMessage(LogLevel.Error, "Player action failed: {action}")]
     partial void PlayerActionFailed(Exception e, string? action);    
     
@@ -209,17 +226,4 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
 
     [LoggerMessage(LogLevel.Warning, "Sequence task aborted due to exception.")]
     partial void LogSequenceTaskAbortedDueToException(Exception e);
-
-    public void Receive(QueueStateChangedMessage message)
-    {
-        Refresh(message.Value);
-    }
-    
-    private void Refresh(QueueStateChangedFlags flags)
-    {
-        if (!flags.HasFlag(QueueStateChangedFlags.PlaybackOrder)) return;
-
-        _view?.PrevAction.SetEnabled(_aria.Queue.Order.CurrentIndex > 0);
-        _view?.NextAction.SetEnabled(_aria.Queue.Order.HasNext);
-    }
 }

@@ -30,9 +30,9 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
 
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
-        await  RefreshArtistsAsync(cancellationToken);
-    }    
-    
+        await RefreshArtistsAsync(cancellationToken);
+    }
+
     public void Reset()
     {
         try
@@ -44,8 +44,8 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
         {
             LogFailedToResetArtistsPage(e);
         }
-    }    
-    
+    }
+
     public void Receive(LibraryUpdatedMessage message)
     {
         _ = RefreshArtistsAsync();
@@ -57,19 +57,19 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
         _view.ArtistSelected += id => { _messenger.Send(new ShowArtistDetailsMessage(id)); };
         _view.AllAlbumsRequested += () => { _messenger.Send(new ShowAllAlbumsMessage()); };
     }
-    
+
     private void AbortRefresh()
     {
         _refreshCancellationTokenSource?.Cancel();
         _refreshCancellationTokenSource?.Dispose();
         _refreshCancellationTokenSource = null;
-    }    
+    }
 
     private async Task RefreshArtistsAsync(CancellationToken externalCancellationToken = default)
     {
         LogRefreshingArtists();
         AbortRefresh();
-        
+
         _refreshCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(externalCancellationToken);
         var cancellationToken = _refreshCancellationTokenSource.Token;
 
@@ -79,10 +79,15 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
 
             if (_view != null)
             {
-                //await _view.ReadyAsync(cancellationToken);
-                _view.RefreshArtists(artists);
+                GLib.Functions.TimeoutAdd(0, 0, () =>
+                {
+                    if (cancellationToken.IsCancellationRequested) return false;
+                    
+                    _view.RefreshArtists(artists);
+                    return false;
+                });
             }
-            
+
             LogArtistsRefreshed();
         }
         catch (Exception e)

@@ -42,20 +42,22 @@ public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMess
 
     public void Receive(ConnectionStateChangedMessage message)
     {
-        switch (message.Value)
+        GLib.Functions.IdleAdd(0, () =>
         {
-            case ConnectionState.Disconnected:
-                _view.TogglePage(MainWindow.MainPages.Welcome);
-                break;
-            case ConnectionState.Connecting:
-                _view.TogglePage(MainWindow.MainPages.Connecting);
-                break;
-            case ConnectionState.Connected:
-                _view.TogglePage(MainWindow.MainPages.Main);
-                break;
-            default:
-                throw new ArgumentOutOfRangeException();
-        }
+            switch (message.Value)
+            {
+                case ConnectionState.Disconnected:
+                    _view.TogglePage(MainWindow.MainPages.Welcome);
+                    break;
+                case ConnectionState.Connecting:
+                    _view.TogglePage(MainWindow.MainPages.Connecting);
+                    break;
+                case ConnectionState.Connected:
+                    _view.TogglePage(MainWindow.MainPages.Main);
+                    break;
+            }
+            return false;
+        });        
     }
 
     public void Attach(MainWindow view)
@@ -114,8 +116,15 @@ public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMess
 
     public void Receive(ShowToastMessage message) => ShowToast(message.Message);
 
-    private void ShowToast(string message) => _view.ShowToast(message);
-    
+    private void ShowToast(string message)
+    {
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            _view.ShowToast(message);            
+            return false;
+        });
+    }
+
     [LoggerMessage(LogLevel.Critical, "Failed to disconnect.")]
     partial void LogFailedToDisconnect(Exception e);
 }

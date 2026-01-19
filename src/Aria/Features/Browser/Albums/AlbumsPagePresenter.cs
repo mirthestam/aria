@@ -75,7 +75,15 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
             var albumModels = albums.Select(a => new AlbumsAlbumModel(a)).ToList();
             cancellationToken.ThrowIfCancellationRequested();
 
-            _view?.ShowAlbums(albumModels);
+            GLib.Functions.TimeoutAdd(0, 0, () =>
+            {
+                if (cancellationToken.IsCancellationRequested) return false;
+                    
+                _view?.ShowAlbums(albumModels);
+                return false;
+            });            
+            
+            
             
             LogAlbumsLoaded();
 

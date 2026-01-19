@@ -29,7 +29,7 @@ public partial class Playlist
     private SingleSelection _songsSelection;
     private bool _suppressSelectionEvent;
     public event EventHandler<uint>? SongSelectionChanged;
-    
+
     partial void Initialize()
     {
         if (_initialized) return;
@@ -60,11 +60,11 @@ public partial class Playlist
         {
             if (!_suppressSelectionEvent) SongSelectionChanged?.Invoke(this, _songsSelection.GetSelected());
         };
-        
+
         // TODO: Add context menus to songs.
         // Should provide access to  playlist functions as well as quick navigation to the artists.
     }
-    
+
     public void TogglePage(PlaylistPages page)
     {
         var pageName = page switch
@@ -76,16 +76,18 @@ public partial class Playlist
 
         SetVisibleChildName(pageName);
     }
-    
+
     public void SelectSongIndex(int? index)
     {
         _suppressSelectionEvent = true;
         try
         {
-            if (index == null)
-                _songsSelection.UnselectAll();
+            if (index == null) _songsSelection.UnselectAll();
             else
+            {
                 _songsSelection.SelectItem((uint)index, true);
+                _songsListView.ScrollTo((uint)index, ListScrollFlags.Focus, null);
+            }
         }
         finally
         {

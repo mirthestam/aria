@@ -54,7 +54,12 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
     {
         _playlistPresenter.Reset();
         AbortLoadCover();
-        _view?.ClearCover();        
+        
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            _view?.ClearCover();
+            return false;
+        });        
     }
     
     public void Receive(PlayerStateChangedMessage message)
@@ -69,12 +74,27 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
 
     private void Refresh(PlayerStateChangedFlags flags)
     {
-        _view?.PlayerStateChanged(flags, _aria);
+        if (flags.HasFlag(PlayerStateChangedFlags.Progress))
+        {
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                _view?.SetProgress(_aria.Player.Progress.Elapsed, _aria.Player.Progress.Duration);
+                return false;
+            });            
+        }
     }
 
     private void Refresh(QueueStateChangedFlags flags)
     {
-        _view?.QueueStateChanged(flags, _aria);
+        if (flags.HasFlag(QueueStateChangedFlags.Id) || flags.HasFlag(QueueStateChangedFlags.PlaybackOrder))
+        {
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                _view?.SetPlaylistInfo(_aria.Queue.Order.CurrentIndex, _aria.Queue.Length);
+                return false;
+            });            
+        }
+        
         if (!flags.HasFlag(QueueStateChangedFlags.PlaybackOrder)) return;
         _ = LoadCover();
     }
@@ -109,7 +129,12 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
             var texture = await _resourceTextureLoader.LoadFromAlbumResourceAsync(coverInfo?.Id ?? Id.Empty, cancellationToken);
             if (cancellationToken.IsCancellationRequested) return;
             if (texture == null) return;
-            _view?.LoadCover(texture);
+            
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                _view?.LoadCover(texture);
+                return false;
+            });            
         }
         catch (OperationCanceledException)
         {
@@ -123,6 +148,4 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
     
     [LoggerMessage(LogLevel.Error, "Failed to load album cover")]
     partial void LogFailedToLoadAlbumCover(Exception e);
-
-    
 }

@@ -125,6 +125,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
             // We will NOT update the ID; as this would case the player to
             // reload the playlist it had loaded at the connection.
             Id = newPlaylistId;
+            Length = e.PlaylistLength;            
             flags |= QueueStateChangedFlags.PlaybackOrder;
         }
         

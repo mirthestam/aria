@@ -45,8 +45,12 @@ public partial class ArtistPagePresenter
     {
         LogResettingArtistPage();
         
-        _view?.TogglePage(ArtistPage.ArtistPages.Empty);
-        _view?.SetTitle("Artist"); // TODO now this name is defined in 2 places
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            _view?.TogglePage(ArtistPage.ArtistPages.Empty);
+            _view?.SetTitle("Artist"); // TODO now this name is defined in 2 places
+            return false;
+        });        
     }    
     
     private void StateOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -73,8 +77,12 @@ public partial class ArtistPagePresenter
             var albums = (await _aria.Library.GetAlbums(artistId, ct)).ToList();
             var albumModels = albums.Select(a => new AlbumModel(a)).ToList();
 
-            _view?.TogglePage(albums.Count == 0 ? ArtistPage.ArtistPages.Empty : ArtistPage.ArtistPages.Artist);
-            _view?.ShowArtist(artist, albumModels);
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                _view?.TogglePage(albums.Count == 0 ? ArtistPage.ArtistPages.Empty : ArtistPage.ArtistPages.Artist);
+                _view?.ShowArtist(artist, albumModels);
+                return false;
+            });            
 
             LogArtistLoadedLoadingArtwork(artistId);
             

@@ -72,7 +72,12 @@ public partial class AlbumPagePresenter(
 
         try
         {
-            _view?.LoadAlbum(album);
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                _view?.LoadAlbum(album);
+                return false;
+            });                        
+            
 
             var assetId = album.Assets.FrontCover?.Id ?? Id.Empty;
             var texture = await textureLoader.LoadFromAlbumResourceAsync(assetId, ct);
@@ -84,7 +89,11 @@ public partial class AlbumPagePresenter(
                 return;
             }
 
-            _view?.SetCover(texture);
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                _view?.SetCover(texture);
+                return false;
+            });                        
         }
         catch (OperationCanceledException)
         {

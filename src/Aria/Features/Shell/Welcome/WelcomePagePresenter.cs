@@ -50,7 +50,11 @@ public partial class WelcomePagePresenter(
             var connectionModels = connections
                 .Select(ConnectionModel.FromConnectionProfile);
 
-            _view?.RefreshConnections(connectionModels);
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                _view?.RefreshConnections(connectionModels);
+                return false;
+            });            
         }
         catch (Exception e)
         {

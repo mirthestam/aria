@@ -32,7 +32,12 @@ public partial class AlbumsAlbumListItem
     private void ModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(AlbumsAlbumModel.CoverTexture)) return;
-        SetCoverPicture();
+        
+        GLib.Functions.TimeoutAdd(0, 0, () =>
+        {
+            SetCoverPicture();
+            return false;
+        });
     }
 
     private void SetCoverPicture()
