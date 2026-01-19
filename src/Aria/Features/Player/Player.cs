@@ -15,25 +15,9 @@ public partial class Player
     [Connect("album-picture")] private Picture _coverPicture;
     [Connect("playback-controls")] private PlaybackControls _playbackControls;
     [Connect("playlist")] private Playlist.Playlist _playlist;
-
-    public SimpleAction NextAction { get; private set; }
-    public SimpleAction PrevAction { get; private set; }
-
+    
     public Playlist.Playlist Playlist => _playlist;
-
-    partial void Initialize()
-    {
-        var actionGroup = SimpleActionGroup.New();
-
-        NextAction = SimpleAction.New("next", null);
-        actionGroup.AddAction(NextAction);
-
-        PrevAction = SimpleAction.New("prev", null);
-        actionGroup.AddAction(PrevAction);
-
-        InsertActionGroup("player", actionGroup);
-    }
-
+    
     public void QueueStateChanged(QueueStateChangedFlags flags, IAria api)
     {
         _playbackControls.QueueStateChanged(flags, api);

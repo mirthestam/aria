@@ -11,7 +11,7 @@
     <property name="vexpand">True</property>
     <child>
       <object class="GtkButton" id="skip-backward-button">
-        <property name="action-name">player.prev</property>
+        <property name="action-name">player.previous</property>
         <property name="icon-name">media-skip-backward-symbolic</property>
       </object>
     </child>

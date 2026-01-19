@@ -21,17 +21,17 @@ public partial class PlaybackControls
         if (!flags.HasFlag(QueueStateChangedFlags.PlaybackOrder)) return;
         
         // This contains the current song.
-        SetPlaylistInfo(api.QueueProxy.Order.CurrentIndex, api.QueueProxy.Length);
-        SetProgress(api.PlayerProxy.Progress.Elapsed, api.PlayerProxy.Progress.Duration);
+        SetPlaylistInfo(api.Queue.Order.CurrentIndex, api.Queue.Length);
+        SetProgress(api.Player.Progress.Elapsed, api.Player.Progress.Duration);
     }
 
     public void PlayerStateChanged(PlayerStateChangedFlags flags, IAria api)
     {
         if (!flags.HasFlag(PlayerStateChangedFlags.Progress)) return;
         
-        SetElapsed(api.PlayerProxy.Progress.Elapsed);
-        SetRemaining(api.PlayerProxy.Progress.Remaining);
-        SetProgress(api.PlayerProxy.Progress.Elapsed);
+        SetElapsed(api.Player.Progress.Elapsed);
+        SetRemaining(api.Player.Progress.Remaining);
+        SetProgress(api.Player.Progress.Elapsed);
     }
 
     private void SetProgress(TimeSpan songElapsed, TimeSpan songDuration)

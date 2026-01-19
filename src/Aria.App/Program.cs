@@ -59,7 +59,7 @@ public class Program
                 x.AddSingleton<AriaEngine>();
                 x.AddSingleton<IAriaControl>(sp => sp.GetRequiredService<AriaEngine>());
                 x.AddSingleton<IAria>(sp => sp.GetRequiredService<AriaEngine>());
-                x.AddSingleton<ILibrary>(sp => sp.GetRequiredService<IAria>().LibraryProxy);
+                x.AddSingleton<ILibrary>(sp => sp.GetRequiredService<IAria>().Library);
                 
                 x.AddSingleton<IConnectionProfileProvider, ConnectionProfileProvider>();
                 x.AddTransient<ITagParser, MPDTagParser>();

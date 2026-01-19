@@ -20,9 +20,9 @@ public class AriaEngine(
 
     private ScopedBackendConnection? _backendScope;
 
-    public IPlayer PlayerProxy => _playerProxy;
-    public IQueue QueueProxy => _queueProxy;
-    public ILibrary LibraryProxy => _libraryProxy;
+    public IPlayer Player => _playerProxy;
+    public IQueue Queue => _queueProxy;
+    public ILibrary Library => _libraryProxy;
     
     public async Task InitializeAsync()
     {

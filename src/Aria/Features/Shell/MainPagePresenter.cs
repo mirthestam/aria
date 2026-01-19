@@ -1,42 +1,56 @@
 using System.Xml.Xsl;
+using Aria.Core;
 using Aria.Core.Connection;
+using Aria.Core.Queue;
 using Aria.Features.Browser;
 using Aria.Features.Player;
 using Aria.Features.PlayerBar;
 using CommunityToolkit.Mvvm.Messaging;
+using Gio;
 using Microsoft.Extensions.Logging;
+using Task = System.Threading.Tasks.Task;
 
 namespace Aria.Features.Shell;
 
-public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessage>
+public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessage>, IRecipient<QueueStateChangedMessage>
 {
     private readonly ILogger<MainPagePresenter> _logger;
+    private readonly IMessenger _messenger;
+    private readonly IAria _aria;
     private readonly BrowserHostPresenter _browserHostPresenter;
     private readonly PlayerPresenter _playerPresenter;
     private readonly PlayerBarPresenter _playerBarPresenter;
-
+    
     private CancellationTokenSource? _connectionCancellationTokenSource;
     
     private Task _activeTask = Task.CompletedTask;
+    
+    private MainPage? _view;
 
     public MainPagePresenter(ILogger<MainPagePresenter> logger,
         BrowserHostPresenter browserHostPresenter,
         PlayerPresenter playerPresenter,
         PlayerBarPresenter playerBarPresenter,
-        IMessenger messenger)
+        IMessenger messenger, IAria aria)
     {
+        _aria = aria;
         _logger = logger;
+        _messenger = messenger;
         _browserHostPresenter = browserHostPresenter;
         _playerPresenter = playerPresenter;
         _playerBarPresenter = playerBarPresenter;
-        messenger.Register(this);
+        messenger.RegisterAll(this);
     }
 
     public void Attach(MainPage view)
     {
+        _view = view;
         _browserHostPresenter.Attach(view.BrowserHost);
         _playerBarPresenter.Attach(view.PlayerBar);
         _playerPresenter.Attach(view.Player);
+        
+        view.NextAction.OnActivate += NextActionOnOnActivate;
+        view.PrevAction.OnActivate += PrevActionOnOnActivate;        
     }
 
     public void Receive(ConnectionStateChangedMessage message)
@@ -73,10 +87,11 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
         try
         {
             LogLoadingUiForConnectedBackend();
+            Refresh(QueueStateChangedFlags.All);
             
             //await _playerPresenter.RefreshAsync(cancellationToken);
             //await _playerBarPresenter.RefreshAsync();
-            await _browserHostPresenter.RefreshAsync(cancellationToken);
+            //await _browserHostPresenter.RefreshAsync(cancellationToken);
 
             _logger.LogInformation(cancellationToken.IsCancellationRequested
                 ? "UI refresh was cancelled before completion."
@@ -142,6 +157,35 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
         await action();
     }
     
+    private async void PrevActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        { 
+            await _aria.Player.PreviousAsync();
+        }
+        catch (Exception e)
+        {
+            PlayerActionFailed(e, sender.Name);
+            _messenger.Send(new ShowToastMessage("Failed to go to previous song"));
+        }
+    }
+
+    private async void NextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            await _aria.Player.NextAsync();
+        }
+        catch (Exception e)
+        {
+            PlayerActionFailed(e, sender.Name);
+            _messenger.Send(new ShowToastMessage("Failed to go to next song"));
+        }
+    }    
+    
+    [LoggerMessage(LogLevel.Error, "Player action failed: {action}")]
+    partial void PlayerActionFailed(Exception e, string? action);    
+    
     [LoggerMessage(LogLevel.Information, "Backend connected - Connecting UI.")]
     partial void LogLoadingUiForConnectedBackend();
 
@@ -165,4 +209,17 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
 
     [LoggerMessage(LogLevel.Warning, "Sequence task aborted due to exception.")]
     partial void LogSequenceTaskAbortedDueToException(Exception e);
+
+    public void Receive(QueueStateChangedMessage message)
+    {
+        Refresh(message.Value);
+    }
+    
+    private void Refresh(QueueStateChangedFlags flags)
+    {
+        if (!flags.HasFlag(QueueStateChangedFlags.PlaybackOrder)) return;
+
+        _view?.PrevAction.SetEnabled(_aria.Queue.Order.CurrentIndex > 0);
+        _view?.NextAction.SetEnabled(_aria.Queue.Order.HasNext);
+    }
 }

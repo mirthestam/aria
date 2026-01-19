@@ -47,7 +47,7 @@ public partial class PlaylistPresenter : IRecipient<QueueStateChangedMessage>, I
     {
         if (!message.Value.HasFlag(PlayerStateChangedFlags.PlaybackState)) return;
         
-        if (_aria.PlayerProxy.State == PlaybackState.Stopped)
+        if (_aria.Player.State == PlaybackState.Stopped)
         {
             // TODO: Deselect any song,.
             //but this might already be part of currentSong check.
@@ -62,12 +62,12 @@ public partial class PlaylistPresenter : IRecipient<QueueStateChangedMessage>, I
             _ = RefreshSongs();
 
         if (message.Value.HasFlag(QueueStateChangedFlags.PlaybackOrder))
-            _view?.SelectSongIndex(_aria.QueueProxy.Order.CurrentIndex);
+            _view?.SelectSongIndex(_aria.Queue.Order.CurrentIndex);
     }
 
     private void ViewOnSongSelectionChanged(object? sender, uint e)
     {
-        _aria.QueueProxy.PlayAsync((int)e);
+        _aria.Queue.PlayAsync((int)e);
     }
 
     private async Task RefreshSongs()
@@ -75,7 +75,7 @@ public partial class PlaylistPresenter : IRecipient<QueueStateChangedMessage>, I
         try
         {
             LogRefreshingPlaylist();
-            var songs = (await _aria.QueueProxy.GetSongsAsync()).ToList();
+            var songs = (await _aria.Queue.GetSongsAsync()).ToList();
 
             _view?.RefreshSongs(songs);
             _view?.TogglePage(songs.Count != 0 ? Playlist.PlaylistPages.Songs : Playlist.PlaylistPages.Empty);

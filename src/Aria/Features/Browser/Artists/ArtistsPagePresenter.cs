@@ -75,7 +75,7 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
 
         try
         {
-            var artists = await _aria.LibraryProxy.GetArtists(cancellationToken);
+            var artists = await _aria.Library.GetArtists(cancellationToken);
 
             if (_view != null)
             {

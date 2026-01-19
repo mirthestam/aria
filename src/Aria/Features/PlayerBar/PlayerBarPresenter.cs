@@ -46,33 +46,4 @@ public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>,
     {
         _view?.QueueStateChanged(message.Value, _api);
     }
-
-    private async void PrevActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
-    {
-        try
-        {
-            await _api.PlayerProxy.PreviousAsync();
-        }
-        catch (Exception e)
-        {
-            PlayerActionFailed(e, sender.Name);
-            _messenger.Send(new ShowToastMessage("Failed to go to previous song"));
-        }
-    }
-
-    private async void NextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
-    {
-        try
-        {
-            await _api.PlayerProxy.NextAsync();
-        }
-        catch (Exception e)
-        {
-            PlayerActionFailed(e, sender.Name);
-            _messenger.Send(new ShowToastMessage("Failed to go to next song"));
-        }
-    }
-
-    [LoggerMessage(LogLevel.Error, "Player action failed: {action}")]
-    partial void PlayerActionFailed(Exception e, string? action);
 }

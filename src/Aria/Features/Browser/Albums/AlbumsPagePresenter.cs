@@ -71,7 +71,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
 
         try
         {
-            var albums = await _aria.LibraryProxy.GetAlbums(cancellationToken);
+            var albums = await _aria.Library.GetAlbums(cancellationToken);
             var albumModels = albums.Select(a => new AlbumsAlbumModel(a)).ToList();
             cancellationToken.ThrowIfCancellationRequested();
 

@@ -21,7 +21,7 @@ public partial class PlayerBar
     {
         if (!flags.HasFlag(QueueStateChangedFlags.PlaybackOrder)) return;
         
-        var song = api.QueueProxy.CurrentSong;
+        var song = api.Queue.CurrentSong;
 
         var titleText = song?.Title ?? "Unnamed song";
         if (song?.Work?.ShowMovement ?? false)
@@ -57,7 +57,7 @@ public partial class PlayerBar
     {
         if (flags.HasFlag(PlayerStateChangedFlags.PlaybackState))
         {
-            var elapsedBarVisible = api.PlayerProxy.State switch
+            var elapsedBarVisible = api.Player.State switch
             {
                 PlaybackState.Unknown or PlaybackState.Stopped => false,
                 PlaybackState.Playing or PlaybackState.Paused => true,
@@ -69,6 +69,6 @@ public partial class PlayerBar
 
         if (flags.HasFlag(PlayerStateChangedFlags.Progress))
             _progressBar.Fraction =
-                api.PlayerProxy.Progress.Elapsed.TotalSeconds / api.PlayerProxy.Progress.Duration.TotalSeconds;
+                api.Player.Progress.Elapsed.TotalSeconds / api.Player.Progress.Duration.TotalSeconds;
     }
 }

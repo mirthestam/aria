@@ -49,7 +49,7 @@ public partial class AlbumPagePresenter(
         LogEnqueueingAlbum(logger, _album?.Id ?? Id.Unknown);
         
         if (_album?.Id == null) return;
-        _ = aria.QueueProxy.EnqueueAlbum(_album);
+        _ = aria.Queue.EnqueueAlbum(_album);
     }
 
     private void PlayAlbumActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
@@ -57,7 +57,7 @@ public partial class AlbumPagePresenter(
         LogPlayingAlbum(logger, _album?.Id ?? Id.Unknown);
         
         if (_album?.Id == null) return;
-        _ = aria.QueueProxy.PlayAlbum(_album);
+        _ = aria.Queue.PlayAlbum(_album);
     }
     
     public async Task LoadAsync(AlbumInfo album)

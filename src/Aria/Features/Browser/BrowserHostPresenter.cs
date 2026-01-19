@@ -56,7 +56,7 @@ public partial class BrowserHostPresenter : IRecipient<LibraryUpdatedMessage>
         try
         {
             // Update the page
-            var artists = await _playerApi.LibraryProxy.GetArtists(cancellationToken);
+            var artists = await _playerApi.Library.GetArtists(cancellationToken);
             var artistsPresent = artists.Any();
 
             // TODO: Expose a method in the library for this functionality.  

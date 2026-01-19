@@ -6,9 +6,9 @@ namespace Aria.Core;
 
 public interface IAria
 {
-    public IPlayer PlayerProxy { get; }
+    public IPlayer Player { get; }
 
-    public IQueue QueueProxy { get; }
+    public IQueue Queue { get; }
 
-    public ILibrary LibraryProxy { get; }
+    public ILibrary Library { get; }
 }

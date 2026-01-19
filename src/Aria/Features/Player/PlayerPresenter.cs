@@ -4,10 +4,8 @@ using Aria.Core.Library;
 using Aria.Core.Player;
 using Aria.Core.Queue;
 using Aria.Features.Player.Playlist;
-using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
-using Gio;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
 
@@ -15,9 +13,8 @@ namespace Aria.Features.Player;
 
 public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IRecipient<QueueStateChangedMessage>
 {
-    private readonly IAria _api;
+    private readonly IAria _aria;
     private readonly ILogger<PlayerPresenter> _logger;
-    private readonly IMessenger _messenger;
     private readonly PlaylistPresenter _playlistPresenter;
     private readonly ResourceTextureLoader _resourceTextureLoader;
     
@@ -25,14 +22,13 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
     
     private Player? _view;
 
-    public PlayerPresenter(ILogger<PlayerPresenter> logger, IMessenger messenger, IAria api,
+    public PlayerPresenter(ILogger<PlayerPresenter> logger, IMessenger messenger, IAria aria,
         ResourceTextureLoader resourceTextureLoader, PlaylistPresenter playlistPresenter)
     {
         _logger = logger;
         _resourceTextureLoader = resourceTextureLoader;
         _playlistPresenter = playlistPresenter;
-        _api = api;
-        _messenger = messenger;
+        _aria = aria;
         messenger.RegisterAll(this);
     }
     
@@ -41,9 +37,6 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
         _view = player;
 
         _playlistPresenter.Attach(_view.Playlist);
-
-        _view.NextAction.OnActivate += NextActionOnOnActivate;
-        _view.PrevAction.OnActivate += PrevActionOnOnActivate;
     }
     
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
@@ -76,9 +69,16 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
 
     private void Refresh(PlayerStateChangedFlags flags)
     {
-        _view?.PlayerStateChanged(flags, _api);
+        _view?.PlayerStateChanged(flags, _aria);
     }
 
+    private void Refresh(QueueStateChangedFlags flags)
+    {
+        _view?.QueueStateChanged(flags, _aria);
+        if (!flags.HasFlag(QueueStateChangedFlags.PlaybackOrder)) return;
+        _ = LoadCover();
+    }
+    
     private void AbortLoadCover()
     {
         _coverArtCancellationTokenSource?.Cancel();
@@ -102,7 +102,7 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
         
         try
         {
-            var song = _api.QueueProxy.CurrentSong;
+            var song = _aria.Queue.CurrentSong;
             if (song == null) return;
 
             var coverInfo = song.Assets.FrontCover;
@@ -120,46 +120,7 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
             if (!cancellationToken.IsCancellationRequested) LogFailedToLoadAlbumCover(e);
         }
     }
-
-    private void Refresh(QueueStateChangedFlags flags)
-    {
-        _view?.QueueStateChanged(flags, _api);
-        if (!flags.HasFlag(QueueStateChangedFlags.PlaybackOrder)) return;
-
-        _view?.PrevAction.SetEnabled(_api.QueueProxy.Order.CurrentIndex > 0);
-        _view?.NextAction.SetEnabled(_api.QueueProxy.Order.HasNext);
-        _ = LoadCover();
-    }
     
-    private async void PrevActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
-    {
-        try
-        {
-            await _api.PlayerProxy.PreviousAsync();
-        }
-        catch (Exception e)
-        {
-            PlayerActionFailed(e, sender.Name);
-            _messenger.Send(new ShowToastMessage("Failed to go to previous song"));
-        }
-    }
-
-    private async void NextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
-    {
-        try
-        {
-            await _api.PlayerProxy.NextAsync();
-        }
-        catch (Exception e)
-        {
-            PlayerActionFailed(e, sender.Name);
-            _messenger.Send(new ShowToastMessage("Failed to go to next song"));
-        }
-    }
-
-    [LoggerMessage(LogLevel.Error, "Player action failed: {action}")]
-    partial void PlayerActionFailed(Exception e, string? action);
-
     [LoggerMessage(LogLevel.Error, "Failed to load album cover")]
     partial void LogFailedToLoadAlbumCover(Exception e);
 
