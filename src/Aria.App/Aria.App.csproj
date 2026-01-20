@@ -10,7 +10,6 @@
 
 
     <ItemGroup>
-        <ProjectReference Include="..\Aria.Backends.Stub\Aria.Backends.Stub.csproj" />
         <ProjectReference Include="..\Aria.Hosting\Aria.Hosting.csproj"/>
         <ProjectReference Include="..\Aria.Integrations.MPD\Aria.Backends.MPD.csproj"/>
         <ProjectReference Include="..\Aria\Aria.csproj"/>

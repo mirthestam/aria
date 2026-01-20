@@ -74,6 +74,14 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
 
     private void Refresh(PlayerStateChangedFlags flags)
     {
+        if (flags.HasFlag(PlayerStateChangedFlags.PlaybackState))
+        {
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                _view?.SetPlaybackState(_aria.Player.State);
+                return false;
+            });            
+        }
         if (flags.HasFlag(PlayerStateChangedFlags.Progress))
         {
             GLib.Functions.IdleAdd(0, () =>
@@ -111,7 +119,7 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
         AbortLoadCover();
         
         // Create a new cancellation token source that is optionally linked to an external token.
-        // This allows cover loading to be cancelled both internally (e.g., when a new song starts)
+        // This allows cover loading to be cancelled both internally (e.g., when a new track starts)
         // and externally (e.g., when the component cancels connection via the cancellation token passed to ConnectAsync).
         // The linked token ensures that cancelling either source will cancel the cover loading operation.
         _coverArtCancellationTokenSource = externalCancellationToken != CancellationToken.None 
@@ -122,10 +130,10 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
         
         try
         {
-            var song = _aria.Queue.CurrentSong;
-            if (song == null) return;
+            var track = _aria.Queue.CurrentTrack;
+            if (track == null) return;
 
-            var coverInfo = song.Assets.FrontCover;
+            var coverInfo = track.Assets.FrontCover;
             var texture = await _resourceTextureLoader.LoadFromAlbumResourceAsync(coverInfo?.Id ?? Id.Empty, cancellationToken);
             if (cancellationToken.IsCancellationRequested) return;
             if (texture == null) return;

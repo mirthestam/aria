@@ -13,22 +13,22 @@ public partial class Playlist
 {
     public enum PlaylistPages
     {
-        Songs,
+        Tracks,
         Empty
     }
 
     private const string EmptyPageName = "empty-playlist-page";
-    private const string SongsPageName = "playlist-page";
+    private const string TracksPageName = "playlist-page";
 
     private bool _initialized;
     private SignalListItemFactory _signalListItemFactory;
 
-    private ListStore _songsListStore;
+    private ListStore _tracksListStore;
 
-    [Connect("songs-list-view")] private ListView _songsListView;
-    private SingleSelection _songsSelection;
+    [Connect("tracks-list-view")] private ListView _tracksListView;
+    private SingleSelection _tracksSelection;
     private bool _suppressSelectionEvent;
-    public event EventHandler<uint>? SongSelectionChanged;
+    public event EventHandler<uint>? TrackSelectionChanged;
 
     partial void Initialize()
     {
@@ -41,27 +41,27 @@ public partial class Playlist
         _signalListItemFactory.OnSetup += (_, args) =>
         {
             var item = (ListItem)args.Object;
-            item.SetChild(new SongListItem());
+            item.SetChild(new TrackListItem());
         };
         _signalListItemFactory.OnBind += (_, args) =>
         {
             var listItem = (ListItem)args.Object;
-            var modelItem = (SongModel)listItem.GetItem()!;
-            var widget = (SongListItem)listItem.GetChild()!;
+            var modelItem = (TrackModel)listItem.GetItem()!;
+            var widget = (TrackListItem)listItem.GetChild()!;
             widget.Update(modelItem);
         };
 
-        _songsListStore = ListStore.New(SongModel.GetGType());
-        _songsSelection = SingleSelection.New(_songsListStore);
-        _songsListView.SetFactory(_signalListItemFactory);
-        _songsListView.SetModel(_songsSelection);
+        _tracksListStore = ListStore.New(TrackModel.GetGType());
+        _tracksSelection = SingleSelection.New(_tracksListStore);
+        _tracksListView.SetFactory(_signalListItemFactory);
+        _tracksListView.SetModel(_tracksSelection);
 
-        _songsSelection.OnSelectionChanged += (_, _) =>
+        _tracksSelection.OnSelectionChanged += (_, _) =>
         {
-            if (!_suppressSelectionEvent) SongSelectionChanged?.Invoke(this, _songsSelection.GetSelected());
+            if (!_suppressSelectionEvent) TrackSelectionChanged?.Invoke(this, _tracksSelection.GetSelected());
         };
 
-        // TODO: Add context menus to songs.
+        // TODO: Add context menus to tracks.
         // Should provide access to  playlist functions as well as quick navigation to the artists.
     }
 
@@ -69,7 +69,7 @@ public partial class Playlist
     {
         var pageName = page switch
         {
-            PlaylistPages.Songs => SongsPageName,
+            PlaylistPages.Tracks => TracksPageName,
             PlaylistPages.Empty => EmptyPageName,
             _ => throw new ArgumentOutOfRangeException(nameof(page), page, null)
         };
@@ -77,16 +77,16 @@ public partial class Playlist
         SetVisibleChildName(pageName);
     }
 
-    public void SelectSongIndex(int? index)
+    public void SelectTrackIndex(int? index)
     {
         _suppressSelectionEvent = true;
         try
         {
-            if (index == null) _songsSelection.UnselectAll();
+            if (index == null) _tracksSelection.UnselectAll();
             else
             {
-                _songsSelection.SelectItem((uint)index, true);
-                _songsListView.ScrollTo((uint)index, ListScrollFlags.Focus, null);
+                _tracksSelection.SelectItem((uint)index, true);
+                _tracksListView.ScrollTo((uint)index, ListScrollFlags.Focus, null);
             }
         }
         finally
@@ -95,19 +95,19 @@ public partial class Playlist
         }
     }
 
-    public void RefreshSongs(IEnumerable<SongInfo> songs)
+    public void RefreshTracks(IEnumerable<TrackInfo> tracks)
     {
-        _songsListStore.RemoveAll();
+        _tracksListStore.RemoveAll();
 
-        foreach (var song in songs)
+        foreach (var track in tracks)
         {
-            var titleText = song?.Title ?? "Unnamed song";
-            if (song?.Work?.ShowMovement ?? false)
+            var titleText = track?.Title ?? "Unnamed track";
+            if (track?.Work?.ShowMovement ?? false)
                 // For  these kind of works, we ignore the
-                titleText = $"{song.Work.MovementName} ({song.Work.MovementNumber} {song.Title} ({song.Work.Work})";
+                titleText = $"{track.Work.MovementName} ({track.Work.MovementNumber} {track.Title} ({track.Work.Work})";
 
 
-            var credits = song?.CreditsInfo;
+            var credits = track?.CreditsInfo;
             var subTitleText = "";
             var composers = "";
 
@@ -126,9 +126,9 @@ public partial class Playlist
                 if (details.Count > 0) subTitleText += $" ({string.Join(", ", details)})";
             }
 
-            var item = new SongModel(song?.Id ?? Id.Empty, titleText, subTitleText, composers,
-                song?.Duration ?? TimeSpan.Zero);
-            _songsListStore.Append(item);
+            var item = new TrackModel(track?.Id ?? Id.Empty, titleText, subTitleText, composers,
+                track?.Duration ?? TimeSpan.Zero);
+            _tracksListStore.Append(item);
         }
     }
 }

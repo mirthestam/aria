@@ -3,7 +3,7 @@ using MpcNET;
 namespace Aria.Backends.MPD.Connection.Commands;
 
 // ReSharper disable once UnusedType.Global
-public class GetCurrentSongInfoCommand : IMpcCommand<IEnumerable<KeyValuePair<string,string>>>
+public class GetCurrentTrackInfoCommand : IMpcCommand<IEnumerable<KeyValuePair<string,string>>>
 {
     public string Serialize()
     {

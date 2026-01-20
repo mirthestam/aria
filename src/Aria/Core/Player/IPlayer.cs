@@ -19,7 +19,7 @@ public interface IPlayer
     public PlaybackState State { get; }
 
     /// <summary>
-    ///     The number of seconds to Crossfaded between song changes
+    ///     The number of seconds to Crossfaded between Track changes
     /// </summary>
     public int? XFade { get; }
 
@@ -30,13 +30,36 @@ public interface IPlayer
 
     public PlaybackProgress Progress { get; }
     
+    /// <summary>
+    /// Starts playback from the beginning of the playlist
+    /// </summary>
     Task PlayAsync();
 
+    /// <summary>
+    /// Pauses the playback if the player is currently playing.
+    /// </summary>
     Task PauseAsync();
-
+    
+    /// <summary>
+    /// Resumes playback if the player is currently paused.
+    /// </summary>
+    /// <returns></returns>
+    Task ResumeAsync();    
+    
+    /// <summary>
+    /// Skips to the next track in the playlist.
+    /// </summary>
+    /// <returns></returns>
     Task NextAsync();
 
+    /// <summary>
+    /// Skips to the previous track in the playlist.
+    /// </summary>
+    /// <returns></returns>
     Task PreviousAsync();
 
+    /// <summary>
+    /// Stops playback and resets the player to the beginning of the current track. 
+    /// </summary>
     Task StopAsync();
 }

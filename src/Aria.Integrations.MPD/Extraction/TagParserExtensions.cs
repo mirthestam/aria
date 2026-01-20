@@ -8,22 +8,22 @@ public static class TagParserExtensions
     extension(ITagParser parser)
     {
         /// <remarks>MPD provides long lists of tags, separated by 'file' tags.</remarks>
-        public IEnumerable<SongInfo> ParseSongsInformation(IReadOnlyList<Tag> tags)
+        public IEnumerable<TrackInfo> ParseTracksInformation(IReadOnlyList<Tag> tags)
         {
-            var currentSongTags = new List<Tag>();
+            var currentTrackTags = new List<Tag>();
             foreach (var tag in tags)
             {
-                // Each 'file' key marks the start of a new song in the response stream
-                if (tag.Name.Equals("file", StringComparison.OrdinalIgnoreCase) && currentSongTags.Count > 0)
+                // Each 'file' key marks the start of a new track in the response stream
+                if (tag.Name.Equals("file", StringComparison.OrdinalIgnoreCase) && currentTrackTags.Count > 0)
                 {
-                    yield return parser.ParseSongInformation(currentSongTags);
-                    currentSongTags.Clear();
+                    yield return parser.ParseTrackInformation(currentTrackTags);
+                    currentTrackTags.Clear();
                 }
                 
-                currentSongTags.Add(tag);
+                currentTrackTags.Add(tag);
             }
             
-            if (currentSongTags.Count > 0) yield return parser.ParseSongInformation(currentSongTags);
+            if (currentTrackTags.Count > 0) yield return parser.ParseTrackInformation(currentTrackTags);
         }
     }
 }

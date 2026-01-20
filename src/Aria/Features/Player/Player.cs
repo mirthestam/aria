@@ -1,8 +1,5 @@
-using Aria.Core;
 using Aria.Core.Player;
-using Aria.Core.Queue;
 using Gdk;
-using Gio;
 using GObject;
 using Gtk;
 
@@ -36,5 +33,10 @@ public partial class Player
     public void SetPlaylistInfo(int? orderCurrentIndex, int queueLength)
     {
         _playbackControls.SetPlaylistInfo(orderCurrentIndex, queueLength);
+    }
+
+    public void SetPlaybackState(PlaybackState playerState)
+    {
+        _playbackControls.SetPlaybackState(playerState);
     }
 }

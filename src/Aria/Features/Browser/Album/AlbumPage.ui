@@ -42,13 +42,21 @@
                         <property name="orientation">vertical</property>
                         <property name="spacing">3</property>
                         <child>
-                          <object class="GtkLabel" id="suptitle-label">
+                          <object class="GtkLabel" id="albumartists-label">
                             <property name="css-classes">dimmed
 caption</property>
                             <property name="ellipsize">end</property>
                             <property name="single-line-mode">True</property>
                           </object>
                         </child>
+                          <child>
+                              <object class="GtkLabel" id="artists-label">
+                                  <property name="css-classes">dimmed
+caption</property>
+                                  <property name="single-line-mode">False</property>
+                                  <property name="wrap">True</property>
+                              </object>
+                          </child>                          
                         <child>
                           <object class="GtkLabel" id="title-label">
                             <property name="css-classes">title-4</property>
@@ -74,7 +82,7 @@ caption</property>
                     <child>
                       <object class="AdwClamp">
                         <property name="child">
-                          <object class="GtkListBox" id="songs-listbox">
+                          <object class="GtkListBox" id="tracks-listbox">
                             <property name="css-classes">boxed-list</property>
                             <property name="selection-mode">none</property>
                             <property name="tab-behavior">item</property>
@@ -97,12 +105,14 @@ caption</property>
               <object class="GtkButton" id="play-button">
                 <property name="action-name">album.play</property>
                 <property name="icon-name">media-play</property>
+                <property name="tooltip-text">Play album now (replaces current queue)</property>
               </object>
             </child>
             <child type="end">
               <object class="GtkButton" id="enqueue-button">
                 <property name="action-name">album.enqueue</property>
                 <property name="icon-name">add</property>
+                <property name="tooltip-text">Add album to queue (plays later)</property>
               </object>
             </child>
           </object>

@@ -4,7 +4,7 @@
   <!-- interface-name MainWindow.ui -->
   <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.4"/>
-  <template class="AriaFeaturesPlayerPlaylistSongListItem" parent="GtkBox">
+  <template class="AriaFeaturesPlayerPlaylistTrackListItem" parent="GtkBox">
     <property name="orientation">horizontal</property>
     <property name="spacing">0</property>
     <child>

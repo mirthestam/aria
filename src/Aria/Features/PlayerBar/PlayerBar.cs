@@ -14,22 +14,25 @@ public partial class PlayerBar
     [Connect("elapsed-bar")] private ProgressBar _progressBar;
     [Connect("subtitle-label")] private Label _subTitleLabel;
     [Connect("title-label")] private Label _titleLabel;
-
-    // TODO: The mini-player progress bar is visible only in numeric mode, which is turned off.
-
-    public void QueueStateChanged(QueueStateChangedFlags flags, IAria api)
+    [Connect("media-controls")] private Player.MediaControls _mediaControls;
+    
+    public void SetCurrentTrack(TrackInfo? trackInfo)
     {
-        if (!flags.HasFlag(QueueStateChangedFlags.PlaybackOrder)) return;
+        if (trackInfo == null)
+        {
+            _titleLabel.Label_ = "";
+            _subTitleLabel.Label_ = "";
+            _progressBar.Fraction = 0;
+            return;
+        }
         
-        var song = api.Queue.CurrentSong;
-
-        var titleText = song?.Title ?? "Unnamed song";
-        if (song?.Work?.ShowMovement ?? false)
+        var titleText = trackInfo?.Title ?? "Unnamed tracks";
+        if (trackInfo?.Work?.ShowMovement ?? false)
             // For  these kind of works, we ignore the
-            titleText = $"{song.Work.MovementName} ({song.Work.MovementNumber} {song.Title} ({song.Work.Work})";
+            titleText = $"{trackInfo.Work.MovementName} ({trackInfo.Work.MovementNumber} {trackInfo.Title} ({trackInfo.Work.Work})";
 
 
-        var credits = song?.CreditsInfo;
+        var credits = trackInfo?.CreditsInfo;
         var subTitleText = "";
 
         if (credits != null)
@@ -52,23 +55,22 @@ public partial class PlayerBar
         _titleLabel.Label_ = titleText;
         _subTitleLabel.Label_ = subTitleText;
     }
-
-    public void PlayerStateChanged(PlayerStateChangedFlags flags, IAria api)
+    
+    public void SetPlaybackState(PlaybackState playerState)
     {
-        if (flags.HasFlag(PlayerStateChangedFlags.PlaybackState))
+        var elapsedBarVisible = playerState switch
         {
-            var elapsedBarVisible = api.Player.State switch
-            {
-                PlaybackState.Unknown or PlaybackState.Stopped => false,
-                PlaybackState.Playing or PlaybackState.Paused => true,
-                _ => false
-            };
+            PlaybackState.Unknown or PlaybackState.Stopped => false,
+            PlaybackState.Playing or PlaybackState.Paused => true,
+            _ => false
+        };
 
-            _progressBar.Visible = elapsedBarVisible;
-        }
+        _progressBar.Visible = elapsedBarVisible;
+        _mediaControls.SetPlaybackState(playerState);
+    }
 
-        if (flags.HasFlag(PlayerStateChangedFlags.Progress))
-            _progressBar.Fraction =
-                api.Player.Progress.Elapsed.TotalSeconds / api.Player.Progress.Duration.TotalSeconds;
+    public void SetProgress(TimeSpan progressElapsed, TimeSpan progressDuration)
+    {
+        _progressBar.Fraction = progressElapsed.TotalSeconds / progressDuration.TotalSeconds;
     }
 }

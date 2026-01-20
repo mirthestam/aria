@@ -4,7 +4,7 @@ using MpcNET.Types;
 namespace Aria.Backends.MPD.Connection.Commands;
 
 /// <summary>
-///     Finds songs in the database that is exactly "searchText".
+///     Finds tracks in the database that is exactly "searchText".
 ///     Since MPD 0.21, search syntax is now (TAG == 'VALUE').
 ///     https://mpd.readthedocs.io/en/stable/protocol.html#filters
 /// </summary>

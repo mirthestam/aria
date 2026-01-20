@@ -7,40 +7,52 @@ namespace Aria.Backends.Stub;
 
 public class Library : BaseLibrary
 {
-    public static ArtistInfo Gircorries => new() { Id = new StubId(3), Name = "The gircorries", Roles = ArtistRoles.Performer };
-    public static ArtistInfo GarbageCollector => new() { Id = new StubId(1), Name = "The Garbage Collector", Roles = ArtistRoles.Conductor };
+    public static ArtistInfo Gircorries => new()
+        { Id = new StubId(3), Name = "The gircorries", Roles = ArtistRoles.Performer };
+
+    public static ArtistInfo GarbageCollector => new()
+        { Id = new StubId(1), Name = "The Garbage Collector", Roles = ArtistRoles.Conductor };
+
     public static ArtistInfo Compiler => new() { Id = new StubId(2), Name = "Compiler", Roles = ArtistRoles.Conductor };
 
-    public static SongInfo DebuggingSong => new()
+    public static AlbumTrackInfo DebuggingTrack => new()
     {
-        Id = new StubId(1),
-        Duration = TimeSpan.FromSeconds(60),
-        Title = "Debugging templates",
-        CreditsInfo = new SongCreditsInfo
+        Track = new()
         {
-            Artists = [
-                new() { Artist = Gircorries, Roles = ArtistRoles.Performer },
-                new() { Artist = GarbageCollector, Roles = ArtistRoles.Conductor }
-            ],
-            AlbumArtists = [Gircorries]
-        },
-        ReleaseDate = new DateTime(2026, 01, 02)
+            Id = new StubId(1),
+            Duration = TimeSpan.FromSeconds(60),
+            Title = "Debugging templates",
+            CreditsInfo = new TrackCreditsInfo
+            {
+                Artists =
+                [
+                    new() { Artist = Gircorries, Roles = ArtistRoles.Performer },
+                    new() { Artist = GarbageCollector, Roles = ArtistRoles.Conductor }
+                ],
+                AlbumArtists = [Gircorries]
+            },
+            ReleaseDate = new DateTime(2026, 01, 02)
+        }
     };
 
-    public static SongInfo ILTalkSong => new()
+    public static TrackInfo IlTalkTrack => new()
     {
-        Id = new StubId(2),
-        Duration = TimeSpan.FromSeconds(75),
-        Title = "Intermediate Language talk",
-        CreditsInfo = new SongCreditsInfo
+        Track = new
         {
-            Artists = [
-                new() { Artist = Gircorries, Roles = ArtistRoles.Performer },
-                new() { Artist = Compiler, Roles = ArtistRoles.Conductor }
-            ],
-            AlbumArtists = [Gircorries]
-        },
-        ReleaseDate = new DateTime(2026, 01, 02)
+            Id = new StubId(2),
+            Duration = TimeSpan.FromSeconds(75),
+            Title = "Intermediate Language talk",
+            CreditsInfo = new TrackCreditsInfo
+            {
+                Artists =
+                [
+                    new() { Artist = Gircorries, Roles = ArtistRoles.Performer },
+                    new() { Artist = Compiler, Roles = ArtistRoles.Conductor }
+                ],
+                AlbumArtists = [Gircorries]
+            },
+            ReleaseDate = new DateTime(2026, 01, 02)
+        }
     };
 
     public override async Task<ArtistInfo?> GetArtist(Id artistId, CancellationToken cancellationToken = default)
@@ -58,17 +70,19 @@ public class Library : BaseLibrary
     public override async Task<IEnumerable<AlbumInfo>> GetAlbums(CancellationToken cancellationToken = default)
     {
         await Task.Delay(BackendConnection.Delay, cancellationToken).ConfigureAwait(false);
-        return [
+        return
+        [
             new AlbumInfo
             {
                 Title = "To C# Chronicles",
                 ReleaseDate = new DateTime(2026, 01, 02),
                 Id = new StubId(1),
                 Assets = [new() { Id = new StubId(1), Type = AssetType.FrontCover }],
-                Songs = [DebuggingSong, ILTalkSong],
+                Tracks = [DebuggingTrack, IlTalkTrack],
                 CreditsInfo = new AlbumCreditsInfo
                 {
-                    Artists = [
+                    Artists =
+                    [
                         new() { Artist = Gircorries, Roles = ArtistRoles.Performer },
                         new() { Artist = GarbageCollector, Roles = ArtistRoles.Conductor }
                     ],
@@ -78,7 +92,8 @@ public class Library : BaseLibrary
         ];
     }
 
-    public override Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId, CancellationToken cancellationToken = default) => GetAlbums(cancellationToken);
+    public override Task<IEnumerable<AlbumInfo>>
+        GetAlbums(Id artistId, CancellationToken cancellationToken = default) => GetAlbums(cancellationToken);
 }
 
 public class StubId(int id) : Id.TypedId<int>(id, "STUB")

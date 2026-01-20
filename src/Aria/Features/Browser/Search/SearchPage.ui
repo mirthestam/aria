@@ -14,7 +14,7 @@
               <object class="GtkStackPage" id="no-results-stack-page">
                 <property name="child">
                   <object class="AdwStatusPage">
-                    <property name="description">No results found. Try searching for a different artist, album or song.</property>
+                    <property name="description">No results found. Try searching for a different artist, album or track.</property>
                     <property name="icon-name">edit-find-symbolic</property>
                     <property name="title">No Results</property>
                   </object>
@@ -101,18 +101,18 @@
                               </object>
                             </child>
                             <child>
-                              <object class="GtkBox" id="song-box">
+                              <object class="GtkBox" id="track-box">
                                 <property name="orientation">vertical</property>
                                 <property name="spacing">12</property>
                                 <child>
                                   <object class="GtkLabel">
                                     <property name="css-classes">heading</property>
-                                    <property name="label">Songs</property>
+                                    <property name="label">Tracks</property>
                                     <property name="xalign">0.0</property>
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkListBox" id="song-list-box">
+                                  <object class="GtkListBox" id="track-list-box">
                                     <property name="css-classes">boxed-list</property>
                                     <property name="selection-mode">none</property>
                                     <property name="tab-behavior">item</property>

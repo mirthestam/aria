@@ -18,7 +18,7 @@ public partial class SearchPage
     [Connect("search-entry")] private SearchEntry _searchEntry;
 
     [Connect("search-stack")] private Stack _searchStack;
-    [Connect("song-list-box")] private ListBox _songListBox;
+    [Connect("track-list-box")] private ListBox _trackListBox;
     [Connect("work-list-box")] private ListBox _workListBox;
 
     public event EventHandler<string>? SearchChanged;
@@ -39,7 +39,7 @@ public partial class SearchPage
         _artistListBox.RemoveAll();
         _albumListBox.RemoveAll();
         _workListBox.RemoveAll();
-        _songListBox.RemoveAll();
+        _trackListBox.RemoveAll();
 
         // TODO; use the adjustement to scroll back to 0,0
     }

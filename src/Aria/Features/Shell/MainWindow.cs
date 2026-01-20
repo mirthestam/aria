@@ -36,6 +36,7 @@ public partial class MainWindow
     public void ShowToast(string message)
     {
         var toast = Toast.New(message);
+        toast.SetUseMarkup(false);
         _toastOverlay.AddToast(toast);
     }
 

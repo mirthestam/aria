@@ -20,6 +20,7 @@ public partial class MainPage
 
     public SimpleAction NextAction { get; private set; }
     public SimpleAction PrevAction { get; private set; }
+    public SimpleAction PlayPauseAction { get; private set; }
     
     partial void Initialize()
     {
@@ -50,13 +51,11 @@ public partial class MainPage
     private void InsertActions()
     {
         var actionGroup = SimpleActionGroup.New();
-
-        NextAction = SimpleAction.New("next", null);
-        actionGroup.AddAction(NextAction);
-
-        PrevAction = SimpleAction.New("previous", null);
-        actionGroup.AddAction(PrevAction);
-
+        
+        actionGroup.AddAction(NextAction = SimpleAction.New("next", null));
+        actionGroup.AddAction(PrevAction = SimpleAction.New("previous", null));
+        actionGroup.AddAction(PlayPauseAction = SimpleAction.New("play-pause", null));
+        
         InsertActionGroup("player", actionGroup);
     }
 }

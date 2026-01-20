@@ -21,15 +21,15 @@ public interface IQueue
     Task SetConsumeAsync(bool enabled);
     
     /// <summary>
-    /// Gets detailed information about the songs in this queue
+    /// Gets detailed information about the tracks in this queue
     /// </summary>
     /// <returns></returns>
-    Task<IEnumerable<SongInfo>> GetSongsAsync();
+    Task<IEnumerable<TrackInfo>> GetTracksAsync();
     
     /// <summary>
-    /// Gets detailed information about the currently playing song.
+    /// Gets detailed information about the currently playing track.
     /// </summary>
-    public SongInfo? CurrentSong { get; }
+    public TrackInfo? CurrentTrack { get; }
     
     public Task PlayAsync(int index);
 

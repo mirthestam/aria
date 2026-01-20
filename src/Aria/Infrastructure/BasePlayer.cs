@@ -27,6 +27,8 @@ public abstract class BasePlayer : IPlayerSource
     public virtual Task PauseAsync() => Task.CompletedTask;
 
     public virtual Task NextAsync() => Task.CompletedTask;
+    
+    public virtual Task ResumeAsync() => Task.CompletedTask;
 
     public virtual Task PreviousAsync() => Task.CompletedTask;
 

@@ -18,14 +18,14 @@ namespace Aria.Backends.MPD;
 
 public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : BaseQueue
 {
-    public override async Task<IEnumerable<SongInfo>> GetSongsAsync()
+    public override async Task<IEnumerable<TrackInfo>> GetTracksAsync()
     {
         var (isSuccess, tagPairs) = await client.SendCommandAsync(new PlaylistInfoCommand()).ConfigureAwait(false);
         if (!isSuccess) throw new InvalidOperationException("Failed to get playlist info");
         if (tagPairs == null) throw new InvalidOperationException("No playlist info found");
 
         var tags = tagPairs.Select(kvp => new Tag(kvp.Key, kvp.Value)).ToList();
-        return parser.ParseSongsInformation(tags);
+        return parser.ParseTracksInformation(tags);
     }
     
     public override async Task PlayAsync(int index)
@@ -40,9 +40,9 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
             // Using a command list here as we want MPD to process these commands sequentially.
             var commandList = new CommandList();
             commandList.Add(new ClearCommand());
-            foreach (var song in album.Songs)
+            foreach (var albumTrack in album.Tracks)
             {
-                commandList.Add(new AddCommand(song.FileName));            
+                commandList.Add(new AddCommand(albumTrack.Track.FileName));            
             }
 
             commandList.Add(new PlayCommand(0));        
@@ -62,9 +62,9 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         {
             // Using a command list here as we want MPD to process these commands sequentially.
             var commandList = new CommandList();
-            foreach (var song in album.Songs)
+            foreach (var albumTrack in album.Tracks)
             {
-                commandList.Add(new AddCommand(song.FileName));            
+                commandList.Add(new AddCommand(albumTrack.Track.FileName));            
             }
             
             await client.SendCommandAsync(commandList).ConfigureAwait(false);
@@ -135,7 +135,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
             flags |= QueueStateChangedFlags.Id;
             flags |= QueueStateChangedFlags.PlaybackOrder;
             
-            // // The playback order changed implicitly, even though the current song may still be at the same index.
+            // // The playback order changed implicitly, even though the current track may still be at the same index.
             // // This will trigger an order chaange
             // Order = PlaybackOrder.Default;
             
@@ -156,37 +156,37 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         
         if (flags.HasFlag(QueueStateChangedFlags.PlaybackOrder))
         {
-            var (isSuccess, keyValuePairs) = await client.SendCommandAsync(new GetCurrentSongInfoCommand()).ConfigureAwait(false);
-            if (!isSuccess) throw new InvalidOperationException("Failed to get current song info");
-            if (keyValuePairs == null) throw new InvalidOperationException("No current song info found");
+            var (isSuccess, keyValuePairs) = await client.SendCommandAsync(new GetCurrentTrackInfoCommand()).ConfigureAwait(false);
+            if (!isSuccess) throw new InvalidOperationException("Failed to get current track info");
+            if (keyValuePairs == null) throw new InvalidOperationException("No current track info found");
 
             var tagPairs = keyValuePairs.ToList();
 
             var tags = tagPairs.Select(kvp => new Tag(kvp.Key, kvp.Value)).ToList();
             if (tagPairs.Count == 0)
             {
-                CurrentSong = null;
+                CurrentTrack = null;
             }
             else
             {
-                var songInfo = parser.ParseSongInformation(tags);
-                if (songInfo.FileName != null)
+                var trackInfo = parser.ParseTrackInformation(tags);
+                if (trackInfo.FileName != null)
                 {
                     // This logic is duplicate with logic in the library.
-                    songInfo = songInfo with
+                    trackInfo = trackInfo with
                     {
                         Assets =
                         [
                             new AssetInfo
                             {
-                                Id = new AssetId(songInfo.FileName),
+                                Id = new AssetId(trackInfo.FileName),
                                 Type = AssetType.FrontCover
                             }
                         ]
                     };
                 }
 
-                CurrentSong = songInfo;
+                CurrentTrack = trackInfo;
             }
         }
 

@@ -2,21 +2,21 @@ using Aria.Core.Extraction;
 
 namespace Aria.Core.Library;
 
-public record SongInfo : IHasAssets
+public record TrackInfo : IHasAssets
 {
     public Id? Id { get; init; }
 
     /// <summary>
-    ///     The duration  of the song
+    ///     The duration  of the track
     /// </summary>
     public required TimeSpan Duration { get; init; }
 
     /// <summary>
-    ///     the song title.
+    ///     the track title.
     /// </summary>
     public required string Title { get; init; }
 
-    public SongCreditsInfo CreditsInfo { get; init; } = new();
+    public TrackCreditsInfo CreditsInfo { get; init; } = new();
     
     public WorkInfo? Work { get; init; } 
     

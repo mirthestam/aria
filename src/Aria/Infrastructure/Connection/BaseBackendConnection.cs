@@ -44,7 +44,7 @@ public abstract class BaseBackendConnection(
 
     /// <summary>
     /// Sets the tag parser for the backend connection. This parser is used to extract
-    /// metadata information from song tags.
+    /// metadata information from track tags.
     /// </summary>
     public void SetTagParser(ITagParser tagParser)
     {

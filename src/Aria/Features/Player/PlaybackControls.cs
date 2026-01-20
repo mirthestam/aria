@@ -1,3 +1,4 @@
+using Aria.Core.Player;
 using GObject;
 using Gtk;
 
@@ -15,21 +16,21 @@ public partial class PlaybackControls
 
     private TimeSpan _shownDuration;
 
-    public void SetProgress(TimeSpan songElapsed, TimeSpan songDuration)
+    public void SetProgress(TimeSpan trackElapsed, TimeSpan trackDuration)
     {
-        if (_shownDuration != songDuration)
+        if (_shownDuration != trackDuration)
         {
-            _elapsedScale.SetRange(0, songDuration.TotalSeconds);
-            _shownDuration = songDuration;
+            _elapsedScale.SetRange(0, trackDuration.TotalSeconds);
+            _shownDuration = trackDuration;
         }
 
-        _elapsedScale.SetValue(songElapsed.TotalSeconds);
+        _elapsedScale.SetValue(trackElapsed.TotalSeconds);
 
-        _elapsedTimeLabel.Label_ = songElapsed.ToString(@"mm\:ss");
-        _remainingTimeLabel.Label_ = (songDuration - songElapsed).ToString(@"mm\:ss");
+        _elapsedTimeLabel.Label_ = trackElapsed.ToString(@"mm\:ss");
+        _remainingTimeLabel.Label_ = (trackDuration - trackElapsed).ToString(@"mm\:ss");
     }
 
-    public void SetPlaylistInfo(int? playlistCurrentSongIndex, int playlistLength)
+    public void SetPlaylistInfo(int? playlistCurrentTrackIndex, int playlistLength)
     {
         var hasLength = playlistLength > 0;
 
@@ -39,7 +40,12 @@ public partial class PlaybackControls
         }
         
         _playlistProgressLabel.Label_ = hasLength
-            ? $"{playlistCurrentSongIndex + 1}/{playlistLength}"
+            ? $"{playlistCurrentTrackIndex + 1}/{playlistLength}"
             : "0/0";
+    }
+
+    public void SetPlaybackState(PlaybackState playerState)
+    {
+        _mediaControls.SetPlaybackState(playerState);
     }
 }

@@ -7,31 +7,31 @@ public class AlbumsParser(ITagParser tagParser)
 {
     public IEnumerable<AlbumInfo> GetAlbums(IReadOnlyList<Tag> tags)
     {
-        var parsedResults = new List<(AlbumInfo Album, SongInfo Song)>();
-        var currentSongTags = new List<Tag>();
+        var parsedResults = new List<(AlbumInfo Album, AlbumTrackInfo Track)>();
+        var currentTrackTags = new List<Tag>();
 
         foreach (var tag in tags)
         {
-            // If we encounter a new 'file', and we already have data, parse the previous song
-            if (tag.Name.Equals("file", StringComparison.OrdinalIgnoreCase) && currentSongTags.Count > 0)
+            // If we encounter a new 'file', and we already have data, parse the previous track
+            if (tag.Name.Equals("file", StringComparison.OrdinalIgnoreCase) && currentTrackTags.Count > 0)
             {
-                // This tag indicates a new song.
+                // This tag indicates a new track.
 
-                // Store our AlbumInfo and SongInfo pair
-                parsedResults.Add(ParseAlbumInformation(currentSongTags));
-                currentSongTags.Clear();
+                // Store our AlbumInfo and TrackInfo pair
+                parsedResults.Add(ParseAlbumInformation(currentTrackTags));
+                currentTrackTags.Clear();
             }
 
-            currentSongTags.Add(tag);
+            currentTrackTags.Add(tag);
         }
 
-        // Don't forget the very last song in the stream
-        if (currentSongTags.Count > 0)
+        // Don't forget the very last track in the stream
+        if (currentTrackTags.Count > 0)
         {
-            parsedResults.Add(ParseAlbumInformation(currentSongTags));
+            parsedResults.Add(ParseAlbumInformation(currentTrackTags));
         }
 
-        // 2. Group by Album ID to consolidate the individual songs into a full album
+        // 2. Group by Album ID to consolidate the individual tracks into a full album
         var uniqueAlbumInfos = parsedResults
             .GroupBy(res => res.Album.Id)
             .Select(group =>
@@ -39,16 +39,16 @@ public class AlbumsParser(ITagParser tagParser)
                 // The template for the album (metadata like Title, etc.)
                 var albumMetadata = group.First().Album;
 
-                // Since each entry in 'group' represents one song found for this album:
-                // 1. We extract the Song from each result in the group
-                var consolidatedSongs = group
-                    .Select(x => x.Song)
+                // Since each entry in 'group' represents one track found for this album:
+                // 1. We extract the Track from each result in the group
+                var consolidatedTracks = group
+                    .Select(x => x.Track)
                     .ToList();
 
-                // Return the album metadata enriched with the full collection of songs
+                // Return the album metadata enriched with the full collection of tracks
                 return albumMetadata with
                 {
-                    Songs = consolidatedSongs,
+                    Tracks = consolidatedTracks,
                     CreditsInfo = albumMetadata.CreditsInfo with
                     {
                         // Also aggregate any credits found across all tracks
@@ -60,16 +60,16 @@ public class AlbumsParser(ITagParser tagParser)
                 };
             });
 
-        // 2. Group by Album ID and consolidate all individual songs into full AlbumInfo objects
+        // 2. Group by Album ID and consolidate all individual tracks into full AlbumInfo objects
         return parsedResults
             .GroupBy(res => res.Album.Id)
             .Select(group =>
             {
-                var template = group.First().Album;
+                var templateAlbum = group.First().Album;
 
-                // Collect and deduplicate all songs found for this album
-                var consolidatedSongs = group
-                    .Select(x => x.Song)
+                // Collect and deduplicate all tracks found for this album
+                var consolidatedTracks = group
+                    .Select(x => x.Track)
                     .ToList();
 
                 // Merge all credits found across all tracks in this group
@@ -80,28 +80,14 @@ public class AlbumsParser(ITagParser tagParser)
                 var allArtists = group.SelectMany(x => x.Album.CreditsInfo.Artists)
                     .DistinctBy(a => a.Artist.Id)
                     .ToList();
-
-                // var albumArtId = Id.Empty;
-                //
-                // // MPD uses the fileName of a song to search for `cover` art files in its containing path.
-                // // Therefore, we use a song on this album to query MPD.
-                // var artTemplate = uniqueAlbumInfos.LastOrDefault(a => a.Id == template.Id);
-                // if (artTemplate is { Songs.Count: > 0 })
-                // {
-                //     var referenceSong = artTemplate.Songs[0];
-                //     if (referenceSong is { Id: SongId id })
-                //     {
-                //         albumArtId = new AssetId(id);
-                //     }
-                // }
-
-                var firstSong = consolidatedSongs.First();
                 
-                return template with
+                var firstAlbumTrack = consolidatedTracks.First();
+                
+                return templateAlbum with
                 {
-                    Assets = firstSong.Assets, // Take the assets from the first song
-                    Songs = consolidatedSongs,
-                    CreditsInfo = template.CreditsInfo with
+                    Assets = firstAlbumTrack.Track.Assets, // Take the assets from the first track
+                    Tracks = consolidatedTracks,
+                    CreditsInfo = templateAlbum.CreditsInfo with
                     {
                         AlbumArtists = allAlbumArtists,
                         Artists = allArtists
@@ -110,29 +96,33 @@ public class AlbumsParser(ITagParser tagParser)
             });
     }
 
-    private (AlbumInfo Album, SongInfo Song) ParseAlbumInformation(List<Tag> songTags)
+    private (AlbumInfo Album, AlbumTrackInfo Track) ParseAlbumInformation(List<Tag> trackTags)
     {
-        var songInfo = tagParser.ParseSongInformation(songTags);
+        var albumTrackInfo = tagParser.ParseAlbumTrackInformation(trackTags);
 
-        if (songInfo.FileName != null)
+        var track = albumTrackInfo.Track;
+
+        if (track.FileName != null)
         {
             // For MPD we want to look up album art by filename
-            songInfo = songInfo with
+            albumTrackInfo = albumTrackInfo with
             {
-                Assets =
-                [
-                    new AssetInfo
-                    {
-                        Id = new AssetId(songInfo.FileName),
-                        Type = AssetType.FrontCover
-                    }
-                ]
+                Track = albumTrackInfo.Track with
+                {
+                    Assets =
+                    [
+                        new AssetInfo
+                        {
+                            Id = new AssetId(albumTrackInfo.Track.FileName),
+                            Type = AssetType.FrontCover
+                        }
+                    ]
+                }
             };
         }
+        
+        var albumInfo = tagParser.ParseAlbumInformation(trackTags);
 
-
-        var albumInfo = tagParser.ParseAlbumInformation(songTags);
-
-        return (albumInfo, songInfo);
+        return (albumInfo, albumTrackInfo);
     }
 }

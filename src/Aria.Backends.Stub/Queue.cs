@@ -14,17 +14,17 @@ public class Queue : BaseQueue
 
     public override int Length => 2;
 
-    public override async Task<IEnumerable<SongInfo>> GetSongsAsync()
+    public override async Task<IEnumerable<TrackInfo>> GetTracksAsync()
     {
         await Task.Delay(BackendConnection.Delay).ConfigureAwait(false);
-        var songs = new List<SongInfo>
+        var tracks = new List<TrackInfo>
         {
-            Library.DebuggingSong,
-            Library.ILTalkSong
+            Library.DebuggingTrack,
+            Library.IlTalkTrack
         };
 
-        return songs;
+        return tracks;
     }
 
-    public override SongInfo? CurrentSong => Library.DebuggingSong;
+    public override TrackInfo? CurrentTrack => Library.DebuggingTrack;
 }

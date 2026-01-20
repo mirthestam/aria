@@ -12,7 +12,7 @@ public static class GtkBuilderExtensions
             builder.WithGType<PlaybackControls>();
             builder.WithGType<Player>();
             builder.WithGType<Playlist.Playlist>();
-            builder.WithGType<Playlist.SongListItem>();
+            builder.WithGType<Playlist.TrackListItem>();
         }
     }
 }

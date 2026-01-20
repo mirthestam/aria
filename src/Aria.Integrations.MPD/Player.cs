@@ -13,6 +13,7 @@ public class Player(Client client) : BasePlayer
 {
     public override async Task PlayAsync() => await client.SendCommandAsync(new PlayCommand(0)).ConfigureAwait(false);
     public override async Task PauseAsync() => await client.SendCommandAsync(new PauseResumeCommand(true)).ConfigureAwait(false);
+    public override async Task ResumeAsync() => await client.SendCommandAsync(new PauseResumeCommand(false)).ConfigureAwait(false);
     public override async Task NextAsync() => await client.SendCommandAsync(new NextCommand()).ConfigureAwait(false);
     public override async Task PreviousAsync() => await client.SendCommandAsync(new PreviousCommand()).ConfigureAwait(false);
     public override async Task StopAsync() => await client.SendCommandAsync(new StopCommand()).ConfigureAwait(false);

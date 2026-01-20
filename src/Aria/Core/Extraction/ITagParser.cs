@@ -3,14 +3,19 @@ using Aria.Core.Library;
 namespace Aria.Core.Extraction;
 
 /// <summary>
-/// A parser for extracting information from song metadata (tags and their values)
+/// A parser for extracting information from track metadata (tags and their values)
 /// </summary>
 public interface ITagParser
 {
     /// <summary>
-    /// Parses all  song-related information from the tags
+    /// Parses all  track-related information from the tags
     /// </summary>
-    SongInfo ParseSongInformation(IReadOnlyList<Tag> tags);
+    TrackInfo ParseTrackInformation(IReadOnlyList<Tag> tags);
+ 
+    /// <summary>
+    /// Parses all album-track-related information from the tags
+    /// </summary>
+    AlbumTrackInfo ParseAlbumTrackInformation(IReadOnlyList<Tag> tags);
     
     /// <summary>
     ///     Parses all album-related information from the tags

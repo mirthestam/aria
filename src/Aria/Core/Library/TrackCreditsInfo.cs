@@ -1,8 +1,8 @@
 namespace Aria.Core.Library;
 
-public record SongCreditsInfo
+public record TrackCreditsInfo
 {
-    public IReadOnlyList<SongArtistInfo> Artists { get; init; } = [];
+    public IReadOnlyList<TrackArtistInfo> Artists { get; init; } = [];
 
     public IReadOnlyList<ArtistInfo> AlbumArtists { get; init; } = [];
 }

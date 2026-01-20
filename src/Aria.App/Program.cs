@@ -12,6 +12,7 @@ using Aria.Features.Browser.Search;
 using Aria.Features.Player;
 using Aria.Features.Player.Playlist;
 using Aria.Features.PlayerBar;
+using Aria.Features.Shared;
 using Aria.Features.Shell;
 using Aria.Features.Shell.Welcome;
 using Aria.Hosting;
@@ -97,13 +98,6 @@ public class Program
                 x.AddScoped<Backends.MPD.Connection.Client>();
                 x.AddScoped<Aria.Backends.MPD.Player>();
                 x.AddScoped<IIdFactory, Backends.MPD.Extraction.IdFactory>();                
-                
-                // Stub
-                x.AddSingleton<IBackendConnectionFactory, Backends.Stub.BackendConnectionFactory>();
-                x.AddTransient<Backends.Stub.BackendConnection>();
-                x.AddScoped<Backends.Stub.Library>();
-                x.AddScoped<Aria.Backends.Stub.Player>();
-                x.AddScoped<Backends.Stub.Queue>();
             })
             .UseGtk(a =>
             {
@@ -120,6 +114,7 @@ public class Program
                 a.WithBrowserGTypes();
                 a.WithPlayerGTypes();
                 a.WithPlayerBarGTypes();
+                a.WithSharedGTypes();
             });
     }
 }

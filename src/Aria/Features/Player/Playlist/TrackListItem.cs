@@ -4,15 +4,15 @@ using Gtk;
 namespace Aria.Features.Player.Playlist;
 
 [Subclass<Box>]
-[Template<AssemblyResource>("Aria.Features.Player.Playlist.SongListItem.ui")]
-public partial class SongListItem
+[Template<AssemblyResource>("Aria.Features.Player.Playlist.TrackListItem.ui")]
+public partial class TrackListItem
 {
     [Connect("composer-label")] private Label _composerLabel;
     [Connect("duration-label")] private Label _durationLabel;
     [Connect("subtitle-label")] private Label _subTitleLabel;
     [Connect("title-label")] private Label _titleLabel;
 
-    public void Update(SongModel model)
+    public void Update(TrackModel model)
     {
         _titleLabel.SetLabel(model.Title);
         _subTitleLabel.SetLabel(model.Subtitle);

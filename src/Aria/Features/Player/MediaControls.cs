@@ -1,3 +1,5 @@
+using Aria.Core.Player;
+using Aria.Features.Shared;
 using GObject;
 using Gtk;
 
@@ -7,7 +9,12 @@ namespace Aria.Features.Player;
 [Template<AssemblyResource>("Aria.Features.Player.MediaControls.ui")]
 public partial class MediaControls
 {
-    [Connect("playback-start-button")] private Button _playbackStartButton;
+    [Connect("playback-start-button")] private PlayButton _playbackStartButton;
     [Connect("skip-backward-button")] private Button _skipBackwardButton;
     [Connect("skip-forward-button")] private Button _skipForwardButton;
+
+    public void SetPlaybackState(PlaybackState playerState)
+    {
+        _playbackStartButton.SetState(playerState);
+    }
 }

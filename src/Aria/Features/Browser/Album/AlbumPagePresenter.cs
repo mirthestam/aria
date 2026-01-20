@@ -1,7 +1,9 @@
 using Aria.Core;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Features.Shell;
 using Aria.Infrastructure;
+using CommunityToolkit.Mvvm.Messaging;
 using Gio;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
@@ -10,6 +12,7 @@ namespace Aria.Features.Browser.Album;
 
 public partial class AlbumPagePresenter(
     ILogger<AlbumPagePresenter> logger,
+    IMessenger messenger,
     IAria aria,
     ResourceTextureLoader textureLoader)
 {
@@ -50,6 +53,7 @@ public partial class AlbumPagePresenter(
         
         if (_album?.Id == null) return;
         _ = aria.Queue.EnqueueAlbum(_album);
+        messenger.Send(new ShowToastMessage($"Album '{_album.Title}' added to queue."));
     }
 
     private void PlayAlbumActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)

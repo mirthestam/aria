@@ -23,6 +23,11 @@ public class PlayerProxy : IPlayerSource
     {
         return _innerPlayer?.PauseAsync() ?? Task.CompletedTask;
     }
+    
+    public Task ResumeAsync()
+    {
+        return _innerPlayer?.ResumeAsync() ?? Task.CompletedTask;
+    }    
 
     public Task NextAsync()
     {

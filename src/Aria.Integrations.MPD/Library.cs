@@ -141,7 +141,7 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         using var scope = await client.CreateConnectionScopeAsync(token).ConfigureAwait(false);
 
 
-        // Try to find the cover from directory the song resides in by looking for a file called cover.png, cover.jpg, or cover.webp.
+        // Try to find the cover from directory the track resides in by looking for a file called cover.png, cover.jpg, or cover.webp.
         try
         {
             long totalBinarySize = 9999;

@@ -1,6 +1,7 @@
 using System.Xml.Xsl;
 using Aria.Core;
 using Aria.Core.Connection;
+using Aria.Core.Player;
 using Aria.Core.Queue;
 using Aria.Features.Browser;
 using Aria.Features.Player;
@@ -51,8 +52,9 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
         
         view.NextAction.OnActivate += NextActionOnOnActivate;
         view.PrevAction.OnActivate += PrevActionOnOnActivate;        
+        view.PlayPauseAction.OnActivate += PlayPauseActionOnOnActivate;
     }
-
+    
     public void Receive(ConnectionStateChangedMessage message)
     {
         switch (message.Value)
@@ -166,7 +168,7 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
         catch (Exception e)
         {
             PlayerActionFailed(e, sender.Name);
-            _messenger.Send(new ShowToastMessage("Failed to go to previous song"));
+            _messenger.Send(new ShowToastMessage("Failed to go to previous track"));
         }
     }
 
@@ -179,9 +181,33 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
         catch (Exception e)
         {
             PlayerActionFailed(e, sender.Name);
-            _messenger.Send(new ShowToastMessage("Failed to go to next song"));
+            _messenger.Send(new ShowToastMessage("Failed to go to next track"));
         }
     }    
+
+    private async void PlayPauseActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            switch (_aria.Player.State)
+            {
+                case PlaybackState.Paused:
+                    await _aria.Player.ResumeAsync();
+                    break;
+                case PlaybackState.Stopped:
+                    await _aria.Player.PlayAsync();
+                    break;
+                case PlaybackState.Playing:
+                    await _aria.Player.PauseAsync();
+                    break;
+            }
+        }
+        catch (Exception e)
+        {
+            PlayerActionFailed(e, sender.Name);
+            _messenger.Send(new ShowToastMessage("Failed to play/pause track"));
+        }
+    }
     
     public void Receive(QueueStateChangedMessage message)
     {
@@ -196,6 +222,7 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
         {
             _view?.PrevAction.SetEnabled(_aria.Queue.Order.CurrentIndex > 0);
             _view?.NextAction.SetEnabled(_aria.Queue.Order.HasNext);
+            _view?.PlayPauseAction.SetEnabled(_aria.Queue.Length > 0);
             return false;
         });        
     }    

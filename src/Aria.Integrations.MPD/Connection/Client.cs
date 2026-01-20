@@ -30,7 +30,7 @@ public sealed class Client
     /// <summary>
     ///     A dedicated connection for MPD that uses the IDLE mechanism.
     ///     We will wait for MPD to return from the IDLE command, which in turn
-    ///     tells us something has changed in the server state (e.g., song changed, playlist modified).
+    ///     tells us something has changed in the server state (e.g., track changed, playlist modified).
     ///     This provides event-driven updates complementing the periodic polling of _statusConnection.
     /// </summary>
     private MpcConnection? _idleConnection;

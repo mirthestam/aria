@@ -16,10 +16,10 @@ public sealed record AlbumInfo : IHasAssets
     public AlbumCreditsInfo CreditsInfo { get; init; } = new();
 
     /// <summary>
-    /// Optional list of songs.
+    /// Optional list of tracks
     /// </summary>
     /// <remarks>Can be empty if this information is not loaded.</remarks>
-    public IReadOnlyList<SongInfo> Songs { get; init; } = [];
+    public IReadOnlyList<AlbumTrackInfo> Tracks { get; init; } = [];
     
     public IReadOnlyCollection<AssetInfo> Assets { get; init; } = [];
 }

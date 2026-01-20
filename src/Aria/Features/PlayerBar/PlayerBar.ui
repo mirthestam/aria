@@ -42,7 +42,7 @@
               </object>
             </child>
             <child>
-              <object class="AriaFeaturesPlayerMediaControls"/>
+              <object class="AriaFeaturesPlayerMediaControls" id="media-controls"/>
             </child>
           </object>
         </property>

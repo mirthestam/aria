@@ -13,7 +13,7 @@ namespace Aria.Infrastructure.Tagging;
 /// </remarks>
 public class MPDTagParser(IIdFactory idFactory) : ITagParser
 {
-    public SongInfo ParseSongInformation(IReadOnlyList<Tag> tags)
+    public TrackInfo ParseTrackInformation(IReadOnlyList<Tag> tags)
     {
         var artistTags = new List<string>();
         var albumArtistTags = new List<string>();
@@ -94,7 +94,7 @@ public class MPDTagParser(IIdFactory idFactory) : ITagParser
             }
 
         var albumArtists = new List<ArtistInfo>();
-        var artists = new List<SongArtistInfo>();
+        var artists = new List<TrackArtistInfo>();
 
         foreach (var artistName in artistTags.Where(artistName => !string.IsNullOrWhiteSpace(artistName)))
             AddArtist(artistName, ArtistRoles.None);
@@ -112,10 +112,10 @@ public class MPDTagParser(IIdFactory idFactory) : ITagParser
 
         if (!string.IsNullOrWhiteSpace(conductorTag)) AddArtist(conductorTag, ArtistRoles.Conductor);
         
-        var songInfo = new SongInfo
+        var trackInfo = new TrackInfo
         {
             FileName = fileNameTag,
-            CreditsInfo = new SongCreditsInfo
+            CreditsInfo = new TrackCreditsInfo
             {
                 Artists = artists.AsReadOnly(),
                 AlbumArtists = albumArtists.AsReadOnly()
@@ -132,12 +132,12 @@ public class MPDTagParser(IIdFactory idFactory) : ITagParser
             ReleaseDate = DateTagParser.ParseDate(dateTag)
         };
         
-        var songId = idFactory.CreateSongId(new SongIdentificationContext
+        var trackId = idFactory.CreateTrackId(new TrackIdentificationContext
         {
-            Song = songInfo
+            Track = trackInfo
         });        
 
-        return songInfo with { Id = songId };
+        return trackInfo with { Id = trackId };
 
         void AddArtist(string artistName, ArtistRoles roles)
         {
@@ -152,7 +152,7 @@ public class MPDTagParser(IIdFactory idFactory) : ITagParser
             }
             else
             {
-                var artistInfo = new SongArtistInfo
+                var artistInfo = new TrackArtistInfo
                 {
                     Roles = roles,
                     Artist = new ArtistInfo
@@ -199,6 +199,38 @@ public class MPDTagParser(IIdFactory idFactory) : ITagParser
         }
     }
 
+    public AlbumTrackInfo ParseAlbumTrackInformation(IReadOnlyList<Tag> tags)
+    {
+        var diskTag = "";
+        var trackNumberTag = "";
+
+        foreach (var tag in tags)
+        {
+            switch (tag.Name.ToLowerInvariant())
+            {
+                case MPDTags.Track:
+                    trackNumberTag = tag.Value;
+                    break;
+
+                case MPDTags.Disc:
+                    diskTag = tag.Value;
+                    break;
+            }
+        }
+        
+        var trackInfo = ParseTrackInformation(tags);
+        var isTrackNumberFound = int.TryParse(trackNumberTag, out var trackNumber);
+
+        var albumTrackInfo = new AlbumTrackInfo
+        {
+            TrackNumber = isTrackNumberFound ? trackNumber : null,
+            VolumeName = diskTag,
+            Track = trackInfo
+        };
+        
+        return albumTrackInfo;
+    }
+
     public AlbumInfo ParseAlbumInformation(IReadOnlyList<Tag> tags)
     {
         var title = "";
@@ -213,17 +245,17 @@ public class MPDTagParser(IIdFactory idFactory) : ITagParser
                     break;
             }
 
-        var songInfo = ParseSongInformation(tagList);
+        var trackInfo = ParseTrackInformation(tagList);
 
         var albumInfo = new AlbumInfo
         {
             Title = title,
             CreditsInfo = new AlbumCreditsInfo
             {
-                Artists = songInfo.CreditsInfo.Artists,
-                AlbumArtists = songInfo.CreditsInfo.AlbumArtists
+                Artists = trackInfo.CreditsInfo.Artists,
+                AlbumArtists = trackInfo.CreditsInfo.AlbumArtists
             },
-            ReleaseDate = songInfo.ReleaseDate
+            ReleaseDate = trackInfo.ReleaseDate
         };
 
         var id = idFactory.CreateAlbumId(new AlbumIdentificationContext

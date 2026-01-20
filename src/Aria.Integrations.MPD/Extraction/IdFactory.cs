@@ -4,7 +4,7 @@ namespace Aria.Backends.MPD.Extraction;
 
 public class IdFactory : IIdFactory
 {
-    public Id CreateSongId(SongIdentificationContext context) => SongId.FromContext(context);
+    public Id CreateTrackId(TrackIdentificationContext context) => TrackId.FromContext(context);
 
     public Id CreateArtistId(ArtistIdentificationContext context) => ArtistId.FromContext(context);
 

@@ -6,9 +6,9 @@ using Object = GObject.Object;
 namespace Aria.Features.Player.Playlist;
 
 [Subclass<Object>]
-public partial class SongModel
+public partial class TrackModel
 {
-    public SongModel(Id id,
+    public TrackModel(Id id,
         string title,
         string subTitle,
         string composerLine,

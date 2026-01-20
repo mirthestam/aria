@@ -1,8 +1,5 @@
-using Aria.Backends.MPD;
 using Aria.Backends.MPD.Connection;
 using Aria.Core.Connection;
-using Aria.Infrastructure.Connection;
-
 using Zeroconf;
 
 namespace Aria.App.Infrastructure;
@@ -22,13 +19,6 @@ public class ConnectionProfileProvider : IConnectionProfileProvider
         await Task.CompletedTask;
         
         if (_connectionProfiles.Count != 0) return _connectionProfiles;
-        
-        // Initialize with default profiles
-        _connectionProfiles.Add(new Backends.Stub.ConnectionProfile
-        {
-            Name = "Stub server",
-            AutoConnect = false
-        });        
         
         _connectionProfiles.Add(new ConnectionProfile
         {
