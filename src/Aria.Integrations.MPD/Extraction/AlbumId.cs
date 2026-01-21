@@ -6,8 +6,10 @@ namespace Aria.Backends.MPD.Extraction;
 /// MPD Albums are identified by their name and their album artists to avoid collisions between
 /// different albums with the same title (e.g., "Greatest Hits").
 /// </summary>
-public class AlbumId(string identity) : Id.TypedId<string>(identity, "ALB")
+public class AlbumId(string identity) : Id.TypedId<string>(identity, Key)
 {
+    public const string Key = "ALB";
+    
     // TODO: Add the release date to this album.
     // Note: Artists may have multiple albums with the same name, such as deluxe editions.
     

@@ -1,6 +1,4 @@
-using Aria.Core.Library;
-using Aria.Core.Player;
-using Aria.Core.Queue;
+using Aria.Core.Extraction;
 using Aria.Infrastructure;
 
 namespace Aria.Core.Connection;
@@ -12,6 +10,8 @@ public interface IBackendConnection : IDisposable
     IQueueSource Queue { get; }
 
     ILibrarySource Library { get; }
+    
+    IIdProvider IdProvider { get; }
 
     Task ConnectAsync(CancellationToken cancellationToken = default);
 

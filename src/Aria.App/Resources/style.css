@@ -11,3 +11,7 @@
 .playlist > row:selected:hover {
     background-color: color-mix(in srgb, var(--accent-bg-color) 40%, transparent);
 }
+
+.artist-link {
+    padding: 2px 4px;
+}

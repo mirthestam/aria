@@ -11,7 +11,8 @@ namespace Aria.Infrastructure.Connection;
 public abstract class BaseBackendConnection(
     IPlayerSource player,
     IQueueSource queue,
-    ILibrarySource library) : IBackendConnection
+    ILibrarySource library,
+    IIdProvider idProvider) : IBackendConnection
 {
     public virtual event Action<ConnectionState>? ConnectionStateChanged;    
     
@@ -21,7 +22,8 @@ public abstract class BaseBackendConnection(
     public IPlayerSource Player => player;
     public IQueueSource Queue => queue;
     public ILibrarySource Library => library;
-    
+    public IIdProvider IdProvider => idProvider;
+
     public virtual Task ConnectAsync(CancellationToken cancellationToken = default)
     {
         OnConnectionStateChanged(ConnectionState.Connecting);

@@ -1,5 +1,6 @@
 using Aria.Core;
 using Aria.Core.Connection;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Core.Player;
 using Aria.Core.Queue;
@@ -38,6 +39,13 @@ public class AriaEngine(
     public async Task DisconnectAsync()
     {
         await InternalDisconnectAsync();        
+    }
+
+    public Id Parse(string id)
+    {
+        // We need the ID from the connection to parse it here.
+        // This method exists to avoid exposing the entire provider.
+        return _backendScope?.Connection.IdProvider.Parse(id) ?? Id.Empty; 
     }
 
     public async Task ConnectAsync(Guid profileId, CancellationToken cancellationToken = default)

@@ -1,4 +1,5 @@
 using Aria.Core.Connection;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Infrastructure.Connection;
 using CommunityToolkit.Mvvm.Messaging;
@@ -14,8 +15,9 @@ public partial class BackendConnection(
     Player player,
     Queue queue,
     Client client,
-    Library library)
-    : BaseBackendConnection( player, queue, library)
+    Library library,
+    IIdProvider idProvider)
+    : BaseBackendConnection( player, queue, library, idProvider)
 {
     public override bool IsConnected => client.IsConnected;
 

@@ -18,6 +18,7 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
     private readonly ILogger<MainPagePresenter> _logger;
     private readonly IMessenger _messenger;
     private readonly IAria _aria;
+    private readonly IAriaControl _ariaControl;
     private readonly BrowserHostPresenter _browserHostPresenter;
     private readonly PlayerPresenter _playerPresenter;
     private readonly PlayerBarPresenter _playerBarPresenter;
@@ -32,8 +33,9 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
         BrowserHostPresenter browserHostPresenter,
         PlayerPresenter playerPresenter,
         PlayerBarPresenter playerBarPresenter,
-        IMessenger messenger, IAria aria)
+        IMessenger messenger, IAria aria, IAriaControl ariaControl)
     {
+        _ariaControl = ariaControl;
         _aria = aria;
         _logger = logger;
         _messenger = messenger;
@@ -53,8 +55,36 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
         view.NextAction.OnActivate += NextActionOnOnActivate;
         view.PrevAction.OnActivate += PrevActionOnOnActivate;        
         view.PlayPauseAction.OnActivate += PlayPauseActionOnOnActivate;
+        view.ShowArtistAction.OnActivate += ShowArtistActionOnOnActivate;
     }
-    
+
+    private async void ShowArtistActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            if (args.Parameter == null)
+            {
+                return;
+            }
+            
+            var serializedId = args.Parameter.Print(false);
+            var artistId = _ariaControl.Parse(serializedId);
+        
+            var artistInfo = await _aria.Library.GetArtist(artistId);
+            if (artistInfo == null)
+            {
+                _messenger.Send(new ShowToastMessage("Could not find this artist."));
+                return;
+            }
+        
+            _messenger.Send(new ShowArtistDetailsMessage(artistInfo));
+        }
+        catch (Exception e)
+        {
+            LogFailedToParseArtistId(e);
+        }
+    }
+
     public void Receive(ConnectionStateChangedMessage message)
     {
         switch (message.Value)
@@ -253,4 +283,7 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
 
     [LoggerMessage(LogLevel.Warning, "Sequence task aborted due to exception.")]
     partial void LogSequenceTaskAbortedDueToException(Exception e);
+
+    [LoggerMessage(LogLevel.Error, "Failed to parse artist id")]
+    partial void LogFailedToParseArtistId(Exception e);
 }

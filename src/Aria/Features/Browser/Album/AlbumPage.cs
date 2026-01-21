@@ -21,8 +21,11 @@ public partial class AlbumPage
     [Connect("tracks-listbox")] private ListBox _tracksListBox;
     [Connect("subtitle-label")] private Label _subtitleLabel;
 
-    [Connect("albumartists-label")] private Label _albumArtistsLabel;
-    [Connect("artists-label")] private Label _commonArtistsLabel;
+    [Connect("albumartists-box")] private WrapBox _albumArtistsBox;
+    [Connect("composers-box")] private WrapBox _composersBox;
+    [Connect("arranged-box")] private WrapBox _arrangedBox;
+    [Connect("conductors-box")] private WrapBox _conductorsBox;
+    [Connect("performers-box")] private WrapBox _performersBox;
     [Connect("title-label")] private Label _titleLabel;
 
     public SimpleAction PlayAlbumAction { get; private set; }
@@ -51,29 +54,125 @@ public partial class AlbumPage
 
     private void UpdateHeader()
     {
-        var albumArtistsLine = string.Join(", ", _album.CreditsInfo.AlbumArtists.Select(a => a.Name));
-        var commonArtistsLine = string.Join(", ", _album.GetSharedGuestArtists().Select(ca => ca.Artist.Name));
+        if (_album.ReleaseDate.HasValue)
+        {
+            var date = _album.ReleaseDate.Value;
+            // Check if it's the first day of the year (01-01)
+            var yearLine = date is { Month: 1, Day: 1 }
+                ? $"{date.Year}"
+                : $"{date:d}";
+            _subtitleLabel.SetLabel(yearLine);            
+        }
 
-        _albumArtistsLabel.SetLabel(albumArtistsLine);
-        _commonArtistsLabel.SetLabel(commonArtistsLine);
-        _commonArtistsLabel.SetVisible(!string.IsNullOrEmpty(commonArtistsLine));
+        var duration = TimeSpan.FromTicks(_album.Tracks.Sum(t => t.Track.Duration.Ticks));
+        var durationText = duration.TotalHours >= 1
+            ? duration.ToString(@"h\:mm\:ss")
+            : duration.ToString(@"mm\:ss");
 
-        // if (releaseDate.HasValue)
-        // {
-        //     var date = releaseDate.Value;
-        //     // Check if it's the first day of the year (01-01)
-        //     yearLine = date is { Month: 1, Day: 1 }
-        //         ? $"{date.Year}"
-        //         : $"{date:d}";
-        // }
+        _durationLabel.SetLabel(durationText);
 
-        _albumArtistsLabel.SetLabel(albumArtistsLine);
-        _commonArtistsLabel.SetLabel(commonArtistsLine);
-        _commonArtistsLabel.SetVisible(!string.IsNullOrEmpty(commonArtistsLine));
+        foreach (var artist in _album.CreditsInfo.AlbumArtists)
+        {
+            // Format the button
+            var button = Button.NewWithLabel(artist.Name);
+            button.AddCssClass("flat");
+            
+            // Configure the action
+            button.SetActionName("browser.show-artist");
+            var value = GLib.Variant.NewString(artist.Id?.ToString() ?? Id.Unknown.ToString()); 
+            button.SetActionTargetValue(value);
+            
+            _albumArtistsBox.Append(button);
+        }
+        
+        var sharedArtists = _album.GetSharedArtists().ToList();
+        var composers = sharedArtists.Where(a => a.Roles.HasFlag(ArtistRoles.Composer)).ToList();
+        if (composers.Count > 0)
+        {
+            _composersBox.Append(CreatePrefixLabel("Composed by"));
 
+            for (var i = 0; i < composers.Count; i++)
+            {
+                var composer = composers[i];
+                var isLast = i == composers.Count - 1;
+                var artistLabel = CreateArtistButton(composer.Artist, isLast);
+                _composersBox.Append(artistLabel);
+            }
+        }
+
+        var conductors = sharedArtists.Where(a => a.Roles.HasFlag(ArtistRoles.Conductor)).ToList();
+        if (conductors.Count > 0)
+        {
+            _conductorsBox.Append(CreatePrefixLabel("Conducted by"));
+
+            for (var i = 0; i < conductors.Count; i++)
+            {
+                var conductor = conductors[i];
+                var isLast = i == conductors.Count - 1;
+                var artistLabel = CreateArtistButton(conductor.Artist, isLast);
+                _conductorsBox.Append(artistLabel);
+            }
+        }
+        
+        var arrangers = sharedArtists.Where(a => a.Roles.HasFlag(ArtistRoles.Arranger)).ToList();
+        if (arrangers.Count > 0)
+        {
+            _arrangedBox.Append(CreatePrefixLabel("Arranged by"));
+            foreach (var artistLabel in arrangers.Select(arranger => Label.New(arranger.Artist.Name)))
+            {
+                _arrangedBox.Append(artistLabel);
+            }
+        }
+
+        var performers = sharedArtists
+            .Where(a => !a.Roles.HasFlag(ArtistRoles.Conductor) && !a.Roles.HasFlag(ArtistRoles.Arranger) &&
+                        !a.Roles.HasFlag(ArtistRoles.Composer))
+            .ToList();
+        if (performers.Count > 0)
+        {
+            _performersBox.Append(CreatePrefixLabel("Performed by"));
+
+            for (var i = 0; i < performers.Count; i++)
+            {
+                var performer = performers[i];
+                var isLast = i == performers.Count - 1;
+
+                var artistLabel = CreateArtistButton(performer.Artist, isLast);                
+                artistLabel.TooltipText = performer.Roles switch
+                {
+                    ArtistRoles.Ensemble => "Ensemble",
+                    ArtistRoles.Soloist => "Soloist",
+                    _ => "Unknown role"
+                };
+                _performersBox.Append(artistLabel);
+            }
+        }
+        
         _titleLabel.SetLabel(_album.Title);
-        // _subtitleLabel.SetLabel(yearLine);
-        // _durationLabel.SetLabel("Not implemented");
+        return;
+
+        Button CreateArtistButton(ArtistInfo artist, bool isLast)
+        {
+            // Format the button
+            var displayText = isLast ? artist.Name : $"{artist.Name},";
+            var button = Button.NewWithLabel(displayText);
+            button.AddCssClass("link");
+            button.AddCssClass("artist-link");
+            
+            // Configure the action
+            button.SetActionName("browser.show-artist");
+            var value = GLib.Variant.NewString(artist.Id?.ToString() ?? Id.Unknown.ToString()); 
+            button.SetActionTargetValue(value);
+            
+            return button;
+        }
+
+        Label CreatePrefixLabel(string text)
+        {
+            var label = Label.New(text);
+            label.AddCssClass("dimmed");
+            return label;       
+        }
     }
 
     private void UpdateTracksList()
@@ -83,7 +182,7 @@ public partial class AlbumPage
             _tracksListBox.SetVisible(false);
             return;
         }
-        
+
         foreach (var albumTrack in _album.Tracks)
         {
             // TODO: We're constructing list items in code here.
@@ -118,7 +217,7 @@ public partial class AlbumPage
             row.SetUseMarkup(false);
             row.SetTitle(track.Title);
 
-            var guestArtists = track.CreditsInfo.Artists.Except(_album.GetSharedGuestArtists());
+            var guestArtists = _album.GetUniqueSongArtists(track);
             var subTitleLine = string.Join(", ", guestArtists.Select(a => a.Artist.Name));
 
             row.SetSubtitle(subTitleLine);

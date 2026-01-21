@@ -97,7 +97,7 @@ public class Program
                 x.AddScoped<Backends.MPD.Library>();
                 x.AddScoped<Backends.MPD.Connection.Client>();
                 x.AddScoped<Aria.Backends.MPD.Player>();
-                x.AddScoped<IIdFactory, Backends.MPD.Extraction.IdFactory>();                
+                x.AddScoped<IIdProvider, Backends.MPD.Extraction.IdProvider>();                
             })
             .UseGtk(a =>
             {

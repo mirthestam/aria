@@ -13,7 +13,7 @@ public class MPDTagParserTests
     {
         // The MPD ID factory is used here to identify unique items.
         // Note that the MPD tag parser is also compatible with other backends.
-        var idFactory = new IdFactory();
+        var idFactory = new IdProvider();
         _parser = new Aria.Infrastructure.Tagging.MPDTagParser(idFactory);
     }
 

@@ -21,6 +21,8 @@ public partial class MainPage
     public SimpleAction NextAction { get; private set; }
     public SimpleAction PrevAction { get; private set; }
     public SimpleAction PlayPauseAction { get; private set; }
+    public SimpleAction ShowArtistAction { get; private set; }
+    
     
     partial void Initialize()
     {
@@ -50,12 +52,14 @@ public partial class MainPage
 
     private void InsertActions()
     {
-        var actionGroup = SimpleActionGroup.New();
-        
-        actionGroup.AddAction(NextAction = SimpleAction.New("next", null));
-        actionGroup.AddAction(PrevAction = SimpleAction.New("previous", null));
-        actionGroup.AddAction(PlayPauseAction = SimpleAction.New("play-pause", null));
-        
-        InsertActionGroup("player", actionGroup);
+        var playerActionGroup = SimpleActionGroup.New();
+        playerActionGroup.AddAction(NextAction = SimpleAction.New("next", null));
+        playerActionGroup.AddAction(PrevAction = SimpleAction.New("previous", null));
+        playerActionGroup.AddAction(PlayPauseAction = SimpleAction.New("play-pause", null));
+        InsertActionGroup("player", playerActionGroup);
+
+        var browserActionGroup = SimpleActionGroup.New();
+        browserActionGroup.AddAction(ShowArtistAction = SimpleAction.New("show-artist",  GLib.VariantType.String));
+        InsertActionGroup("browser", browserActionGroup);
     }
 }

@@ -4,6 +4,7 @@ using Aria.Features.Browser.Albums;
 using Aria.Features.Browser.Artist;
 using Aria.Features.Browser.Artists;
 using Aria.Features.Browser.Search;
+using Aria.Features.Shell;
 using CommunityToolkit.Mvvm.Messaging;
 using Gio;
 using Microsoft.Extensions.Logging;
@@ -139,7 +140,7 @@ public partial class BrowserPagePresenter :
             return false;
         });        
     }
-
+    
     public void Receive(ShowArtistDetailsMessage message)
     {
         LogShowingArtistDetailsForArtist(message.Artist.Id ?? Id.Empty);

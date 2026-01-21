@@ -11,7 +11,7 @@ namespace Aria.Infrastructure.Tagging;
 ///     This parser is in the common project, because applied tagging scheme is independent  of the loaded backend.
 ///     I plan to add other schemes, like  Lyrion, or pure Musicbrainz (Picard).
 /// </remarks>
-public class MPDTagParser(IIdFactory idFactory) : ITagParser
+public class MPDTagParser(IIdProvider idProvider) : ITagParser
 {
     public TrackInfo ParseTrackInformation(IReadOnlyList<Tag> tags)
     {
@@ -132,7 +132,7 @@ public class MPDTagParser(IIdFactory idFactory) : ITagParser
             ReleaseDate = DateTagParser.ParseDate(dateTag)
         };
         
-        var trackId = idFactory.CreateTrackId(new TrackIdentificationContext
+        var trackId = idProvider.CreateTrackId(new TrackIdentificationContext
         {
             Track = trackInfo
         });        
@@ -160,7 +160,7 @@ public class MPDTagParser(IIdFactory idFactory) : ITagParser
                         Name = artistName
                     }
                 };
-                var artistId = idFactory.CreateArtistId(new ArtistIdentificationContext
+                var artistId = idProvider.CreateArtistId(new ArtistIdentificationContext
                 {
                     Artist = artistInfo.Artist
                 });
@@ -185,7 +185,7 @@ public class MPDTagParser(IIdFactory idFactory) : ITagParser
                 Name = artistName,
                 Roles = ArtistRoles.None
             };
-            var artistId = idFactory.CreateArtistId(new ArtistIdentificationContext
+            var artistId = idProvider.CreateArtistId(new ArtistIdentificationContext
             {
                 Artist = artistInfo
             });
@@ -258,7 +258,7 @@ public class MPDTagParser(IIdFactory idFactory) : ITagParser
             ReleaseDate = trackInfo.ReleaseDate
         };
 
-        var id = idFactory.CreateAlbumId(new AlbumIdentificationContext
+        var id = idProvider.CreateAlbumId(new AlbumIdentificationContext
         {
             Album = albumInfo
         });

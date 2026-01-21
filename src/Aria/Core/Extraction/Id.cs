@@ -20,7 +20,7 @@ public abstract class Id(string key = "UNKNOWN")
 
     public abstract override bool Equals(object? obj);
     public abstract override int GetHashCode();
-
+    
     public static bool operator ==(Id? left, Id? right)
     {
         return Equals(left, right);
