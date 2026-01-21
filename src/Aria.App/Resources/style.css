@@ -1,5 +1,7 @@
 .cover {
     border-radius: 9px;
+    border: 1px solid var(--border-color);
+    background-color: var(--window-bg-color);    
 }
 
 /* Styles selected playlist rows using a semi-transparent accent color.
