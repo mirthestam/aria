@@ -11,6 +11,21 @@ public interface IConnectionProfileProvider
     /// Gets the connection that the user configured as default.
     /// </summary>
     Task<IConnectionProfile?> GetDefaultProfileAsync();
+
+    /// <summary>
+    /// Saves this profile on disk
+    /// </summary>
+    Task SaveProfileAsync(IConnectionProfile profile);
+
+    /// <summary>
+    /// Makes the existing profile persistent
+    /// </summary>
+    Task PersistProfileAsync(Guid id);
+    
+    /// <summary>
+    /// Removes this profile from persistent storage,
+    /// </summary>
+    Task DeleteProfileAsync(Guid id);
     
     /// <summary>
     /// Occurs when a discovery has occured and the profile list has been updated.

@@ -50,7 +50,7 @@
                     </child>
                   </object>
                 </property>
-                <property name="icon-name">user-home-symbolic</property>
+                <property name="icon-name">playlist-symbolic</property>
                 <property name="name">playlist</property>
               </object>
             </child>

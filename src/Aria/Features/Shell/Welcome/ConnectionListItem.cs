@@ -10,6 +10,7 @@ public partial class ConnectionListItem
 {
     [Connect("title-label")] private Label _titleLabel;
     [Connect("subtitle-label")] private Label _subtitleLabel;
+    [Connect("discovered-label")] private Label _discoveredLabel;
 
     public Guid ConnectionId { get; }
 
@@ -18,5 +19,6 @@ public partial class ConnectionListItem
         ConnectionId = model.Id;
         _titleLabel.SetLabel(model.DisplayName);
         _subtitleLabel.SetLabel(model.ConnectionText);
+        _discoveredLabel.SetVisible(model.IsDiscovered);
     }
 }

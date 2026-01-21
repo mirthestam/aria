@@ -4,5 +4,13 @@ namespace Aria.Core.Connection;
 public enum ConnectionFlags
 {
     None = 0,
-    Discovered = 1 << 0
+    /// <summary>
+    /// Indicates that this connection as been discovered using service discovery
+    /// </summary>
+    Discovered = 1 << 0,
+    
+    /// <summary>
+    /// Indicates that this connection has been saved by the user
+    /// </summary>
+    Saved = 1 << 1
 }

@@ -156,8 +156,8 @@ dimmed</property>
             <child type="end">
               <object class="GtkButton" id="enqueue-button">
                 <property name="action-name">album.enqueue</property>
-                <property name="icon-name">add</property>
-                <property name="tooltip-text">Add album to queue (plays later)</property>
+                <property name="icon-name">media-playlist-append-symbolic</property>
+                <property name="tooltip-text">Append album to the end of the queue</property>
               </object>
             </child>
           </object>

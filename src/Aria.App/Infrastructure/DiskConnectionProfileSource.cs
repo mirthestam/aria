@@ -1,0 +1,83 @@
+using System.Text.Json;
+using Aria.Backends.MPD.Connection;
+using Aria.Core.Connection;
+using Microsoft.Extensions.Logging;
+
+namespace Aria.App.Infrastructure;
+
+public class DiskConnectionProfileSource(ILogger<DiskConnectionProfileSource> logger)
+{
+    private static readonly string ProfileDir = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), 
+        "aria", "profiles");
+
+    private static readonly JsonSerializerOptions SerializerOptions = new() { WriteIndented = true };
+
+    public async Task<IEnumerable<IConnectionProfile>> LoadAllAsync()
+    {
+        if (!Directory.Exists(ProfileDir)) return [];
+
+        var profiles = new List<IConnectionProfile>();
+        foreach (var file in Directory.GetFiles(ProfileDir, "*.json"))
+        {
+            try
+            {
+                await using var stream = File.OpenRead(file);
+                var data = await JsonSerializer.DeserializeAsync<ConnectionProfileData>(stream, SerializerOptions);
+                
+                IConnectionProfile? profile = data switch
+                {
+                    MpdConnectionProfileData mpdData => new ConnectionProfile
+                    {
+                        Id = mpdData.Id,
+                        Name = mpdData.Name,
+                        AutoConnect = mpdData.AutoConnect,
+                        Host = mpdData.Host,
+                        Port = mpdData.Port,
+                        Password = mpdData.Password
+                    },
+                    _ => null
+                };
+
+                if (profile == null) continue;
+                
+                profile.Flags |= ConnectionFlags.Saved;
+                profiles.Add(profile);
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to load profile from {File}", file);
+            }
+        }
+        return profiles;
+    }
+
+    public static async Task SaveAsync(IConnectionProfile profile)
+    {
+        Directory.CreateDirectory(ProfileDir);
+        
+        ConnectionProfileData data = profile switch
+        {
+            ConnectionProfile mpd => new MpdConnectionProfileData
+            {
+                Id = mpd.Id,
+                Name = mpd.Name,
+                AutoConnect = mpd.AutoConnect,
+                Host = mpd.Host,
+                Port = mpd.Port,
+                Password = mpd.Password
+            },
+            _ => throw new NotSupportedException($"Profile type {profile.GetType()} is not supported for disk storage.")
+        };
+
+        var path = Path.Combine(ProfileDir, $"{profile.Id}.json");
+        await using var stream = File.Create(path);
+        await JsonSerializer.SerializeAsync(stream, data, SerializerOptions);
+    }
+
+    public static void Delete(Guid id)
+    {
+        var path = Path.Combine(ProfileDir, $"{id}.json");
+        if (File.Exists(path)) File.Delete(path);
+    }
+}

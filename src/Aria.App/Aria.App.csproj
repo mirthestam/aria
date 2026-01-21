@@ -37,6 +37,7 @@
         <PackageReference Include="Lamar" Version="15.0.1"/>
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.1"/>
         <PackageReference Include="MpcNET" Version="1.6.6"/>
+        <PackageReference Include="Xdg.Directories" Version="0.1.2" />
         <PackageReference Include="Zeroconf" Version="3.7.16" />
     </ItemGroup>
 

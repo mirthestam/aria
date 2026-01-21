@@ -7,12 +7,12 @@
   <ui template-class="AriaFeaturesBrowserArtistsArtistListItem" filename="Features/Browser/Artists/ArtistListItem.ui" sha256="9365a5f5a484354c28e77f41d3258f871afa330f98fc3bbffe28dd3d6c808977"/>
   <ui template-class="AriaFeaturesBrowserArtistAlbumListItem" filename="Features/Browser/Artist/AlbumListItem.ui" sha256="974de71c4bf20e2be3490a4824d5740be1fc070d42cf6d3b4a5399c075296181"/>
   <ui template-class="AriaFeaturesShellConnectingPage" filename="Features/Shell/ConnectingPage.ui" sha256="e3d3d1f897f4759323bf91d08af76a67b9bcfe6b7dfe1ee7bb69be4d1961bf94"/>
-  <ui filename="Features/Player/Playlist/SongListItem.ui" sha256="00803ce5d6e8ef42f4223bab60ccdc80825197532303f3e468e8d052783ffb4f"/>
+  <ui filename="Features/Player/Playlist/SongListItem.ui" sha256="91849b1e72aebe1016aa154cfd2ec207958abb357667168282b85f4ca3cf15fc"/>
   <ui template-class="AriaFeaturesPlayerMediaControls" filename="Features/Player/MediaControls.ui" sha256="080c241db770cd71cb9455f523d252c3baeda79ebe26471ffc83e4b103077ba0"/>
   <ui filename="Features/Shell/ShortcutsDialog.ui" sha256="a2db2634fdf254e28aa30e431a33205b0454ac3bf1a4fb23ce5b087380bc7fd7"/>
-  <ui filename="../Aria.Integrations.MPD/UI/Connect/ConnectDialog.ui" sha256="2c2da28647f6121159c2ff2d18d766c5070231f9a6425c0d951fdab252c31b97"/>
-  <ui template-class="AriaFeaturesShellWelcomeWelcomePage" filename="Features/Shell/Welcome/WelcomePage.ui" sha256="bd96487985ac878ddeeec86ddc152b3359cce4aa3ba315fd1f41a819825b4995"/>
-  <ui template-class="AriaFeaturesShellWelcomeConnectionListItem" filename="Features/Shell/Welcome/ConnectionListItem.ui" sha256="827015fc3356bbfa954c5ae694906b4f55cdc62639c8c4e231b6aad272836183"/>
+  <ui filename="../Aria.Integrations.MPD/UI/Connect/ConnectDialog.ui" sha256="91849b1e72aebe1016aa154cfd2ec207958abb357667168282b85f4ca3cf15fc"/>
+  <ui template-class="AriaFeaturesShellWelcomeWelcomePage" filename="Features/Shell/Welcome/WelcomePage.ui" sha256="7b55aaa2bd342322688da216a4a91f8d531a0f22f8b3ba7822501d47bf4383ac"/>
+  <ui template-class="AriaFeaturesShellWelcomeConnectionListItem" filename="Features/Shell/Welcome/ConnectionListItem.ui" sha256="7f1e65b17142c6a38a869232fb732fd7a9f71a18be21d56d7c0aaa6a3ebeb9e4"/>
   <ui template-class="AriaFeaturesBrowserBrowserEmptyPage" filename="Features/Browser/BrowserEmptyPage.ui" sha256="d3cd9a7cdae08eaad645daf4f989e99cf2fb972887927119f39ec554fdaf61d2"/>
   <ui template-class="AriaFeaturesBrowserSearchSearchPage" filename="Features/Browser/Search/SearchPage.ui" sha256="fdc805e1d342f338166115c1f8741df473c22d8a04c3db25b86406c1b838c78e"/>
   <ui template-class="AriaFeaturesBrowserArtistsArtistsPage" filename="Features/Browser/Artists/ArtistsPage.ui" sha256="c69177d5f0cbc401630561d1724c490b134d7777f123e69fd38dcfad938bc06c"/>

@@ -1,7 +1,9 @@
 using Aria.Core;
 using Aria.Core.Connection;
 using CommunityToolkit.Mvvm.Messaging;
+using Gio;
 using Microsoft.Extensions.Logging;
+using Task = System.Threading.Tasks.Task;
 
 namespace Aria.Features.Shell.Welcome;
 
@@ -12,33 +14,59 @@ public partial class WelcomePagePresenter(
     ILogger<WelcomePagePresenter> logger)
 {
     private WelcomePage? _view;
-
+    
     public void Attach(WelcomePage view)
     {
         connectionProfileProvider.DiscoveryCompleted += ConnectionProfileProviderOnDiscoveryCompleted;
         
         _view = view;
-        _view.ConnectionSelected += ViewOnConnectionSelected;
+        
+        _view.ConnectAction.OnActivate += ConnectActionOnOnActivate;
+        _view.NewAction.OnActivate += NewActionOnOnActivate;
+        _view.ConfigureAction.OnActivate += ConfigureActionOnOnActivate;
+        
         _ = RefreshConnectionsAsync();
     }
 
-    private void ConnectionProfileProviderOnDiscoveryCompleted(object? sender, EventArgs e)
+    private void ConfigureActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        _ = RefreshConnectionsAsync();
+        // TODO: new edit connection
     }
 
-    private async void ViewOnConnectionSelected(Guid obj)
+    private async void ConnectActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         try
         {
-            // TODO: room for improvement use cancellationToken here, and have 'Cancelbutton' on connect scrreen invoke that cancellation.
-            await ariaControl.ConnectAsync(obj);
+            if (args.Parameter == null) throw new InvalidOperationException("Connection ID parameter missing");
+            
+            // Parse connection identification
+            var guidString = args.Parameter.Print(false);
+            guidString = guidString[1..^1]; // Remove quotation
+            var connectionId = Guid.Parse(guidString);
+            
+            // Start connection
+            await ariaControl.ConnectAsync(connectionId);
+            
+            // TODO: we should handle password requests, and intercept in the connection chain
+            
+            // We are connected. Remember this profile by making it persistent
+            await connectionProfileProvider.PersistProfileAsync(connectionId);
         }
         catch (Exception e)
         {
             messenger.Send(new ShowToastMessage("Failed to connect"));
             LogFailedToConnectToMPDServer(e);
-        }
+        }        
+    }
+
+    private void NewActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        // TODO: new connection
+    }
+
+    private void ConnectionProfileProviderOnDiscoveryCompleted(object? sender, EventArgs e)
+    {
+        _ = RefreshConnectionsAsync();
     }
 
     private async Task RefreshConnectionsAsync()

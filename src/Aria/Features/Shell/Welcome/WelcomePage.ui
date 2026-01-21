@@ -14,33 +14,28 @@
         <property name="content">
           <object class="AdwStatusPage">
             <property name="child">
-              <object class="GtkBox">
-                <property name="halign">center</property>
-                <property name="orientation">vertical</property>
-                <property name="spacing">12</property>
-                <property name="width-request">-1</property>
-                <child>
-                  <object class="GtkListBox" id="connection-listbox">
-                    <property name="css-classes">boxed-list</property>
-                    <property name="selection-mode">none</property>
-                  </object>
-                </child>
-                <child>
+              <object class="AdwClampScrollable">
+                <property name="child">
                   <object class="GtkBox">
-                    <property name="halign">center</property>
-                    <property name="hexpand">False</property>
-                    <property name="spacing">10</property>
+                    <property name="orientation">vertical</property>
                     <child>
-                      <object class="GtkButton" id="other-button">
-                        <property name="halign">baseline</property>
-                        <property name="hexpand">False</property>
-                        <property name="label">_Other Player…</property>
-                        <property name="use-underline">True</property>
+                      <object class="AdwPreferencesGroup" id="saved-group">
+                        <property name="header-suffix">
+                          <object class="GtkButton" id="new-button">
+                            <property name="action-name">welcome.new</property>
+                            <property name="icon-name">add</property>
+                          </object>
+                        </property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="AdwPreferencesGroup" id="visible-group">
+                        <property name="title">Discovered Players</property>
                         <property name="visible">False</property>
                       </object>
                     </child>
                   </object>
-                </child>
+                </property>
               </object>
             </property>
             <property name="description">To use Aria, connect to a music player on your network.</property>

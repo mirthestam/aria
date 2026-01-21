@@ -1,4 +1,6 @@
 using Adw;
+using Gio;
+using GLib;
 using GObject;
 using Gtk;
 using Box = Gtk.Box;
@@ -12,40 +14,89 @@ namespace Aria.Features.Shell.Welcome;
 [Template<AssemblyResource>("Aria.Features.Shell.Welcome.WelcomePage.ui")]
 public partial class WelcomePage
 {
-    [Connect("other-button")] private Button _otherButton;
-    [Connect("connection-listbox")] private ListBox _connectionListBox;
+    private readonly List<PreferencesRow> _visibleRows = [];
+    private readonly List<PreferencesRow> _savedRows = [];
 
-    public event Action<Guid>? ConnectionSelected;
+    [Connect("new-button")]  private Button _newButton;
+    [Connect("visible-group")] private PreferencesGroup _visiblePreferencesGroup;
+    [Connect("saved-group")] private PreferencesGroup _savedPreferencesGroup;
     
+    private SimpleActionGroup _welcomeActionGroup;
+    
+    public SimpleAction NewAction { get; private set; }    
+    public SimpleAction ConnectAction { get; private set; }
+    public SimpleAction ConfigureAction { get; private set; }
+    
+    partial void Initialize()
+    {
+        InsertActions();
+    }
+
     public void RefreshConnections(IEnumerable<ConnectionModel> connections)
     {
-        // Need to unbind the old rows.
-        var child = _connectionListBox.GetFirstChild();
-        while (child != null)
+        foreach (var oldRow in _visibleRows)
         {
-            if (child is ConnectionListItem row)
-            {
-                row.OnActivated -= ActionRowOnOnActivated;
-            }
-            var next = child.GetNextSibling();
-            _connectionListBox.Remove(child);
-            child = next;
-        }        
+            _visiblePreferencesGroup.Remove(oldRow);
+        }
 
-        _connectionListBox.RemoveAll();
+        foreach (var oldRow in _savedRows)
+        {
+            _savedPreferencesGroup.Remove(oldRow);
+        }
+        
         foreach (var connection in connections)
         {
-            var actionRow = new ConnectionListItem(connection);
-            actionRow.OnActivated += ActionRowOnOnActivated;
-            _connectionListBox.Append(actionRow);
+            var row = ActionRow.New();
+            row.SetTitle(connection.DisplayName);
+            row.SetSubtitle(connection.ConnectionText);
+            row.SetActivatable(true); // They are not activatable by default
+            
+            row.SetActionName("welcome.connect");
+            row.SetActionTargetValue(Variant.NewString(connection.Id.ToString()));
+            
+            // Workaround because for some reason the actions don't bubble down the tree
+            row.InsertActionGroup("welcome", _welcomeActionGroup);
+            
+            var settingsButton = Button.NewFromIconName("view-more-symbolic");
+            settingsButton.AddCssClass("flat");
+            settingsButton.SetActionName("welcome.configure");
+            settingsButton.SetActionTargetValue(Variant.NewString(connection.Id.ToString()));
+            row.AddSuffix(settingsButton);                
+            
+            if (connection.IsDiscovered)
+            {
+                _visiblePreferencesGroup.Add(row);
+                _visibleRows.Add(row);                
+            }
+            else
+            {
+                _savedPreferencesGroup.Add(row);
+                _savedRows.Add(row);                    
+            }
         }
+        
+        _visiblePreferencesGroup.SetVisible(_visibleRows.Count > 0);       
     }
 
-    private void ActionRowOnOnActivated(ActionRow sender, EventArgs args)
+    private void InsertActions()
     {
-        if (sender is ConnectionListItem row)
-        {
-            ConnectionSelected?.Invoke(row.ConnectionId);
-        }
-    }
+        _welcomeActionGroup = SimpleActionGroup.New();
+        _welcomeActionGroup.AddAction(NewAction = SimpleAction.New("new", null));
+        _welcomeActionGroup.AddAction(ConnectAction = SimpleAction.New("connect", VariantType.New("s")));
+        _welcomeActionGroup.AddAction(ConfigureAction = SimpleAction.New("configure", VariantType.New("s")));
+        InsertActionGroup("welcome", _welcomeActionGroup);
+        
+        // Workaround because for some reason the actions don't bubble down the tree
+        _newButton.InsertActionGroup("welcome", _welcomeActionGroup);
+        _visiblePreferencesGroup.InsertActionGroup("welcome", _welcomeActionGroup);
+        _savedPreferencesGroup.InsertActionGroup("welcome", _welcomeActionGroup);
+    }    
+    
+    // private void ActionRowOnOnActivated(ActionRow sender, EventArgs args)
+    // {
+    //     if (sender is ConnectionListItem row)
+    //     {
+    //         ConnectionSelected?.Invoke(row.ConnectionId);
+    //     }
+    // }
 }

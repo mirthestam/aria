@@ -4,4 +4,9 @@
 		<file>nl.mirthestam.aria.metainfo.xml</file>
 		<file>style.css</file>
 	</gresource>
+	<gresource prefix="/org/gtk/example/icons/scalable/actions/">
+		<file preprocess="xml-stripblanks">icons/playlist-symbolic.svg</file>
+		<file preprocess="xml-stripblanks">icons/user-trash-symbolic.svg</file>
+		<file preprocess="xml-stripblanks">icons/cogged-wheel-symbolic.svg</file>
+	</gresource>	
 </gresources>

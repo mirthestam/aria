@@ -4,40 +4,85 @@ using Zeroconf;
 
 namespace Aria.App.Infrastructure;
 
-/// <summary>
-/// A development connection provider. I plan to develop a connection provider based upon user-configured profiles.
-/// </summary>
-public class ConnectionProfileProvider : IConnectionProfileProvider
+public class ConnectionProfileProvider(DiskConnectionProfileSource diskSource) : IConnectionProfileProvider
 {
     private readonly List<IConnectionProfile> _connectionProfiles = [];
     private readonly SemaphoreSlim _lock = new(1, 1);
-    
+    private bool _isLoaded;
+
     public event EventHandler? DiscoveryCompleted;
 
     public async Task<IEnumerable<IConnectionProfile>> GetAllProfilesAsync()
     {
-        await Task.CompletedTask;
-        
-        if (_connectionProfiles.Count != 0) return _connectionProfiles;
-        
-        _connectionProfiles.Add(new ConnectionProfile
+        await _lock.WaitAsync();
+        try
         {
-            Id = Guid.NewGuid(),
-            Name = "Local MPD Server",
-            Host = "127.0.0.1",
-            Port = 6600,
-            AutoConnect = false
-        });
+            if (_isLoaded) return _connectionProfiles.ToList();
+            
+            var stored = await diskSource.LoadAllAsync();
+            _connectionProfiles.AddRange(stored);
+            _isLoaded = true;
+                
+            // Invoke initial discovery automatically
+            _ = UpdateAsync();
+            return _connectionProfiles.ToList();
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
 
-        // Invoke initial discovery automatically
-        _ = UpdateAsync();
+    public async Task SaveProfileAsync(IConnectionProfile profile)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            var existing = _connectionProfiles.FirstOrDefault(p => p.Id == profile.Id);
+            if (existing != null)
+            {
+                _connectionProfiles.Remove(existing);
+            }
+            _connectionProfiles.Add(profile);
+            await DiskConnectionProfileSource.SaveAsync(profile);
+        }
+        finally
+        {
+            _lock.Release();
+        }
+    }
+
+    public async Task PersistProfileAsync(Guid id)
+    {
+        var profile = _connectionProfiles.FirstOrDefault(p => p.Id == id);
         
-        return _connectionProfiles;
+        if (profile == null) throw new InvalidOperationException("No profile found with the given ID");
+        
+        profile.Flags &= ~ConnectionFlags.Discovered;
+        profile.Flags |= ConnectionFlags.Saved;
+        
+        await SaveProfileAsync(profile);
+    }
+
+    public async Task DeleteProfileAsync(Guid id)
+    {
+        await _lock.WaitAsync();
+        try
+        {
+            _connectionProfiles.RemoveAll(p => p.Id == id);
+            DiskConnectionProfileSource.Delete(id);
+        }
+        finally
+        {
+            _lock.Release();
+        }
     }
 
     public Task<IConnectionProfile?> GetDefaultProfileAsync()
     {
         // No default support yet, as I only have implemented zeroconf discovery and no user configurable profiles
+        // TODO: this should be the first STORED profile that has AutoConnect enabled
+        // and later, we want to remember the last used so we auto connect to the last used.
         return Task.FromResult<IConnectionProfile?>(null);
     }
 

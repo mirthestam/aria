@@ -57,6 +57,7 @@ public class Program
                 x.AddSingleton<IMessenger>(_ => WeakReferenceMessenger.Default);
 
                 // Infrastructure
+                x.AddSingleton<DiskConnectionProfileSource>();
                 x.AddSingleton<AriaEngine>();
                 x.AddSingleton<IAriaControl>(sp => sp.GetRequiredService<AriaEngine>());
                 x.AddSingleton<IAria>(sp => sp.GetRequiredService<AriaEngine>());
