@@ -3,14 +3,11 @@ BUGS
 - When welcome page is refreshng, the shown GUID are invalid.
 - convert pill to dropdown, with (refresh) option to manually trigger.
 - Tagging: When selecting an album for an artist, it only shows tracks including that artist.
-- example:
 - Artistbuttons on albumpage: need ellipsis
 
 WISHES
-- General: Implement connection profile storage
 - General: Translations
 
-- Shell:  miniplayer progressbar visibility
 - Shell; select first artist instead of all albums; on connect
 
 - Sidebar: Implement Sidebar switch (composers, artists)
@@ -26,7 +23,6 @@ WISHES
 - AlbumsPage: Album Context-menu
 
 - Player: Menu with repeat/random/volume controls
-- Player: Progress bar control and tooltip
  
 - Playlist: Drag drop to move
 

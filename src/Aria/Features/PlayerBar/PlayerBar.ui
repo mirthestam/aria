@@ -33,7 +33,7 @@
                 <child>
                   <object class="GtkLabel" id="subtitle-label">
                     <property name="css-classes">dimmed
-                                            caption
+caption
                                         </property>
                     <property name="ellipsize">end</property>
                     <property name="xalign">0.0</property>
@@ -49,7 +49,9 @@
         <property name="hexpand">True</property>
         <child type="overlay">
           <object class="GtkProgressBar" id="elapsed-bar">
-            <property name="css-classes">osd</property>
+            <property name="css-classes">osd
+top
+horizontal</property>
             <property name="ellipsize">none</property>
             <property name="fraction">0.25</property>
             <property name="hexpand">False</property>
