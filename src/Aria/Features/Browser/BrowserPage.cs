@@ -41,6 +41,7 @@ public partial class BrowserPage
     public void ShowArtistDetailRoot()
     {
         _libraryNavigationView.ReplaceWithTags(["library-artist-detail"]);
+        _libraryNavigationSplitView.SetShowContent(true);        
     }
 
     public void ShowAllAlbumsRoot()
@@ -53,6 +54,7 @@ public partial class BrowserPage
     {
         var page = new AlbumPage();
         _libraryNavigationView.Push(page);
+        _libraryNavigationSplitView.SetShowContent(true);
         return page;
     }
 }

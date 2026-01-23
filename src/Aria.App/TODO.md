@@ -1,15 +1,16 @@
 BUGS
+- UI is not properly cleared on disconnect. (playlist i.e.) 
 - When welcome page is refreshng, the shown GUID are invalid.
 - convert pill to dropdown, with (refresh) option to manually trigger.
 - Tagging: When selecting an album for an artist, it only shows tracks including that artist.
-- example: 
+- example:
+- Artistbuttons on albumpage: need ellipsis
 
 WISHES
 - General: Implement connection profile storage
 - General: Translations
 
 - Shell:  miniplayer progressbar visibility
-- Shell: mobile view navigation
 - Shell; select first artist instead of all albums; on connect
 
 - Sidebar: Implement Sidebar switch (composers, artists)
