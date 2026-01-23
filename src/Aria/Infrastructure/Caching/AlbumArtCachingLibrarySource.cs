@@ -6,7 +6,7 @@ using Aria.Core.Library;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Aria.Infrastructure;
+namespace Aria.Infrastructure.Caching;
 
 public sealed partial class ResourceCacheLibrarySource : ILibrarySource
 {

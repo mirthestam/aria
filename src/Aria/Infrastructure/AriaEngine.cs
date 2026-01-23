@@ -4,6 +4,7 @@ using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Core.Player;
 using Aria.Core.Queue;
+using Aria.Infrastructure.Caching;
 using Aria.Infrastructure.Connection;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,9 @@ public class AriaEngine(
     public IPlayer Player => _playerProxy;
     public IQueue Queue => _queueProxy;
     public ILibrary Library => _libraryProxy;
+    
+    private Caching.ResourceCacheLibrarySource? _resourceCache;
+    private QueryCacheLibrarySource? _infoCache;
     
     public async Task InitializeAsync()
     {
@@ -76,10 +80,11 @@ public class AriaEngine(
             _playerProxy.Attach(backend.Player);
             _queueProxy.Attach(backend.Queue);
             
-            // Wrap the backend library with a cache
-            var resourceCache = new ResourceCacheLibrarySource(backend.Library, connectionProfile.Id.ToString(), TimeSpan.FromDays(30));
+            // Wrap the backend library with its caches
+            _resourceCache = new Caching.ResourceCacheLibrarySource(backend.Library, connectionProfile.Id.ToString(), TimeSpan.FromDays(30));
+            _infoCache = new QueryCacheLibrarySource(_resourceCache, TimeSpan.FromSeconds(15));
             
-            _libraryProxy.Attach(resourceCache);
+            _libraryProxy.Attach(_infoCache);
             
             //  Initialize the backend. This is where it will connect.
             await backend.ConnectAsync(cancellationToken).ConfigureAwait(false);
@@ -98,6 +103,8 @@ public class AriaEngine(
         _playerProxy.Detach();
         _queueProxy.Detach();
         _libraryProxy.Detach();
+
+        _infoCache?.Dispose();
 
         var connection = _backendScope.Connection;
         connection.ConnectionStateChanged -= BackendOnConnectionStateChanged;
