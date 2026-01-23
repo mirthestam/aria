@@ -6,6 +6,7 @@ using Aria.Core.Player;
 using Aria.Core.Queue;
 using Aria.Infrastructure.Connection;
 using CommunityToolkit.Mvvm.Messaging;
+using Microsoft.Extensions.Logging;
 
 namespace Aria.Infrastructure;
 
@@ -50,7 +51,7 @@ public class AriaEngine(
 
     public async Task ConnectAsync(Guid profileId, CancellationToken cancellationToken = default)
     {
-            var profiles = await connectionProfileProvider.GetAllProfilesAsync().ConfigureAwait(false);
+            var profiles = await connectionProfileProvider.GetAllProfilesAsync(cancellationToken).ConfigureAwait(false);
             var profile = profiles.FirstOrDefault(p => p.Id == profileId);
             if (profile == null) throw new InvalidOperationException("No profile found with the given ID");
             await ConnectAsync(profile, cancellationToken).ConfigureAwait(false);
@@ -74,7 +75,11 @@ public class AriaEngine(
 
             _playerProxy.Attach(backend.Player);
             _queueProxy.Attach(backend.Queue);
-            _libraryProxy.Attach(backend.Library);
+            
+            // Wrap the backend library with a cache
+            var resourceCache = new ResourceCacheLibrarySource(backend.Library, connectionProfile.Id.ToString(), TimeSpan.FromDays(30));
+            
+            _libraryProxy.Attach(resourceCache);
             
             //  Initialize the backend. This is where it will connect.
             await backend.ConnectAsync(cancellationToken).ConfigureAwait(false);
