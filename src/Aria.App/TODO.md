@@ -11,7 +11,6 @@ WISHES
 - Shell; select first artist instead of all albums; on connect
 
 - Sidebar: Implement Sidebar switch (composers, artists)
-- Sidebar: Tooltip for items
 - Sidebar: Update database trigger
 
 - AlbumPage: Fix albumpage header

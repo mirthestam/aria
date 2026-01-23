@@ -11,6 +11,7 @@ public partial class ArtistListItem
 
     public void Update(ArtistModel model)
     {
+        TooltipText = model.Artist.Name;
         _nameLabel.SetLabel(model.Artist.Name);
     }
 }
