@@ -66,4 +66,15 @@ caption
       </object>
     </child>
   </template>
+  <object class="GtkPopover" id="elapsed-popover">
+    <property name="autohide">False</property>
+    <property name="child">
+      <object class="GtkLabel" id="elapsed-popover-label">
+        <property name="css-classes">numeric</property>
+        <property name="single-line-mode">True</property>
+      </object>
+    </property>
+    <property name="has-arrow">False</property>
+    <property name="position">top</property>
+  </object>
 </interface>

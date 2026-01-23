@@ -62,4 +62,9 @@ public interface IPlayer
     /// Stops playback and resets the player to the beginning of the current track. 
     /// </summary>
     Task StopAsync();
+
+    /// <summary>
+    /// Seeks to the specified position in the current track.
+    /// </summary>
+    Task SeekAsync(TimeSpan position, CancellationToken cancellationToken = default);
 }

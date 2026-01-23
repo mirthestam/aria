@@ -35,10 +35,17 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
     public void Attach(Player player)
     {
         _view = player;
+        _view.SeekRequested += ViewOnSeekRequested;
 
         _playlistPresenter.Attach(_view.Playlist);
+        
     }
-    
+
+    private async Task ViewOnSeekRequested(TimeSpan position, CancellationToken cancellationToken)
+    {
+        await _aria.Player.SeekAsync(position, cancellationToken);
+    }
+
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
         _ = LoadCover(cancellationToken);

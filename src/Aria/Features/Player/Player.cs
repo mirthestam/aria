@@ -5,6 +5,8 @@ using Gtk;
 
 namespace Aria.Features.Player;
 
+public delegate Task SeekRequestedAsyncHandler(TimeSpan position, CancellationToken cancellationToken);
+
 [Subclass<Box>]
 [Template<AssemblyResource>("Aria.Features.Player.Player.ui")]
 public partial class Player
@@ -14,6 +16,18 @@ public partial class Player
     [Connect("playlist")] private Playlist.Playlist _playlist;
     
     public Playlist.Playlist Playlist => _playlist;
+
+    public event SeekRequestedAsyncHandler? SeekRequested;    
+    
+    partial void Initialize()
+    {
+        _playbackControls.SeekRequested += PlaybackControlsOnSeekRequested;
+    }
+
+    private Task PlaybackControlsOnSeekRequested(TimeSpan position, CancellationToken cancellationToken)
+    {
+        return SeekRequested?.Invoke(position, cancellationToken) ?? Task.CompletedTask;
+    }
     
     public void LoadCover(Texture texture)
     {

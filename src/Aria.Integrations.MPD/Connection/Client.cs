@@ -92,9 +92,9 @@ public sealed class Client
     ///     This method retrieves an available connection from _connectionPool, sends the command,
     ///     and automatically returns the connection to the pool when done.
     /// </summary>
-    public async Task<CommandResult<T>> SendCommandAsync<T>(IMpcCommand<T> command)
+    public async Task<CommandResult<T>> SendCommandAsync<T>(IMpcCommand<T> command, CancellationToken token = default)
     {
-        using var scope = await CreateConnectionScopeAsync().ConfigureAwait(false);
+        using var scope = await CreateConnectionScopeAsync(token).ConfigureAwait(false);
         return await scope.SendCommandAsync(command).ConfigureAwait(false);        
     }
 

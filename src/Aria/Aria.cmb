@@ -22,7 +22,7 @@
   <ui template-class="AriaFeaturesBrowserArtistArtistPage" filename="Features/Browser/Artist/ArtistPage.ui" sha256="16696bddcf6c19e5e03663cbc292a99788b0f4dbafd6c3215d0038eec6a400b0">
     <requires>AriaFeaturesBrowserArtistEmptyPage</requires>
   </ui>
-  <ui template-class="AriaFeaturesPlayerPlaybackControls" filename="Features/Player/PlaybackControls.ui" sha256="ea7dc18643b4151d9d8263da133b7c848ff1f863e0ba594b35968323f4f58d38">
+  <ui template-class="AriaFeaturesPlayerPlaybackControls" filename="Features/Player/PlaybackControls.ui" sha256="26fedc86c2f0d92776806d398eb58d4c3febccdd718f339ca4d2665bf232f001">
     <requires>AriaFeaturesPlayerMediaControls</requires>
   </ui>
   <ui template-class="AriaFeaturesPlayerBarPlayerBar" filename="Features/PlayerBar/PlayerBar.ui" sha256="66a116e699c6bd91337191f81912e012825946454d5692bad2ecbdde479cbc58">

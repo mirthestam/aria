@@ -34,6 +34,8 @@ public abstract class BasePlayer : IPlayerSource
 
     public virtual Task StopAsync() => Task.CompletedTask;
     
+    public virtual Task SeekAsync(TimeSpan position, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
     protected void OnStateChanged(PlayerStateChangedFlags flags)
     {
         StateChanged?.Invoke(flags);

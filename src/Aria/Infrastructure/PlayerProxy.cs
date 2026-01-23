@@ -44,6 +44,11 @@ public class PlayerProxy : IPlayerSource
         return _innerPlayer?.StopAsync() ?? Task.CompletedTask;
     }
 
+    public Task SeekAsync(TimeSpan position, CancellationToken cancellationToken = default)
+    {
+        return _innerPlayer?.SeekAsync(position, cancellationToken) ?? Task.CompletedTask;
+    }
+
     public Id Id => _innerPlayer?.Id ?? null!;
 
     public bool SupportsVolume => _innerPlayer?.SupportsVolume ?? false;
