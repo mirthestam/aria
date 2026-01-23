@@ -78,6 +78,7 @@
                 <property name="css-classes">flat</property>
                 <property name="display-mode">icons</property>
                 <property name="stack">player-stack</property>
+                <property name="visible">False</property>
               </object>
             </child>
             <child type="end">

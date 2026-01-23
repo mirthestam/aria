@@ -27,6 +27,8 @@
         <EmbeddedResource Include="Features\Connect\ConnectDialog.ui" />
         <None Remove="Resources\cover.jpg" />
         <None Remove="Resources\vinyl-record.png" />
+        <None Remove="UI\Connect\ConnectDialog.ui" />
+        <EmbeddedResource Include="UI\Connect\ConnectDialog.ui" />
     </ItemGroup>
     
 </Project>

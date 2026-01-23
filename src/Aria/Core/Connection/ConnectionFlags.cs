@@ -12,5 +12,5 @@ public enum ConnectionFlags
     /// <summary>
     /// Indicates that this connection has been saved by the user
     /// </summary>
-    Saved = 1 << 1
+    Saved = 1 << 1,
 }

@@ -47,7 +47,7 @@ public sealed class Client
 
     public bool IsConnecting { get; private set; }
 
-    public Credentials? Credentials { get; set; }
+    public ConnectionConfig? Config { get; set; }
 
     public event EventHandler? ConnectionChanged;
 
@@ -145,14 +145,17 @@ public sealed class Client
     {
         if (cancellationToken.IsCancellationRequested) return;
 
-        if (Credentials == null) throw new InvalidOperationException("Credentials not set");
+        if (Config == null) throw new InvalidOperationException("Config not set");
 
-        if (!IPAddress.TryParse(Credentials.Host, out var ipAddress))
-            // TODO: Try to fetch IP address from DNS
-            throw new InvalidOperationException("Invalid host");
-
-        _mpdEndpoint = new IPEndPoint(ipAddress, Credentials.Port);
-
+        if (!Config.UseSocket)
+        {
+            if (!IPAddress.TryParse(Config.Host, out var ipAddress))
+                // TODO: Try to fetch IP address from DNS
+                throw new InvalidOperationException("Invalid host");
+            
+            _mpdEndpoint = new IPEndPoint(ipAddress, Config.Port);            
+        }
+        
         StatusConnection = await OpenConnectionAsync(cancellationToken).ConfigureAwait(false);
         // TODO: Check version here. Abort is the server version is too old
         
@@ -270,9 +273,9 @@ public sealed class Client
         var connection = new MpcConnection(_mpdEndpoint);
         await connection.ConnectAsync(cancellationToken).ConfigureAwait(false);
 
-        if (string.IsNullOrWhiteSpace(Credentials?.Password)) return connection;
+        if (string.IsNullOrWhiteSpace(Config?.Password)) return connection;
 
-        var response = await connection.SendAsync(new PasswordCommand(Credentials.Password)).ConfigureAwait(false);
+        var response = await connection.SendAsync(new PasswordCommand(Config.Password)).ConfigureAwait(false);
         return !response.IsResponseValid
             ? throw new InvalidOperationException("Invalid password")
             : connection;

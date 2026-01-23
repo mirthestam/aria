@@ -1,4 +1,6 @@
 BUGS
+- When welcome page is refreshng, the shown GUID are invalid.
+- convert pill to dropdown, with (refresh) option to manually trigger.
 - Tagging: When selecting an album for an artist, it only shows tracks including that artist.
 - example: 
 

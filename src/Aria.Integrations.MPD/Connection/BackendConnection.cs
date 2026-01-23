@@ -26,9 +26,9 @@ public partial class BackendConnection(
         Console.WriteLine("MPDBackendConnection is FINALIZED");
     }    
     
-    public void SetCredentials(Credentials credentials)
+    public void SetCredentials(ConnectionConfig connectionConfig)
     {
-        client.Credentials = credentials;
+        client.Config = connectionConfig;
     }
     
     public override async Task ConnectAsync(CancellationToken cancellationToken = default)

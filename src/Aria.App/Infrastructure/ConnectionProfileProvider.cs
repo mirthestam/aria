@@ -12,19 +12,25 @@ public class ConnectionProfileProvider(DiskConnectionProfileSource diskSource) :
 
     public event EventHandler? DiscoveryCompleted;
 
-    public async Task<IEnumerable<IConnectionProfile>> GetAllProfilesAsync()
+    public async Task<IConnectionProfile?> GetProfileAsync(Guid connectionId)
     {
-        await _lock.WaitAsync();
+        var profiles = await GetAllProfilesAsync();
+        return profiles.FirstOrDefault(p => p.Id == connectionId);
+    }
+
+    public async Task<IEnumerable<IConnectionProfile>> GetAllProfilesAsync(CancellationToken cancellationToken = default)
+    {
+        await _lock.WaitAsync(cancellationToken);
         try
         {
             if (_isLoaded) return _connectionProfiles.ToList();
             
             var stored = await diskSource.LoadAllAsync();
+            cancellationToken.ThrowIfCancellationRequested();
+            
             _connectionProfiles.AddRange(stored);
             _isLoaded = true;
-                
-            // Invoke initial discovery automatically
-            _ = UpdateAsync();
+            
             return _connectionProfiles.ToList();
         }
         finally
@@ -78,20 +84,18 @@ public class ConnectionProfileProvider(DiskConnectionProfileSource diskSource) :
         }
     }
 
-    public Task<IConnectionProfile?> GetDefaultProfileAsync()
+    public async Task<IConnectionProfile?> GetDefaultProfileAsync()
     {
-        // No default support yet, as I only have implemented zeroconf discovery and no user configurable profiles
-        // TODO: this should be the first STORED profile that has AutoConnect enabled
-        // and later, we want to remember the last used so we auto connect to the last used.
-        return Task.FromResult<IConnectionProfile?>(null);
+        var profiles = await GetAllProfilesAsync();
+        return profiles.OrderBy(p => p.Name).FirstOrDefault(p => p.AutoConnect);
     }
 
-    public async Task UpdateAsync()
+    public async Task DiscoverAsync(CancellationToken cancellationToken = default)
     {
-        await _lock.WaitAsync();
+        await _lock.WaitAsync(cancellationToken);
         try
         {
-            await DiscoverServersAsync();
+            await DiscoverServersAsync(cancellationToken);
         }
         finally
         {
@@ -101,14 +105,22 @@ public class ConnectionProfileProvider(DiskConnectionProfileSource diskSource) :
         DiscoveryCompleted?.Invoke(this, EventArgs.Empty);
     }
     
-    private async Task DiscoverServersAsync()
+    private async Task DiscoverServersAsync(CancellationToken cancellationToken = default)
     {
         var discoveredProfiles = new List<IConnectionProfile>();
-        ILookup<string, string> domains = await ZeroconfResolver.BrowseDomainsAsync();            
+        ILookup<string, string> domains = await ZeroconfResolver.BrowseDomainsAsync(cancellationToken: cancellationToken);            
     
-        var responses = await ZeroconfResolver.ResolveAsync(domains.Select(g => g.Key));            
+        var responses = await ZeroconfResolver.ResolveAsync(domains.Select(g => g.Key), cancellationToken: cancellationToken);            
         foreach (var resp in responses)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (_connectionProfiles.Any(a => a.Name == resp.DisplayName))
+            {
+                // This connection is already saved with this name.
+                // We prefer the user his override.
+                continue;
+            }
+            
             var mpdService = resp.Services.FirstOrDefault(s => s.Key.Contains("_mpd."));
             if (mpdService.Value == null) continue;
             

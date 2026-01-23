@@ -1,4 +1,6 @@
 ﻿using Aria.App.Infrastructure;
+using Aria.Backends.MPD.Connection;
+using Aria.Backends.MPD.UI;
 using Aria.Core;
 using Aria.Core.Connection;
 using Aria.Core.Extraction;
@@ -64,8 +66,8 @@ public class Program
                 x.AddSingleton<ILibrary>(sp => sp.GetRequiredService<IAria>().Library);
                 
                 x.AddSingleton<IConnectionProfileProvider, ConnectionProfileProvider>();
-                x.AddTransient<ITagParser, MPDTagParser>();
                 x.AddSingleton<ResourceTextureLoader>();
+                x.AddTransient<ITagParser, MPDTagParser>();                
 
                 // Main
                 x.AddSingleton<MainWindow>();
@@ -92,14 +94,17 @@ public class Program
                 x.AddSingleton<PlayerBarPresenter>();
                 
                 // MPD
-                x.AddSingleton<IBackendConnectionFactory, Backends.MPD.Connection.BackendConnectionFactory>();                
+                x.AddSingleton<IBackendConnectionFactory, Backends.MPD.Connection.BackendConnectionFactory>();
+                x.AddSingleton<IConnectionProfileFactory, ConnectionProfileFactory>();
+                x.AddSingleton<IConnectDialogPresenter, Backends.MPD.UI.Connect.ConnectDialogPresenter>();                
                 x.AddTransient<Backends.MPD.Connection.BackendConnection>();
                 x.AddScoped<Backends.MPD.Queue>();
                 x.AddScoped<Backends.MPD.Library>();
                 x.AddScoped<Backends.MPD.Connection.Client>();
                 x.AddScoped<Aria.Backends.MPD.Player>();
-                x.AddScoped<IIdProvider, Backends.MPD.Extraction.IdProvider>();                
+                x.AddScoped<IIdProvider, Backends.MPD.Extraction.IdProvider>();
             })
+            
             .UseGtk(a =>
             {
                 a.GtkApplicationType = GtkApplicationType.Adw;
@@ -116,6 +121,7 @@ public class Program
                 a.WithPlayerGTypes();
                 a.WithPlayerBarGTypes();
                 a.WithSharedGTypes();
+                a.WithMPDGTypes();
             });
     }
 }

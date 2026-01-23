@@ -32,6 +32,8 @@ public class DiskConnectionProfileSource(ILogger<DiskConnectionProfileSource> lo
                         Id = mpdData.Id,
                         Name = mpdData.Name,
                         AutoConnect = mpdData.AutoConnect,
+                        UseSocket = mpdData.UseSocket,
+                        Socket = mpdData.Socket,
                         Host = mpdData.Host,
                         Port = mpdData.Port,
                         Password = mpdData.Password
@@ -63,6 +65,8 @@ public class DiskConnectionProfileSource(ILogger<DiskConnectionProfileSource> lo
                 Id = mpd.Id,
                 Name = mpd.Name,
                 AutoConnect = mpd.AutoConnect,
+                UseSocket = mpd.UseSocket,
+                Socket = mpd.Socket,
                 Host = mpd.Host,
                 Port = mpd.Port,
                 Password = mpd.Password

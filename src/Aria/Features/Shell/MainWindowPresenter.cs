@@ -62,7 +62,6 @@ public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMess
 
     public void Attach(MainWindow view)
     {
-        
          _application.SetAccelsForAction("win.disconnect", ["<Control>d"]);
          
         _view = view;
@@ -112,6 +111,7 @@ public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMess
     {
         await _ariaControl.InitializeAsync();
         _view.Show();
+        await _welcomePagePresenter.RefreshAsync();
     }
 
     public void Receive(ShowToastMessage message) => ShowToast(message.Message);

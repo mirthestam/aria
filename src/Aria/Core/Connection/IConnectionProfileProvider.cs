@@ -5,7 +5,7 @@ public interface IConnectionProfileProvider
     /// <summary>
     /// Gets all the available connection profiles
     /// </summary>
-    Task<IEnumerable<IConnectionProfile>> GetAllProfilesAsync();
+    Task<IEnumerable<IConnectionProfile>> GetAllProfilesAsync(CancellationToken cancellationToken = default);
     
     /// <summary>
     /// Gets the connection that the user configured as default.
@@ -30,5 +30,9 @@ public interface IConnectionProfileProvider
     /// <summary>
     /// Occurs when a discovery has occured and the profile list has been updated.
     /// </summary>
-    event EventHandler DiscoveryCompleted;    
+    event EventHandler DiscoveryCompleted;
+
+    Task DiscoverAsync(CancellationToken cancellationToken = default);
+    
+    Task<IConnectionProfile?> GetProfileAsync(Guid connectionId);
 }

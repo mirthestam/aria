@@ -6,8 +6,8 @@ public class BackendConnectionFactory(IServiceProvider serviceProvider) : BaseBa
 {
     protected override Task ConfigureAsync(BackendConnection connection, ConnectionProfile profile)
     {
-        var credentials = new Credentials(profile.Host, profile.Port, profile.Password);
-        connection.SetCredentials(credentials);
+        var config = new ConnectionConfig(profile.Socket, profile.UseSocket, profile.Host, profile.Port, profile.Password);
+        connection.SetCredentials(config);
         return Task.CompletedTask;
     }
 }

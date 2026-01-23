@@ -98,14 +98,6 @@ popup</property>
     </section>
     <section id="main-section">
       <item>
-        <attribute name="action">win.preferences</attribute>
-        <attribute name="label">_Preferences</attribute>
-      </item>
-      <item>
-        <attribute name="action">app.shortcuts</attribute>
-        <attribute name="label">_Keyboard shortcuts</attribute>
-      </item>
-      <item>
         <attribute name="action">win.about</attribute>
         <attribute name="label">_About Aria</attribute>
       </item>

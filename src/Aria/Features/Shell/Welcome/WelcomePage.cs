@@ -18,18 +18,34 @@ public partial class WelcomePage
     private readonly List<PreferencesRow> _savedRows = [];
 
     [Connect("new-button")]  private Button _newButton;
-    [Connect("visible-group")] private PreferencesGroup _visiblePreferencesGroup;
-    [Connect("saved-group")] private PreferencesGroup _savedPreferencesGroup;
+    [Connect("visible-group")] private ListBox _visiblePreferencesGroup;
+    [Connect("saved-group")] private ListBox _savedPreferencesGroup;
+    
+    [Connect("discover-spinner")]private Adw.Spinner _discoverSpinner;
     
     private SimpleActionGroup _welcomeActionGroup;
     
     public SimpleAction NewAction { get; private set; }    
     public SimpleAction ConnectAction { get; private set; }
     public SimpleAction ConfigureAction { get; private set; }
+    public SimpleAction ForgetAction { get; private set; }
     
     partial void Initialize()
     {
         InsertActions();
+    }
+
+    public bool Discovering
+    {
+        set
+        {
+            if (value)
+            {
+                _visiblePreferencesGroup.Visible = true;
+            }
+            
+            _discoverSpinner.Visible = value;
+        }
     }
 
     public void RefreshConnections(IEnumerable<ConnectionModel> connections)
@@ -38,11 +54,13 @@ public partial class WelcomePage
         {
             _visiblePreferencesGroup.Remove(oldRow);
         }
+        _visibleRows.Clear();
 
         foreach (var oldRow in _savedRows)
         {
             _savedPreferencesGroup.Remove(oldRow);
         }
+        _savedRows.Clear();
         
         foreach (var connection in connections)
         {
@@ -65,17 +83,18 @@ public partial class WelcomePage
             
             if (connection.IsDiscovered)
             {
-                _visiblePreferencesGroup.Add(row);
+                _visiblePreferencesGroup.Append(row);
                 _visibleRows.Add(row);                
             }
             else
             {
-                _savedPreferencesGroup.Add(row);
+                _savedPreferencesGroup.Append(row);
                 _savedRows.Add(row);                    
             }
         }
         
-        _visiblePreferencesGroup.SetVisible(_visibleRows.Count > 0);       
+        _savedPreferencesGroup.Visible = _savedRows.Count != 0;
+        _visiblePreferencesGroup.Visible = _visibleRows.Count != 0;        
     }
 
     private void InsertActions()
@@ -84,6 +103,7 @@ public partial class WelcomePage
         _welcomeActionGroup.AddAction(NewAction = SimpleAction.New("new", null));
         _welcomeActionGroup.AddAction(ConnectAction = SimpleAction.New("connect", VariantType.New("s")));
         _welcomeActionGroup.AddAction(ConfigureAction = SimpleAction.New("configure", VariantType.New("s")));
+        _welcomeActionGroup.AddAction(ForgetAction = SimpleAction.New("forget", VariantType.New("s")));
         InsertActionGroup("welcome", _welcomeActionGroup);
         
         // Workaround because for some reason the actions don't bubble down the tree
@@ -91,12 +111,4 @@ public partial class WelcomePage
         _visiblePreferencesGroup.InsertActionGroup("welcome", _welcomeActionGroup);
         _savedPreferencesGroup.InsertActionGroup("welcome", _welcomeActionGroup);
     }    
-    
-    // private void ActionRowOnOnActivated(ActionRow sender, EventArgs args)
-    // {
-    //     if (sender is ConnectionListItem row)
-    //     {
-    //         ConnectionSelected?.Invoke(row.ConnectionId);
-    //     }
-    // }
 }
