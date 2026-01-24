@@ -19,7 +19,7 @@
                   <object class="GtkBox" id="playlist-holder">
                     <property name="hexpand">False</property>
                     <property name="orientation">vertical</property>
-                    <property name="vexpand">False</property>
+                    <property name="vexpand">True</property>
                     <child>
                       <object class="GtkWindowHandle">
                         <property name="valign">fill</property>
@@ -27,14 +27,19 @@
                         <child>
                           <object class="AdwClamp">
                             <property name="child">
-                              <object class="GtkPicture" id="album-picture">
-                                <property name="css-classes">cover</property>
-                                <property name="halign">center</property>
-                                <property name="height-request">120</property>
-                                <property name="margin-bottom">6</property>
-                                <property name="margin-end">12</property>
-                                <property name="margin-start">12</property>
-                                <property name="valign">start</property>
+                              <object class="GtkCenterBox">
+                                <child type="center">
+                                  <object class="GtkPicture" id="album-picture">
+                                    <property name="css-classes">cover</property>
+                                    <property name="halign">center</property>
+                                    <property name="height-request">48</property>
+                                    <property name="margin-bottom">6</property>
+                                    <property name="margin-end">12</property>
+                                    <property name="margin-start">12</property>
+                                    <property name="valign">start</property>
+                                    <property name="visible">False</property>
+                                  </object>
+                                </child>
                               </object>
                             </property>
                             <property name="maximum-size">300</property>
@@ -90,13 +95,7 @@
           </object>
         </child>
         <child type="bottom">
-          <object class="GtkBox" id="playback-controls-holder-box">
-            <property name="hexpand">True</property>
-            <property name="vexpand">True</property>
-            <child>
-              <object class="AriaFeaturesPlayerPlaybackControls" id="playback-controls"/>
-            </child>
-          </object>
+          <object class="AriaFeaturesPlayerPlaybackControls" id="playback-controls"/>
         </child>
       </object>
     </child>

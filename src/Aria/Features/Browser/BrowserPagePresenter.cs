@@ -82,8 +82,15 @@ public partial class BrowserPagePresenter :
             return false;
         });
         
+        // Preload the artists
         await _artistsPagePresenter.RefreshAsync(cancellationToken);
-        await _albumsPagePresenter.RefreshAsync(cancellationToken);
+        
+        // Load all albums in the background
+        _ = _albumsPagePresenter.RefreshAsync(cancellationToken).ContinueWith(t =>
+        {
+            if (t.IsCanceled) return;
+            if (t.Exception is not null) LogFailedToLoadLibrary(t.Exception);
+        }, TaskScheduler.Default);
 
         if (cancellationToken.IsCancellationRequested)
             LogBrowserPageRefreshCancelled();
@@ -189,4 +196,7 @@ public partial class BrowserPagePresenter :
 
     [LoggerMessage(LogLevel.Error, "Failed to reset browser page")]
     partial void LogFailedToResetBrowserPage(Exception e);
+
+    [LoggerMessage(LogLevel.Error, "Failed to load library")]
+    partial void LogFailedToLoadLibrary(Exception e);
 }

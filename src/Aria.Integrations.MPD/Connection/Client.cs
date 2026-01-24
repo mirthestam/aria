@@ -1,5 +1,7 @@
 using System.Net;
+using System.Runtime.CompilerServices;
 using CodeProject.ObjectPool;
+using Microsoft.Extensions.Logging;
 using MpcNET;
 using MpcNET.Commands.Reflection;
 using MpcNET.Commands.Status;
@@ -15,7 +17,7 @@ namespace Aria.Backends.MPD.Connection;
 ///     This architecture ensures status updates don't block command execution and provides both
 ///     polling-based and event-driven status updates for optimal responsiveness.
 /// </summary>
-public sealed class Client
+public sealed class Client(ILogger<Client> logger, ILoggerFactory loggerFactory)
 {
     private const int ConnectionPoolSize = 5;
     
@@ -79,12 +81,13 @@ public sealed class Client
         IsConnecting = false;
     }
     
-    public async Task<ConnectionScope> CreateConnectionScopeAsync(CancellationToken token = default)
+    public async Task<ConnectionScope> CreateConnectionScopeAsync([CallerMemberName]string operation = "", CancellationToken token = default)
     {
         if (_connectionPool == null) throw new InvalidOperationException("Connection pool not initialized");
         
-        var wrapper = await _connectionPool.GetObjectAsync(token).ConfigureAwait(false);        
-        return new ConnectionScope(wrapper);
+        var wrapper = await _connectionPool.GetObjectAsync(token).ConfigureAwait(false);
+        var scopeLogger = loggerFactory.CreateLogger<ConnectionScope>();        
+        return new ConnectionScope(wrapper, scopeLogger, operation);
     }
     
     /// <summary>
@@ -92,9 +95,9 @@ public sealed class Client
     ///     This method retrieves an available connection from _connectionPool, sends the command,
     ///     and automatically returns the connection to the pool when done.
     /// </summary>
-    public async Task<CommandResult<T>> SendCommandAsync<T>(IMpcCommand<T> command, CancellationToken token = default)
+    public async Task<CommandResult<T>> SendCommandAsync<T>(IMpcCommand<T> command,  [CallerMemberName]string operation = "", CancellationToken token = default)
     {
-        using var scope = await CreateConnectionScopeAsync(token).ConfigureAwait(false);
+        using var scope = await CreateConnectionScopeAsync(operation, token).ConfigureAwait(false);
         return await scope.SendCommandAsync(command).ConfigureAwait(false);        
     }
 

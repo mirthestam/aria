@@ -45,6 +45,14 @@ public partial class MainWindow
         _logger = logger;
         presenter.Attach(this);
 
+        
+        DefaultHeight = 600;
+        DefaultWidth = 800;
+
+        // These values don't seem to work then from the .UI file.        
+        HeightRequest = 294;
+        WidthRequest = 360;
+        
         OnRealize += async (s, e) =>
         {
             try
@@ -81,21 +89,19 @@ public partial class MainWindow
         //   </object>
         // </child>
         
-        // TODO: Ideally, the sidebar should hide before the MasterDetail becomes too small,
-        // and then the MasterDetail should collapse when it shrinks further.
-        // Using two breakpoints for this currently causes layout issues.
-        
-        // TODO: When the Master-Detail is collapsed, selecting an artist does not display the child on top.
-        
         // TODO: Refactor the artists list to use rows when in collapsed view. 
         
         // TODO: In bottom-page layout, the mini player overlaps the artists sidebar.
 
-        var sidebarBreakpoint = Breakpoint.New(BreakpointCondition.NewLength(BreakpointConditionLengthType.MaxWidth, 620, LengthUnit.Sp));
+        var browserBreakpoint = Breakpoint.New(BreakpointCondition.NewLength(BreakpointConditionLengthType.MaxWidth, 860, LengthUnit.Sp));
+        browserBreakpoint.AddSetter(MainPage.BrowserHost.BrowserPage.NavigationSplitView, "collapsed", new Value(true));
+        AddBreakpoint(browserBreakpoint);
+        
+        var sidebarBreakpoint = Breakpoint.New(BreakpointCondition.NewLength(BreakpointConditionLengthType.MaxWidth, 660, LengthUnit.Sp));
         sidebarBreakpoint.AddSetter(MainPage.MultiLayoutView, "layout-name", new Value(MainPage.BottomSheetLayoutName));
-        sidebarBreakpoint.AddSetter(MainPage.BrowserHost.BrowserPage.NavigationSplitView, "collapsed", new Value(true));
+        sidebarBreakpoint.AddSetter(MainPage.BrowserHost.BrowserPage.NavigationSplitView, "collapsed", new Value(true));        
         AddBreakpoint(sidebarBreakpoint);
-    }
+     }
 
     public void TogglePage(MainPages page)
     {

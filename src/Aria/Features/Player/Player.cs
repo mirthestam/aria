@@ -31,11 +31,13 @@ public partial class Player
     
     public void LoadCover(Texture texture)
     {
+        _coverPicture.Visible = true;
         _coverPicture.SetPaintable(texture);
     }
 
     public void ClearCover()
     {
+        _coverPicture.Visible = false;
         _coverPicture.SetPaintable(null);
     }
 

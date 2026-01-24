@@ -27,7 +27,7 @@
                       <object class="GtkGridView" id="albums-grid-view">
                         <property name="css-classes">navigation-sidebar</property>
                         <property name="enable-rubberband">False</property>
-                        <property name="max-columns">3</property>
+                        <property name="max-columns">40</property>
                         <property name="min-columns">1</property>
                         <property name="single-click-activate">False</property>
                         <property name="tab-behavior">item</property>

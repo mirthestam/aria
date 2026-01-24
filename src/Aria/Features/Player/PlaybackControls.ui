@@ -7,7 +7,6 @@
   <template class="AriaFeaturesPlayerPlaybackControls" parent="GtkBox">
     <property name="hexpand">True</property>
     <property name="orientation">vertical</property>
-    <property name="vexpand">True</property>
     <child>
       <object class="GtkScale" id="elapsed-scale">
         <property name="adjustment">

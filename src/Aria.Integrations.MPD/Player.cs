@@ -21,7 +21,7 @@ public class Player(Client client) : BasePlayer
     public override async Task SeekAsync(TimeSpan position, CancellationToken cancellationToken = default)
     {
         var command = new SeekCurCommand(position.TotalSeconds);
-        await client.SendCommandAsync(command, cancellationToken).ConfigureAwait(false);
+        await client.SendCommandAsync(command, token: cancellationToken).ConfigureAwait(false);
     }
 
     public async Task UpdateFromStatusAsync(MpdStatus s)

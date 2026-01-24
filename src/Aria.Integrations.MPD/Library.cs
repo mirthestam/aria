@@ -22,9 +22,8 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
     
     public override async Task<ArtistInfo?> GetArtist(Id artistId, CancellationToken cancellationToken = default)
     {
-        // TODO: This is pulling in all artists.
-        // Implement a specific call that only searches for ONE artist
-        // Or, use a cache here
+        // It is not a problem that we are using All Artists here.
+        // The engine has a burst cache 
         var artists = await GetArtists(cancellationToken).ConfigureAwait(false);
         return artists.FirstOrDefault(artist => artist.Id == artistId);
     }
@@ -33,7 +32,7 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
     {
         var artistMap = new Dictionary<Id, ArtistInfo>();
 
-        using var scope = await client.CreateConnectionScopeAsync(cancellationToken).ConfigureAwait(false);
+        using var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false);
         await FetchAndAdd(new ListCommand(MpdTags.Artist), ArtistRoles.Performer, scope).ConfigureAwait(false);
         await FetchAndAdd(new ListCommand(MpdTags.Composer), ArtistRoles.Composer, scope).ConfigureAwait(false);
         await FetchAndAdd(new ListCommand(MpdTags.Performer), ArtistRoles.Performer, scope).ConfigureAwait(false);
@@ -83,7 +82,7 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         var artists = (await GetArtists(cancellationToken).ConfigureAwait(false)).ToList();
         var allTags = new List<Tag>();
 
-        using (var scope = await client.CreateConnectionScopeAsync(cancellationToken).ConfigureAwait(false))
+        using (var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false))
         {
             var tasks = artists
                 .Select(artist => scope.SendCommandAsync(new FindCommand(MpdTags.AlbumArtist, artist.Name)))
@@ -109,15 +108,17 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
     {
         var mpdArtistId = (ArtistId)artistId;
 
-        using var scope = await client.CreateConnectionScopeAsync(cancellationToken).ConfigureAwait(false);
-        
+        using var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false);
+
+        // Either FindCommand or SearchCommand could be used here. SearchCommand is faster because it does not support expressions.
         var tasks = new[]
         {
-            scope.SendCommandAsync(new FindCommand(MpdTags.AlbumArtist, mpdArtistId.Value)),
-            scope.SendCommandAsync(new FindCommand(MpdTags.Composer, mpdArtistId.Value)),
-            scope.SendCommandAsync(new FindCommand(ExtraMpdTags.Conductor, mpdArtistId.Value)),
-            scope.SendCommandAsync(new FindCommand(ExtraMpdTags.Ensemble, mpdArtistId.Value)),
-            scope.SendCommandAsync(new FindCommand(MpdTags.Performer, mpdArtistId.Value))
+            scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.AlbumArtist, mpdArtistId.Value)),
+            scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.Artist, mpdArtistId.Value)),
+            scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.Composer, mpdArtistId.Value)),
+            scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(ExtraMpdTags.Conductor, mpdArtistId.Value)),
+            scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(ExtraMpdTags.Ensemble, mpdArtistId.Value)),
+            scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.Performer, mpdArtistId.Value))            
         };
 
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -138,7 +139,7 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         var albumArtId = (AssetId)resourceId;
         var fileName = albumArtId.Value;
 
-        using var scope = await client.CreateConnectionScopeAsync(token).ConfigureAwait(false);
+        using var scope = await client.CreateConnectionScopeAsync(token: token).ConfigureAwait(false);
 
 
         // Try to find the cover from directory the track resides in by looking for a file called cover.png, cover.jpg, or cover.webp.

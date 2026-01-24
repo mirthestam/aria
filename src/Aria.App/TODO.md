@@ -1,14 +1,9 @@
 BUGS
-- UI is not properly cleared on disconnect. (playlist i.e.) 
 - When welcome page is refreshng, the shown GUID are invalid.
 - convert pill to dropdown, with (refresh) option to manually trigger.
-- Tagging: When selecting an album for an artist, it only shows tracks including that artist.
-- Artistbuttons on albumpage: need ellipsis
 
 WISHES
 - General: Translations
-
-- Shell; select first artist instead of all albums; on connect
 
 - Sidebar: Implement Sidebar switch (composers, artists)
 - Sidebar: Update database trigger
@@ -30,11 +25,6 @@ WISHES
 ### FEATURE: Embedded MPD Server Capability
 
 - Refer to Cantata to see how they implement this.
-
-### FEATURE: Server Detection
-
-- Check if a connection to servers is possible (via AVAHI or local connections).
-- Aligns with HIG guidelines: more automatic behavior.
 
 ### FEATURE: Automatically Set Embedded MPD as Default
 

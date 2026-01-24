@@ -27,18 +27,16 @@ public class AriaEngine(
     public IQueue Queue => _queueProxy;
     public ILibrary Library => _libraryProxy;
     
-    private Caching.ResourceCacheLibrarySource? _resourceCache;
+    private ResourceCacheLibrarySource? _resourceCache;
     private QueryCacheLibrarySource? _infoCache;
     
-    public async Task InitializeAsync()
+    public Task InitializeAsync()
     {
         // Forward events from the proxies over the messenger for the UI
         _playerProxy.StateChanged += flags => messenger.Send(new PlayerStateChangedMessage(flags));  
         _libraryProxy.Updated += () => messenger.Send(new LibraryUpdatedMessage());
         _queueProxy.StateChanged += flags => messenger.Send(new QueueStateChangedMessage(flags));
-        
-        var profile = await connectionProfileProvider.GetDefaultProfileAsync().ConfigureAwait(false);
-        if (profile != null) await ConnectAsync(profile).ConfigureAwait(false);
+        return Task.CompletedTask;
     }
     
     public async Task DisconnectAsync()
@@ -103,13 +101,14 @@ public class AriaEngine(
         _playerProxy.Detach();
         _queueProxy.Detach();
         _libraryProxy.Detach();
-
         _infoCache?.Dispose();
 
         var connection = _backendScope.Connection;
-        connection.ConnectionStateChanged -= BackendOnConnectionStateChanged;
             
         await connection.DisconnectAsync().ConfigureAwait(false);
+        
+        // Unbind after disconnecting; otherwise the disconnect event will never be caught.
+        connection.ConnectionStateChanged -= BackendOnConnectionStateChanged;        
         
         _backendScope.Dispose();
         _backendScope = null;

@@ -48,6 +48,7 @@ public partial class BrowserPage
     {
         // Replace the stack with the albums navigation 'tree' 
         _libraryNavigationView.ReplaceWithTags(["library-albums"]);
+        _libraryNavigationSplitView.SetShowContent(true);        
     }
 
     public AlbumPage PushAlbumPage()

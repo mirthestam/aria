@@ -67,8 +67,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
         
         _loadCts = CancellationTokenSource.CreateLinkedTokenSource(externalCancellationToken);
         var cancellationToken = _loadCts.Token;
-
-
+        
         try
         {
             var albums = await _aria.Library.GetAlbums(cancellationToken);
