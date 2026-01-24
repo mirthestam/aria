@@ -1,5 +1,7 @@
 BUGS
 - convert pill to dropdown, with (refresh) option to manually trigger.
+- VariousArtists don't appear in the album list  (becuse there is no Album Artist).
+- AlbumCover placeholder is visible on album page, when not loaded yet.
 
 WISHES
 - General: Translations

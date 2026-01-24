@@ -131,7 +131,7 @@ public partial class BrowserPagePresenter :
             _albumPagePresenter.Attach(albumPageView);
 
             // TODO: CancellationToken ?
-            _ = _albumPagePresenter.LoadAsync(message.Album);            
+            _ = _albumPagePresenter.LoadAsync(message.Album, message.Artist);            
             return false;
         });        
     }

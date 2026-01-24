@@ -11,134 +11,151 @@
         <property name="content">
           <object class="GtkStack">
             <child>
-              <object class="GtkScrolledWindow">
-                <property name="child">
-                  <object class="GtkBox">
-                    <property name="margin-bottom">24</property>
-                    <property name="margin-end">12</property>
-                    <property name="margin-start">12</property>
-                    <property name="margin-top">6</property>
-                    <property name="orientation">vertical</property>
-                    <child>
-                      <object class="AdwClamp" id="cover-clamp">
-                        <property name="maximum-size">200</property>
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <property name="vexpand">False</property>
+                <child>
+                  <object class="AdwBanner" id="partial-banner">
+                    <property name="action-name">album.full</property>
+                    <property name="button-label">Full Album</property>
+                    <property name="button-style">default</property>
+                    <property name="revealed">True</property>
+                    <property name="valign">start</property>
+                    <property name="visible">False</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkScrolledWindow">
+                    <property name="child">
+                      <object class="GtkBox">
+                        <property name="margin-bottom">24</property>
+                        <property name="margin-end">12</property>
+                        <property name="margin-start">12</property>
+                        <property name="margin-top">6</property>
+                        <property name="orientation">vertical</property>
                         <child>
-                          <object class="GtkPicture" id="cover-picture">
-                            <property name="alternative-text">Album cover</property>
-                            <property name="content-fit">scale-down</property>
-                            <property name="css-classes">cover</property>
-                            <property name="halign">center</property>
-                            <property name="height-request">180</property>
-                            <property name="hexpand">False</property>
-                            <property name="keep-aspect-ratio">True</property>
+                          <object class="AdwClamp" id="cover-clamp">
+                            <property name="maximum-size">200</property>
+                            <child>
+                              <object class="GtkPicture" id="cover-picture">
+                                <property name="alternative-text">Album cover</property>
+                                <property name="content-fit">scale-down</property>
+                                <property name="css-classes">cover</property>
+                                <property name="halign">center</property>
+                                <property name="height-request">180</property>
+                                <property name="hexpand">False</property>
+                                <property name="keep-aspect-ratio">True</property>
+                              </object>
+                            </child>
                           </object>
                         </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdwClamp" id="info-clamp">
-                        <property name="child">
-                          <object class="GtkBox">
-                            <property name="margin-top">6</property>
-                            <property name="orientation">vertical</property>
-                            <property name="spacing">1</property>
-                            <property name="vexpand">False</property>
-                            <child>
-                              <object class="GtkBox" id="artists-container-box">
-                                <property name="halign">center</property>
-                                <property name="margin-bottom">14</property>
+                        <child>
+                          <object class="AdwClamp" id="info-clamp">
+                            <property name="child">
+                              <object class="GtkBox">
                                 <property name="margin-top">6</property>
                                 <property name="orientation">vertical</property>
-                                <property name="spacing">6</property>
+                                <property name="spacing">1</property>
+                                <property name="vexpand">False</property>
                                 <child>
-                                  <object class="AdwWrapBox" id="albumartists-box">
-                                    <property name="css-classes">linked</property>
+                                  <object class="GtkBox" id="artists-container-box">
                                     <property name="halign">center</property>
-                                    <property name="valign">center</property>
+                                    <property name="margin-bottom">14</property>
+                                    <property name="margin-top">6</property>
+                                    <property name="orientation">vertical</property>
+                                    <property name="spacing">6</property>
+                                    <child>
+                                      <object class="AdwWrapBox" id="albumartists-box">
+                                        <property name="css-classes">linked</property>
+                                        <property name="halign">center</property>
+                                        <property name="valign">center</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel" id="subtitle-label">
+                                    <property name="css-classes">numeric</property>
+                                    <property name="ellipsize">end</property>
+                                    <property name="single-line-mode">True</property>
+                                    <property name="visible">False</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel" id="duration-label">
+                                    <property name="css-classes">numeric
+dimmed</property>
+                                    <property name="single-line-mode">True</property>
+                                    <property name="visible">False</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="GtkLabel" id="title-label">
+                                    <property name="css-classes">title-3</property>
+                                    <property name="margin-bottom">14</property>
+                                    <property name="margin-end">0</property>
+                                    <property name="margin-start">0</property>
+                                    <property name="margin-top">14</property>
+                                    <property name="wrap">True</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="AdwWrapBox" id="composers-box">
+                                    <property name="child-spacing">0</property>
+                                    <property name="halign">start</property>
+                                    <property name="margin-start">0</property>
+                                    <property name="margin-top">0</property>
+                                    <property name="valign">fill</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="AdwWrapBox" id="arranged-box">
+                                    <property name="child-spacing">0</property>
+                                    <property name="halign">start</property>
+                                    <property name="margin-start">0</property>
+                                    <property name="margin-top">0</property>
+                                    <property name="valign">fill</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="AdwWrapBox" id="conductors-box">
+                                    <property name="child-spacing">0</property>
+                                    <property name="halign">start</property>
+                                    <property name="margin-top">0</property>
+                                  </object>
+                                </child>
+                                <child>
+                                  <object class="AdwWrapBox" id="performers-box">
+                                    <property name="child-spacing">0</property>
+                                    <property name="halign">start</property>
+                                    <property name="margin-top">0</property>
                                   </object>
                                 </child>
                               </object>
-                            </child>
-                            <child>
-                              <object class="GtkLabel" id="subtitle-label">
-                                <property name="css-classes">numeric</property>
-                                <property name="ellipsize">end</property>
-                                <property name="single-line-mode">True</property>
-                                <property name="visible">False</property>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkLabel" id="duration-label">
-                                <property name="css-classes">numeric
-dimmed</property>
-                                <property name="single-line-mode">True</property>
-                                <property name="visible">False</property>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="GtkLabel" id="title-label">
-                                <property name="css-classes">title-3</property>
-                                <property name="margin-bottom">14</property>
-                                <property name="margin-end">0</property>
-                                <property name="margin-start">0</property>
-                                <property name="margin-top">14</property>
-                                <property name="wrap">True</property>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="AdwWrapBox" id="composers-box">
-                                <property name="child-spacing">0</property>
-                                <property name="halign">start</property>
-                                <property name="margin-start">0</property>
-                                <property name="margin-top">0</property>
-                                <property name="valign">fill</property>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="AdwWrapBox" id="arranged-box">
-                                <property name="child-spacing">0</property>
-                                <property name="halign">start</property>
-                                <property name="margin-start">0</property>
-                                <property name="margin-top">0</property>
-                                <property name="valign">fill</property>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="AdwWrapBox" id="conductors-box">
-                                <property name="child-spacing">0</property>
-                                <property name="halign">start</property>
-                                <property name="margin-top">0</property>
-                              </object>
-                            </child>
-                            <child>
-                              <object class="AdwWrapBox" id="performers-box">
-                                <property name="child-spacing">0</property>
-                                <property name="halign">start</property>
-                                <property name="margin-top">0</property>
-                              </object>
-                            </child>
+                            </property>
+                            <property name="margin-bottom">6</property>
+                            <property name="margin-end">0</property>
+                            <property name="maximum-size">580</property>
                           </object>
-                        </property>
-                        <property name="margin-bottom">6</property>
-                        <property name="margin-end">0</property>
-                        <property name="maximum-size">580</property>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="AdwClamp">
-                        <property name="child">
-                          <object class="GtkListBox" id="tracks-listbox">
-                            <property name="css-classes">boxed-list</property>
-                            <property name="selection-mode">none</property>
-                            <property name="tab-behavior">item</property>
-                            <property name="valign">start</property>
+                        </child>
+                        <child>
+                          <object class="AdwClamp">
+                            <property name="child">
+                              <object class="GtkListBox" id="tracks-listbox">
+                                <property name="css-classes">boxed-list</property>
+                                <property name="selection-mode">none</property>
+                                <property name="tab-behavior">item</property>
+                                <property name="valign">start</property>
+                              </object>
+                            </property>
                           </object>
-                        </property>
+                        </child>
                       </object>
-                    </child>
+                    </property>
+                    <property name="hscrollbar-policy">never</property>
+                    <property name="vexpand">True</property>
                   </object>
-                </property>
-                <property name="hscrollbar-policy">never</property>
+                </child>
               </object>
             </child>
           </object>

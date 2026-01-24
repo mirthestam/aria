@@ -37,6 +37,28 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
     }
     
     public Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken token) => _inner.GetAlbumResourceStreamAsync(resourceId, token);
+    public async Task<AlbumInfo?> GetAlbum(Id albumId, CancellationToken cancellationToken = default)
+    {
+        var key = $"album:{albumId}";
+
+        return await GetOrCreateAsync(
+            key,
+            ct => _inner.GetAlbum(albumId, ct),
+            cancellationToken).ConfigureAwait(false);
+    }
+    
+    public async Task<IEnumerable<AlbumInfo>> GetAlbums(CancellationToken cancellationToken = default)
+    {
+        // We can treat this data as full albums.
+        const string key = "albums:all";
+
+        var list = await GetOrCreateAsync(
+            key,
+            async ct => (await _inner.GetAlbums(ct).ConfigureAwait(false)).ToArray(),
+            cancellationToken).ConfigureAwait(false);
+
+        return list;
+    }    
 
     public async Task<ArtistInfo?> GetArtist(Id artistId, CancellationToken cancellationToken = default)
     {
@@ -60,20 +82,13 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
         return list;
     }
 
-    public async Task<IEnumerable<AlbumInfo>> GetAlbums(CancellationToken cancellationToken = default)
-    {
-        const string key = "albums:all";
 
-        var list = await GetOrCreateAsync(
-            key,
-            async ct => (await _inner.GetAlbums(ct).ConfigureAwait(false)).ToArray(),
-            cancellationToken).ConfigureAwait(false);
-
-        return list;
-    }
 
     public async Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId, CancellationToken cancellationToken = default)
     {
+        // Do not treat this data as complete albums.
+        // Artist-specific albums may be incomplete and only include information relevant to that artist.
+        // For example, tracks featuring other artists may be omitted.
         var key = $"albums:artist:{artistId}";
 
         var list = await GetOrCreateAsync(

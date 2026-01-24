@@ -27,21 +27,43 @@ public partial class AlbumPage
     [Connect("conductors-box")] private WrapBox _conductorsBox;
     [Connect("performers-box")] private WrapBox _performersBox;
     [Connect("title-label")] private Label _titleLabel;
+    [Connect("partial-banner")] private Banner _partialBanner;
 
     public SimpleAction PlayAlbumAction { get; private set; }
     public SimpleAction EnqueueAlbumAction { get; private set; }
+    public SimpleAction ShowFullAlbumAction { get; private set; }
 
+    private ArtistInfo? _filteredArtist;
+    private IReadOnlyList<AlbumTrackInfo> _filteredTracks;
+    
     partial void Initialize()
     {
         var actionGroup = SimpleActionGroup.New();
         actionGroup.AddAction(PlayAlbumAction = SimpleAction.New("play", null));
         actionGroup.AddAction(EnqueueAlbumAction = SimpleAction.New("enqueue", null));
+        actionGroup.AddAction(ShowFullAlbumAction = SimpleAction.New("full", null));
         InsertActionGroup("album", actionGroup);
     }
 
-    public void LoadAlbum(AlbumInfo album)
+    public void LoadAlbum(AlbumInfo album, ArtistInfo? filteredArtist = null)
     {
+        _filteredArtist = filteredArtist;
+        if (filteredArtist != null)
+        {
+            _filteredTracks = album.Tracks.Where(t => t.Track.CreditsInfo.Artists.Any(a => a.Artist.Id == filteredArtist.Id)).ToList();
+            if (_filteredTracks.Count != album.Tracks.Count)
+            {
+                _partialBanner.Title = $"Tracks featuring {filteredArtist.Name}";
+                _partialBanner.Visible = true;                
+            }
+        }
+        else
+        {
+            _filteredTracks = album.Tracks;            
+            _partialBanner.Visible = false;
+        }
         _album = album;
+        
         SetTitle(album.Title);
         UpdateHeader();
         UpdateTracksList();
@@ -71,6 +93,7 @@ public partial class AlbumPage
 
         _durationLabel.SetLabel(durationText);
 
+        _albumArtistsBox.RemoveAll();
         foreach (var artist in _album.CreditsInfo.AlbumArtists)
         {
             // Format the button
@@ -86,6 +109,32 @@ public partial class AlbumPage
         }
         
         var sharedArtists = _album.GetSharedArtists().ToList();
+        
+        // If the sharedArtists list does not contain the filtered artist; add them.
+        // This happens when we show a "partial" album view for an artist that only appears on some tracks.
+        if (_filteredArtist is not null &&
+            sharedArtists.All(a => a.Artist.Id != _filteredArtist.Id))
+        {
+            // If the filtered artist has the same role(s) on all visible tracks, carry those over (per role flag).
+            // We compute the intersection of roles across the tracks where the artist appears.
+            
+            // TODO: this approach is nice, but as a result of filtering, this can now also apply for all other
+            // shown artists.
+            var rolesIntersection = _filteredTracks.Select(albumTrack => albumTrack.Track.CreditsInfo.Artists.Where(a => a.Artist.Id == _filteredArtist.Id)
+                    .Aggregate(ArtistRoles.None, (acc, a) => acc | a.Roles))
+                .Where(rolesOnThisTrack => rolesOnThisTrack != ArtistRoles.None)
+                .Aggregate<ArtistRoles, ArtistRoles?>(null, (current, rolesOnThisTrack) => current is null
+                    ? rolesOnThisTrack
+                    : current.Value & rolesOnThisTrack);
+
+            sharedArtists.Add(new TrackArtistInfo
+            {
+                Artist = _filteredArtist,
+                Roles = rolesIntersection ?? ArtistRoles.None
+            });
+        }
+        
+        _composersBox.RemoveAll();
         var composers = sharedArtists.Where(a => a.Roles.HasFlag(ArtistRoles.Composer)).ToList();
         if (composers.Count > 0)
         {
@@ -100,6 +149,7 @@ public partial class AlbumPage
             }
         }
 
+        _conductorsBox.RemoveAll();        
         var conductors = sharedArtists.Where(a => a.Roles.HasFlag(ArtistRoles.Conductor)).ToList();
         if (conductors.Count > 0)
         {
@@ -114,6 +164,7 @@ public partial class AlbumPage
             }
         }
         
+        _arrangedBox.RemoveAll();
         var arrangers = sharedArtists.Where(a => a.Roles.HasFlag(ArtistRoles.Arranger)).ToList();
         if (arrangers.Count > 0)
         {
@@ -124,6 +175,7 @@ public partial class AlbumPage
             }
         }
 
+        _performersBox.RemoveAll();
         var performers = sharedArtists
             .Where(a => !a.Roles.HasFlag(ArtistRoles.Conductor) && !a.Roles.HasFlag(ArtistRoles.Arranger) &&
                         !a.Roles.HasFlag(ArtistRoles.Composer))
@@ -177,13 +229,15 @@ public partial class AlbumPage
 
     private void UpdateTracksList()
     {
-        if (_album.Tracks.Count == 0)
+        _tracksListBox.RemoveAll();
+        
+        if (_filteredTracks.Count == 0)
         {
             _tracksListBox.SetVisible(false);
             return;
         }
 
-        foreach (var albumTrack in _album.Tracks)
+        foreach (var albumTrack in _filteredTracks)
         {
             // TODO: We're constructing list items in code here.
             // It would be better to define this via a .UI template.
@@ -218,6 +272,12 @@ public partial class AlbumPage
             row.SetTitle(track.Title);
 
             var guestArtists = _album.GetUniqueSongArtists(track);
+            
+            if (_filteredArtist != null)
+            {
+                guestArtists = guestArtists.Where(a => a.Artist.Id != _filteredArtist.Id).ToList();
+            }
+            
             var subTitleLine = string.Join(", ", guestArtists.Select(a => a.Artist.Name));
 
             row.SetSubtitle(subTitleLine);

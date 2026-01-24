@@ -25,8 +25,16 @@ public partial class AlbumPagePresenter(
         _view = view;
         _view.PlayAlbumAction.OnActivate += PlayAlbumActionOnOnActivate;
         _view.EnqueueAlbumAction.OnActivate += EnqueueAlbumActionOnOnActivate;
+        _view.ShowFullAlbumAction.OnActivate += ShowFullAlbumActionOnOnActivate;
     }
-    
+
+    private void ShowFullAlbumActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        // If this is invoked, the album was shown partially.
+        // Reload the album, but without any filters
+        _view?.LoadAlbum(_album!);
+    }
+
     public void Reset()
     {
         LogResetting(logger);
@@ -51,6 +59,11 @@ public partial class AlbumPagePresenter(
     {
         LogEnqueueingAlbum(logger, _album?.Id ?? Id.Unknown);
         
+        // TODO: Filtering is currently handled in the view.
+        // This logic should be moved to the presenter
+        // so the presenter explicitly controls which tracks are enqueued.
+        // The same applies to the Play button.
+    
         if (_album?.Id == null) return;
         _ = aria.Queue.EnqueueAlbum(_album);
         messenger.Send(new ShowToastMessage($"Album '{_album.Title}' added to queue."));
@@ -64,9 +77,12 @@ public partial class AlbumPagePresenter(
         _ = aria.Queue.PlayAlbum(_album);
     }
     
-    public async Task LoadAsync(AlbumInfo album)
+    public async Task LoadAsync(AlbumInfo album, ArtistInfo? filteredArtist = null)
     {
         LogLoadingAlbum(logger, album.Id ?? Id.Unknown);
+        
+        // Always assume the album is out of date, or only partial.
+        album = await aria.Library.GetAlbum(album.Id);
         
         AbortLoading();
         _loadCts = new CancellationTokenSource();
@@ -78,7 +94,7 @@ public partial class AlbumPagePresenter(
         {
             GLib.Functions.IdleAdd(0, () =>
             {
-                _view?.LoadAlbum(album);
+                _view?.LoadAlbum(album, filteredArtist);
                 return false;
             });                        
             

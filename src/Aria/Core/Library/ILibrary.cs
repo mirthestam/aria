@@ -32,4 +32,9 @@ public interface ILibrary
     /// Retrieves a resource stream from the library based on the specified resource identifier.
     /// </summary>
     Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets detailed information about the specified album.
+    /// </summary>
+    Task<AlbumInfo?> GetAlbum(Id albumId, CancellationToken cancellationToken = default);
 }

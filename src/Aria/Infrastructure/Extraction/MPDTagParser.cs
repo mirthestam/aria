@@ -211,7 +211,7 @@ public class MPDTagParser(IIdProvider idProvider) : ITagParser
                 case MPDTags.Track:
                     trackNumberTag = tag.Value;
                     break;
-
+                
                 case MPDTags.Disc:
                     diskTag = tag.Value;
                     break;

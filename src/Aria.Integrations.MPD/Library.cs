@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using MpcNET;
 using MpcNET.Commands.Database;
 using MpcNET.Tags;
-using FindCommand = Aria.Backends.MPD.Connection.Commands.FindCommand;
+using SearchCommand = Aria.Backends.MPD.Connection.Commands.SearchCommand;
 
 namespace Aria.Backends.MPD;
 
@@ -19,7 +19,38 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
     {
         OnUpdated();
     }
-    
+
+    public override async Task<AlbumInfo?> GetAlbum(Id albumId, CancellationToken cancellationToken = default)
+    {
+        var fullId = (AlbumId)albumId;
+
+        var title = fullId.Title;
+        var artistNames = fullId.AlbumArtistIds.Select(id => id).Select(id => id.Value);
+        var filters = new List<KeyValuePair<ITag, string>>();
+        filters.Add(new KeyValuePair<ITag, string>(MpdTags.Album, title));
+        filters.AddRange(artistNames.Select(name => new KeyValuePair<ITag, string>(MpdTags.AlbumArtist, name)));
+
+        using var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false);
+
+        var command = new SearchCommand(filters);
+        var response = await scope.SendCommandAsync(command).ConfigureAwait(false);
+        if (!response.IsSuccess) return null;
+        
+        var tags = response.Content!.Select(x => new Tag(x.Key, x.Value));
+        var albums = _albumsParser.GetAlbums(tags.ToList()).ToList();
+
+        switch (albums.Count)
+        {
+            case 0:
+            // unexpected!
+            case > 1:
+                // Album not found
+                return null;
+            default:
+                return albums[0];
+        }
+    }
+
     public override async Task<ArtistInfo?> GetArtist(Id artistId, CancellationToken cancellationToken = default)
     {
         // It is not a problem that we are using All Artists here.

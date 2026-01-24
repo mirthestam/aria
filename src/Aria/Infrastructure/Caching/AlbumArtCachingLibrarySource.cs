@@ -24,7 +24,7 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
     {
         // TODO: Inject a real logger here
         _logger = NullLogger<ResourceCacheLibrarySource>.Instance;
-        
+
         _innerLibrary = innerLibrary ?? throw new ArgumentNullException(nameof(innerLibrary));
         _ttl = ttl;
 
@@ -52,6 +52,9 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
 
     public Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId, CancellationToken cancellationToken = default)
         => _innerLibrary.GetAlbums(artistId, cancellationToken);
+
+    public Task<AlbumInfo?> GetAlbum(Id albumId, CancellationToken cancellationToken = default) =>
+        _innerLibrary.GetAlbum(albumId, cancellationToken);
 
     public async Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken cancellationToken = default)
     {
@@ -108,7 +111,8 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
                 throw;
             }
 
-            return new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 64 * 1024, useAsync: true);
+            return new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 64 * 1024,
+                useAsync: true);
         }
         finally
         {
@@ -136,7 +140,8 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
                 }
             }
 
-            stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 64 * 1024, useAsync: true);
+            stream = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 64 * 1024,
+                useAsync: true);
             return true;
         }
         catch (Exception e)

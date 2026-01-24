@@ -33,7 +33,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
     public void Attach(AlbumsPage view)
     {
         _view = view;
-        _view.AlbumSelected += (albumId, artistId) => _messenger.Send(new ShowAlbumDetailsMessage(albumId, artistId));
+        _view.AlbumSelected += (albumId, _) => _messenger.Send(new ShowAlbumDetailsMessage(albumId));
     }
     
     public async Task RefreshAsync(CancellationToken cancellationToken = default)

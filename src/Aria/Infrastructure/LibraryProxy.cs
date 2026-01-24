@@ -29,6 +29,8 @@ public class LibraryProxy : ILibrarySource
     public Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken token) =>
         _innerLibrary.GetAlbumResourceStreamAsync(resourceId, token);
 
+    public Task<AlbumInfo?> GetAlbum(Id albumId, CancellationToken cancellationToken = default) => _innerLibrary.GetAlbum(albumId, cancellationToken);
+
     internal void Attach(ILibrarySource library)
     {
         _innerLibrary = library;
@@ -63,6 +65,8 @@ public class LibraryProxy : ILibrarySource
 
         public Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken token) =>
             Task.FromResult(Stream.Null);
+
+        public Task<AlbumInfo?> GetAlbum(Id albumId, CancellationToken cancellationToken = default) => Task.FromResult<AlbumInfo?>(null);
 
         public event Action? Updated;
     }
