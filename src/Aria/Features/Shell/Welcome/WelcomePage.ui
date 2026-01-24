@@ -33,6 +33,7 @@
                       <object class="GtkListBox" id="visible-group">
                         <property name="css-classes">boxed-list</property>
                         <property name="selection-mode">none</property>
+                        <property name="visible">False</property>
                       </object>
                     </child>
                     <child>

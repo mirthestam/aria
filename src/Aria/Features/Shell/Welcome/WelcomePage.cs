@@ -37,15 +37,7 @@ public partial class WelcomePage
 
     public bool Discovering
     {
-        set
-        {
-            if (value)
-            {
-                _visiblePreferencesGroup.Visible = true;
-            }
-            
-            _discoverSpinner.Visible = value;
-        }
+        set => _discoverSpinner.Visible = value;
     }
 
     public void RefreshConnections(IEnumerable<ConnectionModel> connections)
@@ -66,7 +58,7 @@ public partial class WelcomePage
         {
             var row = ActionRow.New();
             row.SetTitle(connection.DisplayName);
-            row.SetSubtitle(connection.ConnectionText);
+            row.SetSubtitle(connection.Details);
             row.SetActivatable(true); // They are not activatable by default
             
             row.SetActionName("welcome.connect");

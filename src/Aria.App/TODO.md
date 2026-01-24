@@ -1,5 +1,4 @@
 BUGS
-- When welcome page is refreshng, the shown GUID are invalid.
 - convert pill to dropdown, with (refresh) option to manually trigger.
 
 WISHES

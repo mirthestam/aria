@@ -48,6 +48,7 @@ public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMess
             {
                 case ConnectionState.Disconnected:
                     _view.TogglePage(MainWindow.MainPages.Welcome);
+                    _ = _welcomePagePresenter.RefreshAsync();
                     break;
                 case ConnectionState.Connecting:
                     _view.TogglePage(MainWindow.MainPages.Connecting);
@@ -111,7 +112,12 @@ public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMess
     {
         await _ariaControl.InitializeAsync();
         _view.Show();
-        await _welcomePagePresenter.RefreshAsync();
+        
+        var autoConnected = await _welcomePagePresenter.TryStartAutoConnectAsync();
+        if (!autoConnected)
+        {
+            await _welcomePagePresenter.RefreshAsync();            
+        }
     }
 
     public void Receive(ShowToastMessage message) => ShowToast(message.Message);

@@ -7,21 +7,30 @@ namespace Aria.Features.Shell.Welcome;
 [Subclass<Object>]
 public partial class ConnectionModel
 {
-    private ConnectionModel(Guid id, string displayName, string connectionText, bool isDiscovered) : this()
+    private ConnectionModel(Guid id, string displayName, string details, bool isDiscovered) : this()
     {
         Id = id;
         DisplayName = displayName;
-        ConnectionText = connectionText;
+        Details = details;
         IsDiscovered = isDiscovered;
     }
 
     public static ConnectionModel FromConnectionProfile(IConnectionProfile profile)
     {
-        return new ConnectionModel(profile.Id, profile.Name, profile.ConnectionDisplayString, profile.Flags.HasFlag(ConnectionFlags.Discovered));
+        
+        var details = profile.AutoConnect && profile.Flags.HasFlag(ConnectionFlags.Saved) 
+            ? "Auto-Connect" 
+            : string.Empty;
+
+        return new ConnectionModel(
+            profile.Id,
+            profile.Name,
+            details,
+            profile.Flags.HasFlag(ConnectionFlags.Discovered));
     }
-    
-    public Guid Id { get; set; }
-    public string DisplayName { get; set; }
-    public string ConnectionText { get; set; }
-    public bool IsDiscovered { get; set; }
+
+    public Guid Id { get; }
+    public string DisplayName { get; }
+    public string Details { get; }
+    public bool IsDiscovered { get; }
 }

@@ -9,7 +9,6 @@ namespace Aria.Features.Shell.Welcome;
 
 public sealed record ConnectDialogResult(ConnectDialogOutcome Outcome, IConnectionProfile? Profile);
 
-
 public partial class WelcomePagePresenter(
     IConnectionProfileProvider connectionProfileProvider,
     IConnectDialogPresenter connectDialogPresenter,
@@ -18,23 +17,162 @@ public partial class WelcomePagePresenter(
     IMessenger messenger,
     ILogger<WelcomePagePresenter> logger)
 {
-    private CancellationTokenSource? _refreshCancellationTokenSource;    
+    private CancellationTokenSource? _refreshCancellationTokenSource;
+    private CancellationTokenSource? _discoveryCancellationTokenSource;
     private WelcomePage? _view;
-    
+
     public void Attach(WelcomePage view)
     {
         connectionProfileProvider.DiscoveryCompleted += ConnectionProfileProviderOnDiscoveryCompleted;
-        
+
         _view = view;
-        _view.Discovering = true;
-        
-        _view.ConnectAction.OnActivate += ConnectActionOnOnActivate;
-        _view.NewAction.OnActivate += NewActionOnOnActivate;
-        _view.ConfigureAction.OnActivate += ConfigureActionOnOnActivate;
-        
+
+        _view.ConnectAction.OnActivate += ConnectActionHandler;
+        _view.NewAction.OnActivate += NewConnectionHandler;
+        _view.ConfigureAction.OnActivate += ConfigureConnectionHandler;
     }
-    
-    private async void ConfigureActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+
+    public async Task RefreshAsync(CancellationToken cancellationToken = default)
+    {
+        // Start disk refresh (cancellable via refresh CTS)
+        await RefreshConnectionsAsync(cancellationToken);
+
+        // Start discovery (cancellable via discovery CTS)
+        _ = StartDiscoveryAsync(cancellationToken);
+
+        await Task.CompletedTask;
+    }
+
+    public async Task<bool> TryStartAutoConnectAsync()
+    {
+        LogAutoConnectCheckingDefaultProfile(logger);
+        var x = await connectionProfileProvider.GetDefaultProfileAsync();
+        if (x == null) return false;
+
+        // Connect in the background and let the caller know we are auto connecting
+        _ = ConnectAndPersistAsync(x.Id).ContinueWith(t =>
+        {
+            // If here, we failed to connect. As a fallback,
+            // We just laod the connection and show them.
+            messenger.Send(new ShowToastMessage("Failed to auto-connect to '" + x.Name + "'"));
+            LogFailedToAutoConnect(logger, t.Exception);
+            _ = RefreshConnectionsAsync();
+        }, TaskContinuationOptions.OnlyOnFaulted);
+        return true;
+    }
+
+    private async Task RefreshConnectionsAsync(CancellationToken externalCancellationToken = default)
+    {
+        await AbortRefreshAndDiscovery();
+
+        try
+        {
+            LogRefreshingConnections(logger);
+            _refreshCancellationTokenSource =
+                CancellationTokenSource.CreateLinkedTokenSource(externalCancellationToken);
+            var cancellationToken = _refreshCancellationTokenSource.Token;
+
+            var connections = await connectionProfileProvider.GetAllProfilesAsync(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var connectionModels = connections
+                .Select(ConnectionModel.FromConnectionProfile);
+
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                if (cancellationToken.IsCancellationRequested) return false;
+                _view?.RefreshConnections(connectionModels);
+                return false;
+            });
+
+            LogConnectionsRefreshed(logger);
+        }
+        catch (Exception e)
+        {
+            LogFailedToRefreshConnections(e);
+        }
+    }
+
+    private async Task StartDiscoveryAsync(CancellationToken externalCancellationToken = default)
+    {
+        await (_discoveryCancellationTokenSource?.CancelAsync() ?? Task.CompletedTask);
+        _discoveryCancellationTokenSource?.Dispose();
+        _discoveryCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(externalCancellationToken);
+
+        var cancellationToken = _discoveryCancellationTokenSource.Token;
+
+        LogDiscovering(logger);
+
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            _view?.Discovering = true;
+            return false;
+        });
+
+        try
+        {
+            await connectionProfileProvider.DiscoverAsync(cancellationToken);
+        }
+        finally
+        {
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                if (_view != null) _view.Discovering = false;
+                return false;
+            });
+        }
+
+        if (cancellationToken.IsCancellationRequested) LogDiscoveryAborted(logger);
+        else LogDiscoveryCompleted(logger);
+    }
+
+    private void ConnectionProfileProviderOnDiscoveryCompleted(object? sender, EventArgs e)
+    {
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            _view?.Discovering = false;
+            return false;
+        });
+
+        _ = RefreshConnectionsAsync();
+    }
+
+    private async Task AbortRefreshAndDiscovery()
+    {
+        LogAbortingRefreshDiscovery(logger);
+
+        await (_refreshCancellationTokenSource?.CancelAsync() ?? Task.CompletedTask);
+        _refreshCancellationTokenSource?.Dispose();
+        _refreshCancellationTokenSource = null;
+
+        await (_discoveryCancellationTokenSource?.CancelAsync() ?? Task.CompletedTask);
+        _discoveryCancellationTokenSource?.Dispose();
+        _discoveryCancellationTokenSource = null;
+
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            if (_view != null) _view.Discovering = false;
+            return false;
+        });
+
+        LogAbortedRefreshDiscovery(logger);
+    }
+
+    private async void ConnectActionHandler(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            var connectionId = ParseConnectionId(args);
+            await ConnectAndPersistAsync(connectionId);
+        }
+        catch (Exception e)
+        {
+            messenger.Send(new ShowToastMessage("Failed to connect"));
+            LogFailedToConnectToMPDServer(e);
+        }
+    }
+
+    private async void ConfigureConnectionHandler(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         try
         {
@@ -55,7 +193,6 @@ public partial class WelcomePagePresenter(
                 case ConnectDialogOutcome.Forgotten:
                     await connectionProfileProvider.DeleteProfileAsync(profile.Id);
                     await RefreshConnectionsAsync();
-                    await DiscoverAsync();
                     return;
 
                 case ConnectDialogOutcome.Confirmed:
@@ -67,8 +204,8 @@ public partial class WelcomePagePresenter(
 
             profile = result.Profile ?? throw new InvalidOperationException("Profile should not be null");
 
-            await SaveRefreshConnectPersistAsync(profile);
-            await RefreshConnectionsAsync();            
+            await SaveAndConnect(profile);
+            await RefreshConnectionsAsync();
         }
         catch (Exception e)
         {
@@ -76,30 +213,7 @@ public partial class WelcomePagePresenter(
         }
     }
 
-    public async Task RefreshAsync(CancellationToken cancellationToken = default)
-    {
-        // Start disk refresh
-        await RefreshConnectionsAsync(cancellationToken);
-        
-        // Start discovery
-        await DiscoverAsync(cancellationToken);        
-    }
-
-    private async void ConnectActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
-    {
-        try
-        {
-            var connectionId = ParseConnectionId(args);
-            await ConnectAndPersistAsync(connectionId);
-        }
-        catch (Exception e)
-        {
-            messenger.Send(new ShowToastMessage("Failed to connect"));
-            LogFailedToConnectToMPDServer(e);
-        }
-    }
-
-    private async void NewActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    private async void NewConnectionHandler(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         try
         {
@@ -124,8 +238,8 @@ public partial class WelcomePagePresenter(
 
             profile = result.Profile ?? throw new InvalidOperationException("Profile should not be null");
 
-            await SaveRefreshConnectPersistAsync(profile);
-            await RefreshConnectionsAsync();            
+            await SaveAndConnect(profile);
+            await RefreshConnectionsAsync();
         }
         catch (Exception e)
         {
@@ -133,71 +247,24 @@ public partial class WelcomePagePresenter(
         }
     }
 
-    private void ConnectionProfileProviderOnDiscoveryCompleted(object? sender, EventArgs e)
-    {
-        GLib.Functions.IdleAdd(0, () =>
-        {
-            _view?.Discovering = false;
-            return false;
-        });        
-        
-        _ = RefreshConnectionsAsync();
-    }
-
-    private async Task SaveRefreshConnectPersistAsync(IConnectionProfile profile)
-    {
-        await connectionProfileProvider.SaveProfileAsync(profile);
-        await ConnectAndPersistAsync(profile.Id);
-    }
-
     private async Task ConnectAndPersistAsync(Guid profileId)
     {
-        // We can stop refreshing, we are connecting
-        AbortRefresh();
+        // We can stop refreshing + discovery, we are connecting.
+        await AbortRefreshAndDiscovery();
         
+        LogConnectingToProfile(logger, profileId);
         await ariaControl.ConnectAsync(profileId);
+
+        LogPersistingProfile(logger, profileId);
         await connectionProfileProvider.PersistProfileAsync(profileId);
     }
-    
-    private void AbortRefresh()
-    {
-        _refreshCancellationTokenSource?.Cancel();
-        _refreshCancellationTokenSource?.Dispose();
-        _refreshCancellationTokenSource = null;
-    }
 
-    private async Task DiscoverAsync(CancellationToken cancellationToken = default)
+    private async Task SaveAndConnect(IConnectionProfile profile)
     {
-        _view?.Discovering = true;
-        await connectionProfileProvider.DiscoverAsync(cancellationToken);
-        _view?.Discovering = false;        
-    }
-    
-    private async Task RefreshConnectionsAsync(CancellationToken externalCancellationToken = default)
-    {
-        AbortRefresh();
-        
-        try
-        {
-            _refreshCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(externalCancellationToken);
-            var cancellationToken = _refreshCancellationTokenSource.Token;
-            
-            var connections = await connectionProfileProvider.GetAllProfilesAsync(cancellationToken);
+        LogSavingProfile(logger, profile.Id);
 
-            var connectionModels = connections
-                .Select(ConnectionModel.FromConnectionProfile);
-
-            GLib.Functions.IdleAdd(0, () =>
-            {
-                if (cancellationToken.IsCancellationRequested) return false;                
-                _view?.RefreshConnections(connectionModels);
-                return false;
-            });
-        }
-        catch (Exception e)
-        {
-            LogFailedToRefreshConnections(e);
-        }
+        await connectionProfileProvider.SaveProfileAsync(profile);
+        await ConnectAndPersistAsync(profile.Id);
     }
 
     private static Guid ParseConnectionId(SimpleAction.ActivateSignalArgs args)
@@ -209,10 +276,46 @@ public partial class WelcomePagePresenter(
         guidString = guidString[1..^1]; // Remove quotation
         return Guid.Parse(guidString);
     }
-    
+
     [LoggerMessage(LogLevel.Error, "Failed to refresh connections")]
     partial void LogFailedToRefreshConnections(Exception e);
 
     [LoggerMessage(LogLevel.Error, "Failed to connect to MPD server")]
     partial void LogFailedToConnectToMPDServer(Exception e);
+
+    [LoggerMessage(LogLevel.Debug, "Auto-connect: checking default profile")]
+    static partial void LogAutoConnectCheckingDefaultProfile(ILogger<WelcomePagePresenter> logger);
+
+    [LoggerMessage(LogLevel.Warning, "Failed to auto-connect")]
+    static partial void LogFailedToAutoConnect(ILogger<WelcomePagePresenter> logger, Exception? e);
+
+    [LoggerMessage(LogLevel.Debug, "Refreshing connections")]
+    static partial void LogRefreshingConnections(ILogger<WelcomePagePresenter> logger);
+
+    [LoggerMessage(LogLevel.Information, "Connections refreshed.")]
+    static partial void LogConnectionsRefreshed(ILogger<WelcomePagePresenter> logger);
+
+    [LoggerMessage(LogLevel.Debug, "Discovering")]
+    static partial void LogDiscovering(ILogger<WelcomePagePresenter> logger);
+
+    [LoggerMessage(LogLevel.Debug, "Discovery aborted")]
+    static partial void LogDiscoveryAborted(ILogger<WelcomePagePresenter> logger);
+
+    [LoggerMessage(LogLevel.Information, "Discovery completed")]
+    static partial void LogDiscoveryCompleted(ILogger<WelcomePagePresenter> logger);
+
+    [LoggerMessage(LogLevel.Debug, "Aborting refresh/discovery")]
+    static partial void LogAbortingRefreshDiscovery(ILogger<WelcomePagePresenter> logger);
+
+    [LoggerMessage(LogLevel.Debug, "Aborted refresh/discovery")]
+    static partial void LogAbortedRefreshDiscovery(ILogger<WelcomePagePresenter> logger);
+
+    [LoggerMessage(LogLevel.Debug, "Connecting to profile {profileId}")]
+    static partial void LogConnectingToProfile(ILogger<WelcomePagePresenter> logger, Guid profileId);
+
+    [LoggerMessage(LogLevel.Debug, "Persisting profile {profileId}")]
+    static partial void LogPersistingProfile(ILogger<WelcomePagePresenter> logger, Guid profileId);
+
+    [LoggerMessage(LogLevel.Debug, "Saving profile {profileId}")]
+    static partial void LogSavingProfile(ILogger<WelcomePagePresenter> logger, Guid profileId);
 }

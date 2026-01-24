@@ -26,39 +26,39 @@ public class AriaEngine(
     public IPlayer Player => _playerProxy;
     public IQueue Queue => _queueProxy;
     public ILibrary Library => _libraryProxy;
-    
+
     private ResourceCacheLibrarySource? _resourceCache;
     private QueryCacheLibrarySource? _infoCache;
-    
+
     public Task InitializeAsync()
     {
         // Forward events from the proxies over the messenger for the UI
-        _playerProxy.StateChanged += flags => messenger.Send(new PlayerStateChangedMessage(flags));  
+        _playerProxy.StateChanged += flags => messenger.Send(new PlayerStateChangedMessage(flags));
         _libraryProxy.Updated += () => messenger.Send(new LibraryUpdatedMessage());
         _queueProxy.StateChanged += flags => messenger.Send(new QueueStateChangedMessage(flags));
         return Task.CompletedTask;
     }
-    
+
     public async Task DisconnectAsync()
     {
-        await InternalDisconnectAsync();        
+        await InternalDisconnectAsync();
     }
 
     public Id Parse(string id)
     {
         // We need the ID from the connection to parse it here.
         // This method exists to avoid exposing the entire provider.
-        return _backendScope?.Connection.IdProvider.Parse(id) ?? Id.Empty; 
+        return _backendScope?.Connection.IdProvider.Parse(id) ?? Id.Empty;
     }
 
     public async Task ConnectAsync(Guid profileId, CancellationToken cancellationToken = default)
     {
-            var profiles = await connectionProfileProvider.GetAllProfilesAsync(cancellationToken).ConfigureAwait(false);
-            var profile = profiles.FirstOrDefault(p => p.Id == profileId);
-            if (profile == null) throw new InvalidOperationException("No profile found with the given ID");
-            await ConnectAsync(profile, cancellationToken).ConfigureAwait(false);
+        var profiles = await connectionProfileProvider.GetAllProfilesAsync(cancellationToken).ConfigureAwait(false);
+        var profile = profiles.FirstOrDefault(p => p.Id == profileId);
+        if (profile == null) throw new InvalidOperationException("No profile found with the given ID");
+        await ConnectAsync(profile, cancellationToken).ConfigureAwait(false);
     }
-    
+
     public async Task ConnectAsync(IConnectionProfile connectionProfile, CancellationToken cancellationToken = default)
     {
         try
@@ -68,22 +68,23 @@ public class AriaEngine(
             if (provider == null) throw new NotSupportedException("No provider found for connection profile");
 
             await InternalDisconnectAsync().ConfigureAwait(false);
-            
+
             // Instantiate the backend and connect our session wrappers to the actual backend implementation  
             _backendScope = await provider.CreateAsync(connectionProfile).ConfigureAwait(false);
-            
+
             var backend = _backendScope.Connection;
             backend.ConnectionStateChanged += BackendOnConnectionStateChanged;
 
             _playerProxy.Attach(backend.Player);
             _queueProxy.Attach(backend.Queue);
-            
+
             // Wrap the backend library with its caches
-            _resourceCache = new Caching.ResourceCacheLibrarySource(backend.Library, connectionProfile.Id.ToString(), TimeSpan.FromDays(30));
+            _resourceCache = new Caching.ResourceCacheLibrarySource(backend.Library, connectionProfile.Id.ToString(),
+                TimeSpan.FromDays(30));
             _infoCache = new QueryCacheLibrarySource(_resourceCache, TimeSpan.FromSeconds(15));
-            
+
             _libraryProxy.Attach(_infoCache);
-            
+
             //  Initialize the backend. This is where it will connect.
             await backend.ConnectAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -104,16 +105,16 @@ public class AriaEngine(
         _infoCache?.Dispose();
 
         var connection = _backendScope.Connection;
-            
+
         await connection.DisconnectAsync().ConfigureAwait(false);
-        
+
         // Unbind after disconnecting; otherwise the disconnect event will never be caught.
-        connection.ConnectionStateChanged -= BackendOnConnectionStateChanged;        
-        
+        connection.ConnectionStateChanged -= BackendOnConnectionStateChanged;
+
         _backendScope.Dispose();
         _backendScope = null;
     }
-    
+
     private void BackendOnConnectionStateChanged(ConnectionState state)
     {
         messenger.Send(new ConnectionStateChangedMessage(state));

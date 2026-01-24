@@ -87,7 +87,10 @@ public class ConnectionProfileProvider(DiskConnectionProfileSource diskSource) :
     public async Task<IConnectionProfile?> GetDefaultProfileAsync()
     {
         var profiles = await GetAllProfilesAsync();
-        return profiles.OrderBy(p => p.Name).FirstOrDefault(p => p.AutoConnect);
+        return profiles
+            .Where(p => p.Flags.HasFlag(ConnectionFlags.Saved))
+            .OrderBy(p => p.Name)
+            .FirstOrDefault(p => p.AutoConnect);
     }
 
     public async Task DiscoverAsync(CancellationToken cancellationToken = default)
@@ -102,7 +105,7 @@ public class ConnectionProfileProvider(DiskConnectionProfileSource diskSource) :
             _lock.Release();
         }
         
-        DiscoveryCompleted?.Invoke(this, EventArgs.Empty);
+        if (!cancellationToken.IsCancellationRequested) DiscoveryCompleted?.Invoke(this, EventArgs.Empty);
     }
     
     private async Task DiscoverServersAsync(CancellationToken cancellationToken = default)
@@ -127,7 +130,7 @@ public class ConnectionProfileProvider(DiskConnectionProfileSource diskSource) :
             var profile = new ConnectionProfile
             {
                 Id = Guid.NewGuid(),
-                AutoConnect = false,
+                AutoConnect = true,
                 Host = resp.IPAddress,
                 Name = resp.DisplayName,
                 Port = mpdService.Value.Port,

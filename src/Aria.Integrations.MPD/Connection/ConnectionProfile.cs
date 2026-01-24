@@ -17,7 +17,7 @@ public class ConnectionProfile : IConnectionProfile
     public string Name { get; set; } = "Unnamed MPD Connection";
     public bool AutoConnect { get; set; } = false;
     
-    public string ConnectionDisplayString => UseSocket ? $"socket: {Socket}" : $"host: {Host}:{Port}";
+    public string ConnectionDisplayString =>UseSocket ? $"{Socket}" : $"{Host}:{Port}";
 
     public ConnectionFlags Flags { get; set; } = ConnectionFlags.None;
 }

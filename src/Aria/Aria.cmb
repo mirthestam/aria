@@ -10,8 +10,8 @@
   <ui filename="Features/Player/Playlist/SongListItem.ui" sha256="00803ce5d6e8ef42f4223bab60ccdc80825197532303f3e468e8d052783ffb4f"/>
   <ui template-class="AriaFeaturesPlayerMediaControls" filename="Features/Player/MediaControls.ui" sha256="080c241db770cd71cb9455f523d252c3baeda79ebe26471ffc83e4b103077ba0"/>
   <ui filename="Features/Shell/ShortcutsDialog.ui" sha256="a2db2634fdf254e28aa30e431a33205b0454ac3bf1a4fb23ce5b087380bc7fd7"/>
-  <ui template-class="AriaBackendsMPDUIConnectConnectDialog" filename="../Aria.Integrations.MPD/UI/Connect/ConnectDialog.ui" sha256="77dd93a96ca2feb8f7ce9955149f52cc0211d4dcc399acbd9aef042a3d0d6637"/>
-  <ui template-class="AriaFeaturesShellWelcomeWelcomePage" filename="Features/Shell/Welcome/WelcomePage.ui" sha256="05a32577610b5bd8124635a64aaf5bb73bc28a490cd2c548c8478d73104a0c0d"/>
+  <ui template-class="AriaBackendsMPDUIConnectConnectDialog" filename="../Aria.Integrations.MPD/UI/Connect/ConnectDialog.ui" sha256="9ed4ba766bc7e8041c2e84ebf058360e4e13166e4082e85e8778899d5cf908f1"/>
+  <ui template-class="AriaFeaturesShellWelcomeWelcomePage" filename="Features/Shell/Welcome/WelcomePage.ui" sha256="712ea075b3dd234839f58be290bd1aad27dcbbf36424f36ad8d5698f8aa25871"/>
   <ui template-class="AriaFeaturesShellWelcomeConnectionListItem" filename="Features/Shell/Welcome/ConnectionListItem.ui" sha256="7f1e65b17142c6a38a869232fb732fd7a9f71a18be21d56d7c0aaa6a3ebeb9e4"/>
   <ui template-class="AriaFeaturesBrowserBrowserEmptyPage" filename="Features/Browser/BrowserEmptyPage.ui" sha256="b937439ae52384316823605a2a7ba0ed831094b325cf19a97c31af9510069f3d"/>
   <ui template-class="AriaFeaturesBrowserSearchSearchPage" filename="Features/Browser/Search/SearchPage.ui" sha256="fdc805e1d342f338166115c1f8741df473c22d8a04c3db25b86406c1b838c78e"/>

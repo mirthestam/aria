@@ -18,7 +18,7 @@ public partial class ConnectionListItem
     {
         ConnectionId = model.Id;
         _titleLabel.SetLabel(model.DisplayName);
-        _subtitleLabel.SetLabel(model.ConnectionText);
+        _subtitleLabel.SetLabel(model.Details);
         _discoveredLabel.SetVisible(model.IsDiscovered);
     }
 }

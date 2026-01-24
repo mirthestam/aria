@@ -57,7 +57,7 @@
                         <child>
                           <object class="AdwSwitchRow" id="autoconnect-row">
                             <property name="title">Connect on start-up</property>
-                            <property name="visible">False</property>
+                            <property name="visible">True</property>
                           </object>
                         </child>
                       </object>

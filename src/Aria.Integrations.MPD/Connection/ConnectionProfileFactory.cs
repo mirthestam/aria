@@ -11,7 +11,7 @@ public class ConnectionProfileFactory : IConnectionProfileFactory
         {
             Name = "My computer",
             UseSocket = false,
-            AutoConnect = false,
+            AutoConnect = true,
             Host = "127.0.0.1",
             Port = 6600
         };
