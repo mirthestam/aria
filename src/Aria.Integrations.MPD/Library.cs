@@ -85,7 +85,7 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         using (var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false))
         {
             var tasks = artists
-                .Select(artist => scope.SendCommandAsync(new FindCommand(MpdTags.AlbumArtist, artist.Name)))
+                .Select(artist => scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.AlbumArtist, artist.Name)))
                 .ToList();
 
             var responses = await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -101,7 +101,7 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
 
         // This is CPU-bound parsing. Since ConfigureAwait(false) was used earlier,
         // this code is assumed to be running on a background thread.
-        return _albumsParser.GetAlbums(allTags).DistinctBy(album => album.Id);
+        return _albumsParser.GetAlbums(allTags);
     }
 
     public override async Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId, CancellationToken cancellationToken = default)

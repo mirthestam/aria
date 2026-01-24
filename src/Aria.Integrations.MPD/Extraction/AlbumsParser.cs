@@ -61,7 +61,7 @@ public class AlbumsParser(ITagParser tagParser)
             });
 
         // 2. Group by Album ID and consolidate all individual tracks into full AlbumInfo objects
-        return parsedResults
+        var xxx =  parsedResults
             .GroupBy(res => res.Album.Id)
             .Select(group =>
             {
@@ -70,6 +70,7 @@ public class AlbumsParser(ITagParser tagParser)
                 // Collect and deduplicate all tracks found for this album
                 var consolidatedTracks = group
                     .Select(x => x.Track)
+                    .DistinctBy(t => t.Track.Id)
                     .ToList();
 
                 // Merge all credits found across all tracks in this group
@@ -94,6 +95,8 @@ public class AlbumsParser(ITagParser tagParser)
                     }
                 };
             });
+
+        return xxx;
     }
 
     private (AlbumInfo Album, AlbumTrackInfo Track) ParseAlbumInformation(List<Tag> trackTags)
