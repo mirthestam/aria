@@ -71,6 +71,13 @@ public partial class PlayerBar
 
     public void SetProgress(TimeSpan progressElapsed, TimeSpan progressDuration)
     {
-        _progressBar.Fraction = progressElapsed.TotalSeconds / progressDuration.TotalSeconds;
+        if (progressDuration == TimeSpan.Zero)
+        {
+            _progressBar.Fraction = 1;
+        }
+        else
+        {
+            _progressBar.Fraction = progressElapsed.TotalSeconds / progressDuration.TotalSeconds;            
+        }
     }
 }

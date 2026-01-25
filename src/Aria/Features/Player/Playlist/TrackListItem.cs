@@ -20,9 +20,16 @@ public partial class TrackListItem
         _subTitleLabel.Visible = !string.IsNullOrEmpty(model.Subtitle);
         _composerLabel.Visible = !string.IsNullOrEmpty(model.ComposerLine);
 
-        var duration = model.Duration.TotalHours >= 1
-            ? model.Duration.ToString(@"h\:mm\:ss")
-            : model.Duration.ToString(@"mm\:ss");
-        _durationLabel.SetLabel(duration);
+        if (model.Duration == TimeSpan.Zero)
+        {
+            _durationLabel.SetLabel("—:—");    
+        }
+        else
+        {
+            var duration = model.Duration.TotalHours >= 1
+                ? model.Duration.ToString(@"h\:mm\:ss")
+                : model.Duration.ToString(@"mm\:ss");
+            _durationLabel.SetLabel(duration);            
+        }
     }
 }

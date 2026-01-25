@@ -42,7 +42,9 @@ public partial class PlaybackControls
 
     private bool ElapsedScaleOnOnChangeValue(Range sender, Range.ChangeValueSignalArgs args)
     {
-        var seconds = args.Value;
+        // The range may fall outside the scrollbar bounds, so we clamp it.
+        var seconds = Math.Clamp(args.Value, 0, _shownDuration.TotalSeconds);        
+        
         var target = TimeSpan.FromSeconds(seconds);
 
         _seekCts?.Cancel();
@@ -105,16 +107,27 @@ public partial class PlaybackControls
 
     public void SetProgress(TimeSpan trackElapsed, TimeSpan trackDuration)
     {
-        if (_shownDuration != trackDuration)
-        {
-            _elapsedScale.SetRange(0, trackDuration.TotalSeconds);
-            _shownDuration = trackDuration;
-        }
-
-        _elapsedScale.SetValue(trackElapsed.TotalSeconds);
-
         _elapsedTimeLabel.Label_ = trackElapsed.ToString(@"mm\:ss");
-        _remainingTimeLabel.Label_ = (trackDuration - trackElapsed).ToString(@"mm\:ss");
+        
+        if (trackDuration == TimeSpan.Zero)
+        {
+            if (_shownDuration == trackDuration) return;
+            _elapsedScale.Visible = false;                            
+            _shownDuration = trackDuration;
+            _remainingTimeLabel.Label_ = "—:—";
+        }
+        else
+        {
+            if (_shownDuration != trackDuration)
+            {
+                _elapsedScale.Visible = true;                
+                _elapsedScale.SetRange(0, trackDuration.TotalSeconds);
+                _shownDuration = trackDuration;
+            }
+
+            _elapsedScale.SetValue(trackElapsed.TotalSeconds);
+            _remainingTimeLabel.Label_ =(trackDuration - trackElapsed).ToString(@"mm\:ss");    
+        }
     }
 
     public void SetPlaylistInfo(int? playlistCurrentTrackIndex, int playlistLength)
