@@ -4,8 +4,10 @@ using Aria.Core.Library;
 using Aria.Infrastructure;
 using Gdk;
 using Gio;
+using GLib;
 using GObject;
 using Gtk;
+using TimeSpan = System.TimeSpan;
 
 namespace Aria.Features.Browser.Album;
 
@@ -32,6 +34,7 @@ public partial class AlbumPage
     public SimpleAction PlayAlbumAction { get; private set; }
     public SimpleAction EnqueueAlbumAction { get; private set; }
     public SimpleAction ShowFullAlbumAction { get; private set; }
+    public SimpleAction EnqueueTrack { get; private set; }
 
     private ArtistInfo? _filteredArtist;
     private IReadOnlyList<AlbumTrackInfo> _filteredTracks;
@@ -42,6 +45,7 @@ public partial class AlbumPage
         actionGroup.AddAction(PlayAlbumAction = SimpleAction.New("play", null));
         actionGroup.AddAction(EnqueueAlbumAction = SimpleAction.New("enqueue", null));
         actionGroup.AddAction(ShowFullAlbumAction = SimpleAction.New("full", null));
+        actionGroup.AddAction(EnqueueTrack = SimpleAction.New("enqueue-track-default", VariantType.String));
         InsertActionGroup("album", actionGroup);
     }
 
@@ -281,6 +285,10 @@ public partial class AlbumPage
             var subTitleLine = string.Join(", ", guestArtists.Select(a => a.Artist.Name));
 
             row.SetSubtitle(subTitleLine);
+            
+            row.SetActivatable(true);
+            row.SetActionName("album.enqueue-track-default");
+            row.SetActionTargetValue(Variant.NewString(track.Id?.ToString() ?? string.Empty));
 
             _tracksListBox.Append(row);
         }

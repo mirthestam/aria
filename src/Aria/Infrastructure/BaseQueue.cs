@@ -32,10 +32,10 @@ public abstract class BaseQueue : IQueueSource
     public virtual Task<IEnumerable<TrackInfo>> GetTracksAsync() => Task.FromResult(Enumerable.Empty<TrackInfo>());
 
     public virtual Task PlayAsync(int index) => Task.CompletedTask;
+    
+    public virtual Task PlayAsync(AlbumInfo album, EnqueueAction action) => Task.CompletedTask;
 
-    public virtual Task PlayAlbum(AlbumInfo album) => Task.CompletedTask;
-
-    public virtual Task EnqueueAlbum(AlbumInfo album) => Task.CompletedTask;
+    public virtual Task PlayAsync(TrackInfo track, EnqueueAction action) => Task.CompletedTask;
     
     protected void OnStateChanged(QueueStateChangedFlags flags)
     {

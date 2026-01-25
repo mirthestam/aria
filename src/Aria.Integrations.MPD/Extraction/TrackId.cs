@@ -13,4 +13,9 @@ public class TrackId(string fileName) : Id.TypedId<string>(fileName, Key)
     {
         return new TrackId(context.Track.FileName ?? throw new InvalidOperationException("Track has no file name"));
     }
+
+    public static Id Parse(string value)
+    {
+        return new TrackId(value);
+    }
 }

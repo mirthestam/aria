@@ -10,7 +10,6 @@ WISHES
 - Sidebar: Update database trigger
 
 - AlbumPage: Fix albumpage header
-- AlbumPage: Album page track selection enqueue
 - AlbumPage: Drag drop song
 - AlbumPage: Track context-menu
 
@@ -46,6 +45,8 @@ styling we implemented here.
 I like the Blur The Euphonica App did. Think if this is a good addition for us, and our target audience.
 Amberol also does it.
 
+## Sticker support
+https://github.com/jcorporation/mpd-stickers
 
 
 # Art needed

@@ -33,49 +33,61 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         await client.SendCommandAsync(new PlayCommand(index)).ConfigureAwait(false);
     }
 
-    public override async Task PlayAlbum(AlbumInfo album)
+    public override async Task PlayAsync(TrackInfo track, EnqueueAction action)
+    {
+        await PlayAsync([track], action).ConfigureAwait(false);
+    }
+    
+    public override async Task PlayAsync(AlbumInfo album, EnqueueAction action)
+    {
+        await PlayAsync(album.Tracks.Select(t => t.Track), action).ConfigureAwait(false);
+    }
+    
+    private async Task PlayAsync(IEnumerable<TrackInfo> tracks, EnqueueAction action)
     {
         try
         {
-            // Using a command list here as we want MPD to process these commands sequentially.
             var commandList = new CommandList();
-            commandList.Add(new ClearCommand());
-            foreach (var albumTrack in album.Tracks)
+            
+            
+            switch (action)
             {
-                commandList.Add(new AddCommand(albumTrack.Track.FileName));            
+                case EnqueueAction.Replace:
+                    commandList.Add(new ClearCommand());
+                    foreach (var track in tracks)
+                    {
+                        commandList.Add(new AddCommand(track.FileName));            
+                    }
+
+                    commandList.Add(new PlayCommand(0));                
+                    break;
+                case EnqueueAction.EnqueueNext:
+                    foreach (var track in tracks.Reverse())
+                    {
+                        commandList.Add(new AddCommand(track.FileName, Order.CurrentIndex+1 ?? 0));            
+                    }
+
+                    break;
+                
+                case EnqueueAction.EnqueueEnd:
+                    foreach (var track in tracks)
+                    {
+                        commandList.Add(new AddCommand(track.FileName));            
+                    }                
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(action), action, null);
             }
-
-            commandList.Add(new PlayCommand(0));        
         
-            await client.SendCommandAsync(commandList).ConfigureAwait(false);
-
+            await client.SendCommandAsync(commandList).ConfigureAwait(false);        
         }
         catch (Exception e)
         {
             logger.LogError(e, "Failed to play album");
         }
     }
-
-    public override async Task EnqueueAlbum(AlbumInfo album)
-    {
-        try
-        {
-            // Using a command list here as we want MPD to process these commands sequentially.
-            var commandList = new CommandList();
-            foreach (var albumTrack in album.Tracks)
-            {
-                commandList.Add(new AddCommand(albumTrack.Track.FileName));            
-            }
-            
-            await client.SendCommandAsync(commandList).ConfigureAwait(false);
-
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Failed to enqueue album");
-        }
-    }
-
+    
+    
     public async Task UpdateFromStatusAsync(MpdStatus e)
     {
         // We received new information from MPD. Get all relevant information for this playlist.

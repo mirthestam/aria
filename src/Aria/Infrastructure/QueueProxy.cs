@@ -28,9 +28,10 @@ public class QueueProxy : IQueueSource
     public Task<IEnumerable<TrackInfo>> GetTracksAsync() => _innerQueue?.GetTracksAsync() ?? Task.FromResult(Enumerable.Empty<TrackInfo>());
 
     public TrackInfo? CurrentTrack => _innerQueue?.CurrentTrack;
+    
     public Task PlayAsync(int index) => _innerQueue?.PlayAsync(index) ?? Task.CompletedTask;
-    public Task PlayAlbum(AlbumInfo album) => _innerQueue?.PlayAlbum(album) ?? Task.CompletedTask;
-    public Task EnqueueAlbum(AlbumInfo album) => _innerQueue?.EnqueueAlbum(album) ?? Task.CompletedTask;
+    public Task PlayAsync(AlbumInfo album, EnqueueAction action) => _innerQueue?.PlayAsync(album, action) ?? Task.CompletedTask;
+    public Task PlayAsync(TrackInfo track, EnqueueAction action) => _innerQueue?.PlayAsync(track, action) ?? Task.CompletedTask;
 
     internal void Attach(IQueueSource queue)
     {

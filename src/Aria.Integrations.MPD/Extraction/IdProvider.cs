@@ -31,6 +31,7 @@ public Id Parse(string id)
         return parts[0] switch
         {
             ArtistId.Key => ArtistId.Parse(value),
+            TrackId.Key => TrackId.Parse(value),
             _ => throw new NotSupportedException($"Unknown ID key: `{parts[0]}`")
         };
     }
