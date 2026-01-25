@@ -2,6 +2,8 @@
 
 A music library client that makes exploring and discovering your collection easy, with special support for classical music. It works with servers such as MPD or Lyrion, among others.
 
+![screenshot](screenshots/medium.png)
+
 ## Building
 
 > This project is under heavy development and is not yet ready for use. It may not compile and could require unavailable

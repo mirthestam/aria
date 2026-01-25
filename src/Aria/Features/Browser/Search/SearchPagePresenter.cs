@@ -1,32 +1,95 @@
+using Aria.Core;
+using Aria.Core.Library;
+using Aria.Core.Queue;
+using Gio;
 using Microsoft.Extensions.Logging;
+using Task = System.Threading.Tasks.Task;
 
 namespace Aria.Features.Browser.Search;
 
-public partial class SearchPagePresenter(ILogger<SearchPagePresenter> logger)
+public partial class SearchPagePresenter(ILogger<SearchPagePresenter> logger, IAria aria, IAriaControl ariaControl)
 {
     private SearchPage View { get; set; } = null!;
+
+    private SearchResults? _searchResults;
+    
+    private CancellationTokenSource? _searchCts;
 
     public void Attach(SearchPage view)
     {
         View = view;
         view.SearchChanged += ViewOnSearchChanged;
+        
+        view.EnqueueTrackAction.OnActivate += EnqueueTrackActionOnOnActivate;
+    }
+
+    private void EnqueueTrackActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        if (args.Parameter == null)
+        {
+            return;
+        }
+            
+        var serializedId = args.Parameter.Print(false);
+        var trackId = ariaControl.Parse(serializedId);
+        
+        var track = _searchResults!.Tracks.First(t => t.Id == trackId);
+
+        _ = aria.Queue.PlayAsync(track, IQueue.DefaultEnqueueAction);
     }
 
     private void ViewOnSearchChanged(object? sender, string e)
     {
         // use the library to search
         // give the view new search results
+        
+        _ = Search(e);
     }
 
-    public void Clear()
+    private async Task Search(string searchTerm)
     {
+        Abort();
+        
+        _searchCts = new CancellationTokenSource();
+        var token = _searchCts.Token;
+
+        try
+        {
+            _searchResults = await aria.Library.SearchAsync(searchTerm, token);
+            
+            GLib.Functions.TimeoutAdd(0, 0, () =>
+            {
+                if (token.IsCancellationRequested) return false;
+                    
+                View?.ShowResults(_searchResults);
+                return false;
+            });                        
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+        
+    }
+
+    private void Abort()
+    {
+        _searchCts?.Cancel();
+        _searchCts?.Dispose();
+        _searchCts = null;        
+    }
+
+    private void AbortAndClear()
+    {
+        Abort();
         View.Clear();
     }
 
     public void Reset()
     {
         LogResettingSearchPage(logger);
-        Clear();
+        AbortAndClear();
     }
 
     [LoggerMessage(LogLevel.Debug, "Resetting search page")]

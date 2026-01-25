@@ -37,4 +37,9 @@ public interface ILibrary
     /// Gets detailed information about the specified album.
     /// </summary>
     Task<AlbumInfo?> GetAlbum(Id albumId, CancellationToken cancellationToken = default);
+    
+    /// <summary>
+    /// Searches the library amongst tracks, albums etc that match the specified query.
+    /// </summary>
+    Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default);
 }

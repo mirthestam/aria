@@ -56,6 +56,9 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
     public Task<AlbumInfo?> GetAlbum(Id albumId, CancellationToken cancellationToken = default) =>
         _innerLibrary.GetAlbum(albumId, cancellationToken);
 
+    public Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default) =>
+        _innerLibrary.SearchAsync(query, cancellationToken);
+
     public async Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken cancellationToken = default)
     {
         var key = resourceId.ToString();

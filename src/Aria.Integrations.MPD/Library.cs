@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 using MpcNET;
 using MpcNET.Commands.Database;
 using MpcNET.Tags;
+using MpcNET.Types;
+using MpcNET.Types.Filters;
 using SearchCommand = Aria.Backends.MPD.Connection.Commands.SearchCommand;
 
 namespace Aria.Backends.MPD;
@@ -35,7 +37,7 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         var command = new SearchCommand(filters);
         var response = await scope.SendCommandAsync(command).ConfigureAwait(false);
         if (!response.IsSuccess) return null;
-        
+
         var tags = response.Content!.Select(x => new Tag(x.Key, x.Value));
         var albums = _albumsParser.GetAlbums(tags.ToList()).ToList();
 
@@ -58,7 +60,7 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         var artists = await GetArtists(cancellationToken).ConfigureAwait(false);
         return artists.FirstOrDefault(artist => artist.Id == artistId);
     }
-    
+
     public override async Task<IEnumerable<ArtistInfo>> GetArtists(CancellationToken cancellationToken = default)
     {
         var artistMap = new Dictionary<Id, ArtistInfo>();
@@ -116,7 +118,8 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         using (var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false))
         {
             var tasks = artists
-                .Select(artist => scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.AlbumArtist, artist.Name)))
+                .Select(artist =>
+                    scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.AlbumArtist, artist.Name)))
                 .ToList();
 
             var responses = await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -135,7 +138,8 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         return _albumsParser.GetAlbums(allTags);
     }
 
-    public override async Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId, CancellationToken cancellationToken = default)
+    public override async Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId,
+        CancellationToken cancellationToken = default)
     {
         var mpdArtistId = (ArtistId)artistId;
 
@@ -147,13 +151,14 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
             scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.AlbumArtist, mpdArtistId.Value)),
             scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.Artist, mpdArtistId.Value)),
             scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.Composer, mpdArtistId.Value)),
-            scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(ExtraMpdTags.Conductor, mpdArtistId.Value)),
+            scope.SendCommandAsync(
+                new MPD.Connection.Commands.SearchCommand(ExtraMpdTags.Conductor, mpdArtistId.Value)),
             scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(ExtraMpdTags.Ensemble, mpdArtistId.Value)),
-            scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.Performer, mpdArtistId.Value))            
+            scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.Performer, mpdArtistId.Value))
         };
 
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-        
+
         var allTags = results
             .Where(r => r is { IsSuccess: true, Content: not null })
             .SelectMany(r => r.Content!)
@@ -182,7 +187,8 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
 
             do
             {
-                var (isSuccess, content) = await scope.SendCommandAsync(new AlbumArtCommand(fileName, currentSize)).ConfigureAwait(false);
+                var (isSuccess, content) = await scope.SendCommandAsync(new AlbumArtCommand(fileName, currentSize))
+                    .ConfigureAwait(false);
                 if (!isSuccess) break;
                 if (content == null) break;
 
@@ -201,7 +207,7 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         catch (OperationCanceledException)
         {
             throw;
-        }        
+        }
         catch (Exception e)
         {
             logger.LogError(e, "Failed to get album art from MPD");
@@ -234,7 +240,7 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         catch (OperationCanceledException)
         {
             throw;
-        }                
+        }
         catch (Exception e)
         {
             logger.LogError(e, "Failed to get album art from MPD");
@@ -242,5 +248,95 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
 
         // No album art found. Just return the default album art.
         return await GetDefaultAlbumResourceStreamAsync();
+    }
+
+    public override async Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default)
+    {
+        if (query.Length < 3) return SearchResults.Empty;
+
+        var results = new SearchResults();
+
+        using var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false);
+
+        results = await AppendFindAsync(MpdTags.Album, scope, results).ConfigureAwait(false);
+        results = await AppendFindAsync(MpdTags.Artist, scope, results).ConfigureAwait(false);
+        results = await AppendFindAsync(MpdTags.AlbumArtist, scope, results).ConfigureAwait(false);
+        results = await AppendFindAsync(MpdTags.Title, scope, results).ConfigureAwait(false);
+
+        return results;
+
+        async Task<SearchResults> AppendFindAsync(ITag tag, ConnectionScope innerScope, SearchResults existingResults)
+        {
+            var filter = new List<IFilter> { new FilterTag(tag, query, FilterOperator.Contains) };
+            var command = new MPD.Connection.Commands.FindCommand(filter);
+            var response = await innerScope.SendCommandAsync(command).ConfigureAwait(false);
+            return AppendResults(response, ref existingResults);
+        }
+
+        SearchResults AppendResults(CommandResult<IEnumerable<KeyValuePair<string, string>>> result, ref SearchResults existingResults)
+        {
+            if (!result.IsSuccess) return existingResults;
+            
+            var tags = result.Content!.Select(x => new Tag(x.Key, x.Value)).ToList();
+            var albums = _albumsParser.GetAlbums(tags).ToList();
+
+            var foundAlbums = new List<AlbumInfo>();
+            var artists = new List<ArtistInfo>();
+            var foundTracks = new List<TrackInfo>();
+            
+            foreach (var album in albums)
+            {
+
+                if (album.Title.Contains(query, StringComparison.OrdinalIgnoreCase))
+                {
+                    foundAlbums.Add(album);
+                }
+                
+                foreach (var creditArtist in album.CreditsInfo.Artists.Where(a => a.Artist.Name.Contains(query, StringComparison.OrdinalIgnoreCase)))
+                {
+                    AddArtist(artists, creditArtist.Artist, creditArtist.Roles);
+                }
+
+                foreach (var albumArtist in album.CreditsInfo.AlbumArtists.Where(a =>
+                             a.Name.Contains(query, StringComparison.OrdinalIgnoreCase)))
+                {
+                    AddArtist(artists, albumArtist, albumArtist.Roles);
+                }
+
+                foreach (var track in album.Tracks)
+                {
+                    if (track.Track.Title.Contains(query, StringComparison.OrdinalIgnoreCase))
+                    {
+                        foundTracks.Add(track.Track);
+                    }
+                }
+            }
+
+            existingResults = existingResults with
+            {
+                Albums = existingResults.Albums.Concat(foundAlbums).DistinctBy(a => a.Id).ToList(), 
+                Artists = existingResults.Artists.Concat(artists).DistinctBy(a => a.Id).ToList(),
+                Tracks = existingResults.Tracks.Concat(foundTracks).DistinctBy(a => a.Id).ToList()
+            };
+
+            return existingResults;
+        }
+
+        void AddArtist(List<ArtistInfo> artists, ArtistInfo creditArtist, ArtistRoles roles)
+        {
+            var existingArtist = artists.FirstOrDefault(a => a.Id == creditArtist.Id);
+            if (existingArtist != null)
+            {
+                artists.Remove(existingArtist);
+                artists.Add(existingArtist with
+                {
+                    Roles = existingArtist.Roles | roles
+                });
+            }
+            else
+            {
+                artists.Add(creditArtist);
+            }
+        }
     }
 }

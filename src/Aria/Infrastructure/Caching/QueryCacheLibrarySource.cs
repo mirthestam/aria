@@ -129,6 +129,8 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
             gate.Release();
         }
     }
+    
+    public Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default) => _inner.SearchAsync(query, cancellationToken);    
 
     public void Dispose()
     {
@@ -140,5 +142,4 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
     }
     
     private void Clear() => _cache.Compact(1.0);
-    
 }
