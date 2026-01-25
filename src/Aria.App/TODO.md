@@ -20,8 +20,6 @@ WISHES
  
 - Playlist: Drag drop to move
 
-- Search: Everything
-
 ### FEATURE: Embedded MPD Server Capability
 
 - Refer to Cantata to see how they implement this.

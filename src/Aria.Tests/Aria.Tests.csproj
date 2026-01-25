@@ -19,6 +19,9 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\lib\gircore\src\Extensions\GObject-2.0.Integration\GObject-2.0.Integration.csproj" />
+      <ProjectReference Include="..\..\lib\gircore\src\Extensions\Gtk-4.0.Integration\Gtk-4.0.Integration.csproj" />
+      <ProjectReference Include="..\Aria.App\Aria.App.csproj" />
       <ProjectReference Include="..\Aria.Integrations.MPD\Aria.Backends.MPD.csproj" />
       <ProjectReference Include="..\Aria\Aria.csproj" />
     </ItemGroup>

@@ -4,7 +4,8 @@ public abstract class Id(string key = "UNKNOWN")
 {
     // Different backends can support different kinds of data types to identify their domain.
     // This class aims to support all of them as an abstraction layer.
-
+    public const char KeySeparator = '⦙'; // Group Separator
+    
     private string Key => key;
 
     public static Id Empty => new EmptyId();
@@ -15,7 +16,7 @@ public abstract class Id(string key = "UNKNOWN")
 
     public sealed override string ToString()
     {
-        return $"{key}::{GetId()}";
+        return $"{key}{KeySeparator}{GetId()}";
     }
 
     public abstract override bool Equals(object? obj);

@@ -67,7 +67,7 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
                 return;
             }
             
-            var serializedId = args.Parameter.Print(false);
+            var serializedId = args.Parameter.GetString(out _);
             var artistId = _ariaControl.Parse(serializedId);
         
             var artistInfo = await _aria.Library.GetArtist(artistId);

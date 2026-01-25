@@ -40,13 +40,15 @@ public partial class BrowserPage
 
     public void ShowArtistDetailRoot()
     {
+        _browserNavigationView.Pop();
         _libraryNavigationView.ReplaceWithTags(["library-artist-detail"]);
         _libraryNavigationSplitView.SetShowContent(true);        
     }
 
     public void ShowAllAlbumsRoot()
     {
-        // Replace the stack with the albums navigation 'tree' 
+        // Replace the stack with the albums navigation 'tree'
+        _browserNavigationView.Pop();
         _libraryNavigationView.ReplaceWithTags(["library-albums"]);
         _libraryNavigationSplitView.SetShowContent(true);        
     }
@@ -54,6 +56,7 @@ public partial class BrowserPage
     public AlbumPage PushAlbumPage()
     {
         var page = new AlbumPage();
+        _browserNavigationView.Pop();        
         _libraryNavigationView.Push(page);
         _libraryNavigationSplitView.SetShowContent(true);
         return page;

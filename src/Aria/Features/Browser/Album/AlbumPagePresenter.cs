@@ -38,7 +38,7 @@ public partial class AlbumPagePresenter(
             return;
         }
             
-        var serializedId = args.Parameter.Print(false);
+        var serializedId = args.Parameter.GetString(out _);
         var trackId = ariaControl.Parse(serializedId);        
         
         var track = _album?.Tracks.FirstOrDefault(t => t.Track.Id == trackId);

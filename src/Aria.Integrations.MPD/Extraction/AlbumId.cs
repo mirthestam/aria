@@ -18,84 +18,77 @@ public class AlbumId : Id.TypedId<string>
     private const char PartSeparator = '\u001F'; // Unit Separator
     private const char ListSeparator = '\u001E'; // Record Separator
 
-    private AlbumId(string identity, string title, IReadOnlyList<ArtistId> albumArtistIds)
-        : base(identity, Key)
+    private AlbumId(string value, string title, IReadOnlyList<ArtistId> albumArtistIds)
+        : base(value, Key)
     {
         Title = title;
         AlbumArtistIds = albumArtistIds;
     }
 
+    /// <summary>
+    /// Creates a new AlbumId based upon information found in a context
+    /// </summary>
     public static AlbumId FromContext(AlbumIdentificationContext context)
     {
-        var title = (context.Album.Title ?? string.Empty).Trim();
-
-        // Prefer IDs over names; names can change.
-        // Note: If MPD sometimes can't provide IDs here, you need a fallback strategy elsewhere.
+        var title = (context.Album.Title).Trim();
+        
         var artistIds = context.Album.CreditsInfo.AlbumArtists
             .Select(a => a.Id)
             .OfType<ArtistId>()
             .OrderBy(id => id.ToString(), StringComparer.Ordinal)
             .ToArray();
 
-        return FromParts(title, artistIds);
-    }
+        title = title.Trim();
 
-    public static AlbumId FromParts(string title, IEnumerable<ArtistId> albumArtistIds)
-    {
-        title = (title ?? string.Empty).Trim();
-
-        var artists = (albumArtistIds ?? Array.Empty<ArtistId>())
-            .Where(a => a is not null)
+        var artists = artistIds
             .OrderBy(a => a.ToString(), StringComparer.Ordinal)
             .ToArray();
 
-        var identity = BuildIdentity(title, artists);
-        return new AlbumId(identity, title, artists);
+        var value = Serialize(title, artists);
+        return new AlbumId(value, title, artists);
     }
+    
 
     /// <summary>
     /// Used for deserialization, including drag-and-drop scenarios.
     /// </summary>
-    public static AlbumId ParseIdentity(string identity, Func<string, ArtistId> parseArtistId)
-    {
-        if (string.IsNullOrWhiteSpace(identity))
+    public static AlbumId Parse(string value, Func<string, ArtistId> parseArtistId)
+{
+        if (string.IsNullOrWhiteSpace(value))
             return new AlbumId(string.Empty, string.Empty, Array.Empty<ArtistId>());
 
-        var parts = identity.Split(PartSeparator);
-        var title = parts.Length >= 1 ? Decode(parts[0]) : string.Empty;
-
+        var parts = value.Split(PartSeparator);
+        var titlePart = parts[0];
+        var title = DecodePart(titlePart);        
         var artists = Array.Empty<ArtistId>();
-        if (parts.Length >= 2 && !string.IsNullOrEmpty(parts[1]))
-        {
-            var encodedArtistIdStrings = parts[1].Split(ListSeparator);
-            artists = encodedArtistIdStrings
-                .Select(Decode)                 // decode back to artist-id-string
-                .Select(parseArtistId)          // convert string -> ArtistId object
-                .OrderBy(a => a.ToString(), StringComparer.Ordinal)
-                .ToArray();
-        }
+        if (parts.Length < 2 || string.IsNullOrEmpty(parts[1])) return new AlbumId(value, title, artists);
+        
+        var encodedArtistIdStrings = parts[1].Split(ListSeparator);
+        artists = encodedArtistIdStrings
+            .Select(DecodePart)                 // decode back to artist-id-string
+            .Select(parseArtistId)          // convert string -> ArtistId object
+            .OrderBy(a => a.ToString(), StringComparer.Ordinal)
+            .ToArray();
 
-        return new AlbumId(identity, title, artists);
+        return new AlbumId(value, title, artists);
     }
 
-    private static string BuildIdentity(string title, IReadOnlyList<ArtistId> artists)
+    private static string Serialize(string title, IReadOnlyList<ArtistId> artists)
     {
-        var encodedTitle = Encode(title);
+        var encodedTitle = EncodePart(title);
 
         if (artists.Count == 0)
             return encodedTitle;
-
-        // Store artist IDs as strings (whatever ArtistId.ToString() returns in your system),
-        // then Base64Url encode them so separators are safe.
+        
         var encodedArtists = string.Join(
             ListSeparator,
-            artists.Select(a => Encode(a.ToString())));
+            artists.Select(a => EncodePart(a.Value)));
 
         return $"{encodedTitle}{PartSeparator}{encodedArtists}";
     }
 
     // Base64Url encoding
-    private static string Encode(string value)
+    private static string EncodePart(string value)
     {
         var bytes = Encoding.UTF8.GetBytes(value ?? string.Empty);
         return Convert.ToBase64String(bytes)
@@ -104,7 +97,7 @@ public class AlbumId : Id.TypedId<string>
             .Replace('/', '_');
     }
 
-    private static string Decode(string value)
+    private static string DecodePart(string value)
     {
         value ??= string.Empty;
         var s = value.Replace('-', '+').Replace('_', '/');

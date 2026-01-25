@@ -22,7 +22,7 @@ public Id Parse(string id)
         id = id[1..^1];
     }    
     
-    var parts = id.Split("::", 2);
+    var parts = id.Split(Id.KeySeparator);
     if (parts.Length < 2) throw new ArgumentException("Invalid ID format");
     
     var value = parts[1];
@@ -32,6 +32,7 @@ public Id Parse(string id)
         {
             ArtistId.Key => ArtistId.Parse(value),
             TrackId.Key => TrackId.Parse(value),
+            AlbumId.Key => AlbumId.Parse(value, ArtistId.Parse),
             _ => throw new NotSupportedException($"Unknown ID key: `{parts[0]}`")
         };
     }

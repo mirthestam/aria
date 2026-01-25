@@ -272,8 +272,7 @@ public partial class WelcomePagePresenter(
         if (args.Parameter == null)
             throw new InvalidOperationException("Connection ID parameter missing");
 
-        var guidString = args.Parameter.Print(false);
-        guidString = guidString[1..^1]; // Remove quotation
+        var guidString = args.Parameter.GetString(out _);
         return Guid.Parse(guidString);
     }
 

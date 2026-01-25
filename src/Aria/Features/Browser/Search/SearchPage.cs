@@ -110,7 +110,10 @@ public partial class SearchPage
             row.Subtitle = album.CreditsInfo.AlbumArtists.Select(a => a.Name).Humanize();
             
             row.ActionName = "results.show-album";
-            row.SetActionTargetValue(Variant.NewString(album.Id?.ToString() ?? string.Empty));
+            
+            var albumIdString = album.Id!.ToString();
+            
+            row.SetActionTargetValue(Variant.NewString(albumIdString));
             
             _albumListBox.Append(row);
         }

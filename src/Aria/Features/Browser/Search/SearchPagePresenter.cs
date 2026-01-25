@@ -1,13 +1,14 @@
 using Aria.Core;
 using Aria.Core.Library;
 using Aria.Core.Queue;
+using CommunityToolkit.Mvvm.Messaging;
 using Gio;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
 
 namespace Aria.Features.Browser.Search;
 
-public partial class SearchPagePresenter(ILogger<SearchPagePresenter> logger, IAria aria, IAriaControl ariaControl)
+public partial class SearchPagePresenter(ILogger<SearchPagePresenter> logger, IAria aria, IAriaControl ariaControl, IMessenger messenger)
 {
     private SearchPage View { get; set; } = null!;
 
@@ -21,16 +22,37 @@ public partial class SearchPagePresenter(ILogger<SearchPagePresenter> logger, IA
         view.SearchChanged += ViewOnSearchChanged;
         
         view.EnqueueTrackAction.OnActivate += EnqueueTrackActionOnOnActivate;
+        view.ShowAlbumAction.OnActivate += ShowAlbumActionOnOnActivate;
+        view.ShowArtistAction.OnActivate += ShowArtistActionOnOnActivate;
+    }
+
+    private void ShowArtistActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        if (args.Parameter == null) return;
+            
+        var serializedId = args.Parameter.GetString(out _);
+        var artistId = ariaControl.Parse(serializedId);
+        var artist = _searchResults!.Artists.First(t => t.Id == artistId);
+
+        messenger.Send(new ShowArtistDetailsMessage(artist));
+    }
+
+    private void ShowAlbumActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        if (args.Parameter == null) return;
+
+        var serializedId =  args.Parameter.GetString(out _);
+        var albumId = ariaControl.Parse(serializedId);
+        var album = _searchResults!.Albums.First(t => t.Id == albumId);
+
+        messenger.Send(new ShowAlbumDetailsMessage(album));
     }
 
     private void EnqueueTrackActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        if (args.Parameter == null)
-        {
-            return;
-        }
+        if (args.Parameter == null) return;
             
-        var serializedId = args.Parameter.Print(false);
+        var serializedId = args.Parameter.GetString(out _);
         var trackId = ariaControl.Parse(serializedId);
         
         var track = _searchResults!.Tracks.First(t => t.Id == trackId);
