@@ -1,5 +1,4 @@
 using Adw;
-using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Gdk;
 using GObject;
@@ -18,7 +17,7 @@ public partial class AlbumsPage
     private SingleSelection _albumsSelection;
     [Connect("artist-stack")] private Stack _artistStack;
     private SignalListItemFactory _signalListItemFactory;
-    
+
     public event Action<AlbumInfo, ArtistInfo>? AlbumSelected;
 
     partial void Initialize()
@@ -54,32 +53,27 @@ public partial class AlbumsPage
 
     private void AlbumOnOnDragBegin(DragSource sender, DragSource.DragBeginSignalArgs args)
     {
-        var widget = (AlbumsAlbumListItem) sender.GetWidget()!;
+        var widget = (AlbumsAlbumListItem)sender.GetWidget()!;
         var cover = widget.Model!.CoverTexture;
-        if (cover != null)
-        {
-            var coverPicture = Picture.NewForPaintable(cover);
-            coverPicture.AddCssClass("cover");
-            coverPicture.CanShrink = true;
-            coverPicture.ContentFit = ContentFit.ScaleDown;
-            coverPicture.AlternativeText = widget.Model.Album.Title;
-            
-            var clamp = Clamp.New();
-            clamp.MaximumSize = 96;
-            clamp.SetChild(coverPicture);
+        if (cover == null) return;
 
-            var dragIcon = DragIcon.GetForDrag(args.Drag);
-            dragIcon.SetChild(clamp);
-        }
-        else
-        {
-            // TODO: Set a default Icon
-        }
+        var coverPicture = Picture.NewForPaintable(cover);
+        coverPicture.AddCssClass("cover");
+        coverPicture.CanShrink = true;
+        coverPicture.ContentFit = ContentFit.ScaleDown;
+        coverPicture.AlternativeText = widget.Model.Album.Title;
+
+        var clamp = Clamp.New();
+        clamp.MaximumSize = 96;
+        clamp.SetChild(coverPicture);
+
+        var dragIcon = DragIcon.GetForDrag(args.Drag);
+        dragIcon.SetChild(clamp);
     }
 
     private ContentProvider? AlbumOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
     {
-        var widget = (AlbumsAlbumListItem) sender.GetWidget()!;
+        var widget = (AlbumsAlbumListItem)sender.GetWidget()!;
         var wrapper = new GId(widget.Model!.Album.Id!);
         var value = new Value(wrapper);
         return ContentProvider.NewForValue(value);

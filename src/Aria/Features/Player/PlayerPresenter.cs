@@ -4,6 +4,7 @@ using Aria.Core.Library;
 using Aria.Core.Player;
 using Aria.Core.Queue;
 using Aria.Features.Player.Playlist;
+using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,7 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
     private readonly ILogger<PlayerPresenter> _logger;
     private readonly PlaylistPresenter _playlistPresenter;
     private readonly ResourceTextureLoader _resourceTextureLoader;
+    private readonly IMessenger _messenger;
     
     private CancellationTokenSource? _coverArtCancellationTokenSource;
     
@@ -25,6 +27,7 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
     public PlayerPresenter(ILogger<PlayerPresenter> logger, IMessenger messenger, IAria aria,
         ResourceTextureLoader resourceTextureLoader, PlaylistPresenter playlistPresenter)
     {
+        _messenger = messenger;
         _logger = logger;
         _resourceTextureLoader = resourceTextureLoader;
         _playlistPresenter = playlistPresenter;
@@ -36,9 +39,26 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
     {
         _view = player;
         _view.SeekRequested += ViewOnSeekRequested;
+        _view.EnqueueRequested += ViewOnEnqueueRequested;
 
         _playlistPresenter.Attach(_view.Playlist);
         
+    }
+
+    private async void ViewOnEnqueueRequested(object? sender, Id id)
+    {
+        try
+        {
+            var info = await _aria.Library.GetItemAsync(id);
+            if (info == null) return;
+
+            _ = _aria.Queue.EnqueueAsync(info, IQueue.DefaultEnqueueAction);
+        }
+        catch (Exception exception)
+        {
+            _messenger.Send(new ShowToastMessage("Could not enqueue"));
+            LogCouldNotEnqueue(exception);
+        }
     }
 
     private async Task ViewOnSeekRequested(TimeSpan position, CancellationToken cancellationToken)
@@ -163,4 +183,7 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
     
     [LoggerMessage(LogLevel.Error, "Failed to load album cover")]
     partial void LogFailedToLoadAlbumCover(Exception e);
+    
+    [LoggerMessage(LogLevel.Error, "Could not enqueue")]
+    partial void LogCouldNotEnqueue(Exception e);    
 }

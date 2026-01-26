@@ -1,5 +1,9 @@
 using Adw;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Features.Browser.Albums;
+using Aria.Infrastructure;
+using Gdk;
 using Gio;
 using GLib;
 using GObject;
@@ -7,6 +11,29 @@ using Gtk;
 using Humanizer;
 
 namespace Aria.Features.Browser.Search;
+
+
+
+[Subclass<ActionRow>]
+public partial class SearchAlbumActionRow
+{
+    public SearchAlbumActionRow(Id id) : this()
+    {
+        AlbumId = id;
+    }
+    public Id AlbumId { get; }
+}
+
+[Subclass<ActionRow>]
+public partial class SearchTrackActionRow
+{
+    public SearchTrackActionRow(Id id) : this()
+    {
+        TrackId = id;
+    }
+    public Id TrackId { get; }
+}
+
 
 [Subclass<Box>]
 [Template<AssemblyResource>("Aria.Features.Browser.Search.SearchPage.ui")]
@@ -103,29 +130,46 @@ public partial class SearchPage
 
         foreach (var album in results.Albums)
         {
-            var row = ActionRow.New();
+            var row = new SearchAlbumActionRow(album.Id!);
+            
+            // Appearance
             row.Activatable = true;
             row.UseMarkup = false;
             row.Title = album.Title;
             row.Subtitle = album.CreditsInfo.AlbumArtists.Select(a => a.Name).Humanize();
             
-            row.ActionName = "results.show-album";
+            // Drag & Drop support
+            var dragSource = DragSource.New();
+            dragSource.Actions = DragAction.Copy;
+            dragSource.OnDragBegin += AlbumOnOnDragBegin;
+            dragSource.OnPrepare += AlbumOnPrepare;
+            row.AddController(dragSource);
             
+            // Action
             var albumIdString = album.Id!.ToString();
-            
-            row.SetActionTargetValue(Variant.NewString(albumIdString));
+            row.ActionName = "results.show-album";
+            row.SetActionTargetValue(Variant.NewString(albumIdString));            
             
             _albumListBox.Append(row);
         }
 
         foreach (var track in results.Tracks)
         {
-            var row = ActionRow.New();
+            // Appearance
+            var row = new SearchTrackActionRow(track.Id!);
             row.Activatable = true;
             row.UseMarkup = false;
             row.Title = track.Title;
             row.Subtitle = track.CreditsInfo.AlbumArtists.Select(a => a.Name).Humanize();
             
+            // Drag & Drop support
+            var dragSource = DragSource.New();
+            dragSource.Actions = DragAction.Copy;
+            dragSource.OnDragBegin += AlbumOnOnDragBegin;
+            dragSource.OnPrepare += TrackOnPrepare;
+            row.AddController(dragSource);            
+            
+            // Action
             row.ActionName = "results.enqueue-track";
             row.SetActionTargetValue(Variant.NewString(track.Id?.ToString() ?? string.Empty));            
             
@@ -142,4 +186,44 @@ public partial class SearchPage
     {
         SearchChanged?.Invoke(this, _searchEntry.GetText());
     }
+    
+    private void AlbumOnOnDragBegin(DragSource sender, DragSource.DragBeginSignalArgs args)
+    {
+        return;
+        // TODO: when album art is available in the album row,
+        // Use the code below to use it as the drag icon.
+        
+        // var widget = (SearchAlbumActionRow)sender.GetWidget()!;
+        // var cover = widget.Model!.CoverTexture;
+        // if (cover == null) return;
+        
+        // var coverPicture = Picture.NewForPaintable(cover);
+        // coverPicture.AddCssClass("cover");
+        // coverPicture.CanShrink = true;
+        // coverPicture.ContentFit = ContentFit.ScaleDown;
+        // coverPicture.AlternativeText = widget.Model.Album.Title;
+        //
+        // var clamp = Clamp.New();
+        // clamp.MaximumSize = 96;
+        // clamp.SetChild(coverPicture);
+        //
+        // var dragIcon = DragIcon.GetForDrag(args.Drag);
+        // dragIcon.SetChild(clamp);
+    }
+    
+    private ContentProvider? AlbumOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
+    {
+        var widget = (SearchAlbumActionRow)sender.GetWidget()!;
+        var wrapper = new GId(widget.AlbumId);
+        var value = new Value(wrapper);
+        return ContentProvider.NewForValue(value);
+    }    
+    
+    private ContentProvider? TrackOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
+    {
+        var widget = (SearchTrackActionRow)sender.GetWidget()!;
+        var wrapper = new GId(widget.TrackId);
+        var value = new Value(wrapper);
+        return ContentProvider.NewForValue(value);
+    }    
 }

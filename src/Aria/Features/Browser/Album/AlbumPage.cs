@@ -11,6 +11,16 @@ using TimeSpan = System.TimeSpan;
 
 namespace Aria.Features.Browser.Album;
 
+[Subclass<ActionRow>]
+public partial class AlbumTrackRow
+{
+    public AlbumTrackRow(Id trackId) : this()
+    {
+        TrackId = trackId;
+    }
+    public Id TrackId { get; set;  }
+}
+
 [Subclass<NavigationPage>]
 [Template<AssemblyResource>("Aria.Features.Browser.Album.AlbumPage.ui")]
 public partial class AlbumPage
@@ -258,7 +268,7 @@ public partial class AlbumPage
                 _ => null
             };
 
-            var row = ActionRow.New();
+            var row = new AlbumTrackRow(track.Id!);
 
             var prefixLabel = Label.New(trackNumberText);
             prefixLabel.AddCssClass("numeric");
@@ -288,9 +298,30 @@ public partial class AlbumPage
             
             row.SetActivatable(true);
             row.SetActionName("album.enqueue-track-default");
+            
+            var value = new Value(new GId(track.Id!));
+            
             row.SetActionTargetValue(Variant.NewString(track.Id?.ToString() ?? string.Empty));
+            
+            var dragSource = DragSource.New();
+            dragSource.Actions = DragAction.Copy;
+            dragSource.OnDragBegin += TrackOnDragBegin;
+            dragSource.OnPrepare += TrackOnDragPrepare;
+            row.AddController(dragSource);
 
             _tracksListBox.Append(row);
         }
+    }
+
+    private ContentProvider? TrackOnDragPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
+    {
+        var row = (AlbumTrackRow)sender.GetWidget()!;
+        var wrapper = new GId(row.TrackId);
+        var value = new Value(wrapper);
+        return ContentProvider.NewForValue(value);
+    }
+
+    private void TrackOnDragBegin(DragSource sender, DragSource.DragBeginSignalArgs args)
+    {
     }
 }

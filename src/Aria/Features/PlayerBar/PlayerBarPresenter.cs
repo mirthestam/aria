@@ -1,6 +1,8 @@
 using Aria.Core;
+using Aria.Core.Extraction;
 using Aria.Core.Player;
 using Aria.Core.Queue;
+using Aria.Features.Shell;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
@@ -23,18 +25,34 @@ public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>,
         messenger.Register<QueueStateChangedMessage>(this);
     }
     
+    public void Attach(PlayerBar bar)
+    {
+        _view = bar;
+        _view.EnqueueRequested += ViewOnEnqueueRequested;
+    }
+
+    private async void ViewOnEnqueueRequested(object? sender, Id id)
+    {
+        try
+        {
+            var info = await _aria.Library.GetItemAsync(id);
+            if (info == null) return;
+
+            _ = _aria.Queue.EnqueueAsync(info, IQueue.DefaultEnqueueAction);
+        }
+        catch (Exception exception)
+        {
+            _messenger.Send(new ShowToastMessage("Could not enqueue"));
+            LogCouldNotEnqueue(exception);
+        }
+    }
+
     public async Task RefreshAsync()
     {
         // TODO: Implement here logic like on the player
     }
 
     public void Reset(){}
-    
-    public void Attach(PlayerBar bar)
-    {
-        _view = bar;
-    }    
-
     
     public void Receive(PlayerStateChangedMessage message)
     {
@@ -80,4 +98,7 @@ public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>,
 
         //_ = LoadCover();
     }
+    
+    [LoggerMessage(LogLevel.Error, "Could not enqueue")]
+    partial void LogCouldNotEnqueue(Exception e);    
 }

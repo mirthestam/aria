@@ -9,7 +9,7 @@ namespace Aria.Core.Queue;
 public interface IQueue
 {
     // TODO: Add a settings option to store the user's preferred default action.    
-    public const EnqueueAction DefaultEnqueueAction = EnqueueAction.EnqueueEnd;
+    public const EnqueueAction DefaultEnqueueAction = EnqueueAction.Replace;
     
     public Id Id { get; }
     public int Length { get; }

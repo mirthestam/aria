@@ -1,4 +1,6 @@
+using Aria.Core.Extraction;
 using Aria.Core.Player;
+using Aria.Infrastructure;
 using Gdk;
 using GObject;
 using Gtk;
@@ -19,9 +21,28 @@ public partial class Player
 
     public event SeekRequestedAsyncHandler? SeekRequested;    
     
+    public event EventHandler<Id> EnqueueRequested;    
+    
     partial void Initialize()
     {
         _playbackControls.SeekRequested += PlaybackControlsOnSeekRequested;
+        
+        // Add the playback drop target
+        var type = GObject.Type.Object;        
+        var idWrapperDropTarget = DropTarget.New(type, DragAction.Copy);
+        idWrapperDropTarget.OnDrop  += IdWrapperDropTargetOnOnDrop;
+        AddController(idWrapperDropTarget);        
+    }
+
+    private bool IdWrapperDropTargetOnOnDrop(DropTarget sender, DropTarget.DropSignalArgs args)
+    {
+        // The user 'dropped' something onto player.
+        var value = args.Value.GetObject();
+        if (value is not GId gId) return false;
+        
+        EnqueueRequested(this, gId.Id);
+
+        return true;
     }
 
     private Task PlaybackControlsOnSeekRequested(TimeSpan position, CancellationToken cancellationToken)

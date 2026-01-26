@@ -1,3 +1,8 @@
+
+DRAG&DROP
+- Drag source; alcum cover on album page
+- Drag sources; all rows on the search results
+
 BUGS
 - convert pill to dropdown, with (refresh) option to manually trigger.
 - VariousArtists don't appear in the album list  (becuse there is no Album Artist).

@@ -9,17 +9,17 @@ namespace Aria.Features.Browser.Artist;
 public partial class AlbumListItem
 {
     [Connect("cover-picture")] private Picture _coverPicture;
-
-    private AlbumModel? _model;
     [Connect("subtitle-label")] private Label _subTitleLabel;
     [Connect("title-label")] private Label _titleLabel;
-
+    
+    public AlbumModel? Model { get; private set; }
+    
     public void Initialize(AlbumModel model)
     {
-        if (_model != null) _model.PropertyChanged -= ModelOnPropertyChanged;
-
-        _model = model;
-        _model.PropertyChanged += ModelOnPropertyChanged;
+        if (Model != null) Model.PropertyChanged -= ModelOnPropertyChanged;
+        
+        Model = model;
+        Model.PropertyChanged += ModelOnPropertyChanged;
 
         var artistsLine = string.Join(", ", model.Album.CreditsInfo.AlbumArtists.Select(a => a.Name));
 
@@ -37,7 +37,7 @@ public partial class AlbumListItem
 
     private void SetCoverPicture()
     {
-        if (_model?.CoverTexture == null) return;
-        _coverPicture.SetPaintable(_model.CoverTexture);
+        if (Model?.CoverTexture == null) return;
+        _coverPicture.SetPaintable(Model.CoverTexture);
     }
 }

@@ -1,7 +1,10 @@
 using Aria.Core;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Core.Player;
 using Aria.Core.Queue;
+using Aria.Infrastructure;
+using Gdk;
 using GObject;
 using Gtk;
 
@@ -15,7 +18,31 @@ public partial class PlayerBar
     [Connect("subtitle-label")] private Label _subTitleLabel;
     [Connect("title-label")] private Label _titleLabel;
     [Connect("media-controls")] private Player.MediaControls _mediaControls;
+
+    private DropTarget? _dropTarget;
     
+    public event EventHandler<Id> EnqueueRequested;    
+    
+    partial void Initialize()
+    {
+        // Add the drop target
+        var type = GObject.Type.Object;        
+        var idWrapperDropTarget = DropTarget.New(type, DragAction.Copy);
+        idWrapperDropTarget.OnDrop += IdWrapperDropTargetOnOnDrop;
+        AddController(idWrapperDropTarget);
+    }
+
+    private bool IdWrapperDropTargetOnOnDrop(DropTarget sender, DropTarget.DropSignalArgs args)
+    {
+        // The user 'dropped' something onto the mini bar.
+        var value = args.Value.GetObject();
+        if (value is not GId gId) return false;
+        
+        EnqueueRequested(this, gId.Id);
+
+        return true;
+    }
+
     public void SetCurrentTrack(TrackInfo? trackInfo)
     {
         if (trackInfo == null)
