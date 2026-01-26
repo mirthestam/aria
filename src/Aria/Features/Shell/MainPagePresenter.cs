@@ -70,7 +70,7 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
             var serializedId = args.Parameter.GetString(out _);
             var artistId = _ariaControl.Parse(serializedId);
         
-            var artistInfo = await _aria.Library.GetArtist(artistId);
+            var artistInfo = await _aria.Library.GetArtistAsync(artistId);
             if (artistInfo == null)
             {
                 _messenger.Send(new ShowToastMessage("Could not find this artist."));

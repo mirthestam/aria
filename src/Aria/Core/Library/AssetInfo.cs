@@ -2,10 +2,8 @@ using Aria.Core.Extraction;
 
 namespace Aria.Core.Library;
 
-public sealed record AssetInfo
+public sealed record AssetInfo : Info
 {
-    public Id Id { get; init; }
-    
     /// <summary>
     /// The type of the album resource.
     /// </summary>

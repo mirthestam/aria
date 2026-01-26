@@ -27,14 +27,18 @@ public interface IQueue
     /// Gets detailed information about the tracks in this queue
     /// </summary>
     /// <returns></returns>
-    Task<IEnumerable<TrackInfo>> GetTracksAsync();
+    Task<IEnumerable<QueueTrackInfo>> GetTracksAsync();
     
     /// <summary>
     /// Gets detailed information about the currently playing track.
     /// </summary>
     public TrackInfo? CurrentTrack { get; }
     
+    /// <summary>
+    /// Plays the track at the specified index in the queue.
+    /// </summary>
     public Task PlayAsync(int index);
-    public Task PlayAsync(AlbumInfo album, EnqueueAction action);
-    public Task PlayAsync(TrackInfo track, EnqueueAction action);
+    
+    public Task EnqueueAsync(Info item, EnqueueAction action);
+    public Task EnqueueAsync(Info item, int index);
 }

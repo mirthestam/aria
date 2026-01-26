@@ -12,8 +12,13 @@ public partial class TrackListItem
     [Connect("subtitle-label")] private Label _subTitleLabel;
     [Connect("title-label")] private Label _titleLabel;
 
+    private TrackModel _model;
+    public TrackModel Model => _model;
+    
     public void Update(TrackModel model)
     {
+        _model = model;
+        
         _titleLabel.SetLabel(model.Title);
         _subTitleLabel.SetLabel(model.Subtitle);
         _composerLabel.SetLabel(model.ComposerLine);

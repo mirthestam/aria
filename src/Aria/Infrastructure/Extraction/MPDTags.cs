@@ -1,4 +1,4 @@
-namespace Aria.Infrastructure.Tagging;
+namespace Aria.Infrastructure.Extraction;
 
 /// <summary>
 /// Constants for names of tags as defined by the MPD best practices as documented
@@ -6,35 +6,55 @@ namespace Aria.Infrastructure.Tagging;
 /// </summary>
 public static class MPDTags
 {
-    public const string File = "file";
-    public const string Duration = "duration";
-    public const string Title = "title";
-    public const string Name = "name";
-    public const string Genre = "genre";
-    public const string Comment = "comment";
     public const string Id = "id";
-    public const string Date = "date";
 
-    // Album
-    public const string Album = "album";
-    public const string AlbumArtist = "albumartist";
-    public const string Track = "track";
-    public const string Disc = "disc";
-    public const string Pos = "pos";
+    public static class AlbumTags
+    {
+        public const string Album = "album";
+        public const string AlbumArtist = "albumartist";
+        public const string Track = "track";
+        public const string Disc = "disc";
+    }
 
-    // Artists
-    public const string Artist = "artist";
-    public const string Composer = "composer";
-    public const string Conductor = "conductor";
-    public const string Performer = "performer";
-    public const string Ensemble = "ensemble";
+    public static class FileTags
+    {
+        public const string File = "file";
+    }
 
-    // Work
-    public const string Work = "work";
-    public const string Movement = "movement";
-    public const string MovementNumber = "movementnumber";
-    public const string ShowMovement = "showmovement";
-    
-    // Recording
-    public const string Location = "location";
+    public static class TrackTags
+    {
+        public const string Duration = "duration";
+        public const string Title = "title";
+        public const string Name = "name";
+        public const string Genre = "genre";
+        public const string Comment = "comment";
+        public const string Date = "date";
+    }
+
+    public static class ArtistTags
+    {
+        public const string Artist = "artist";
+        public const string Composer = "composer";
+        public const string Conductor = "conductor";
+        public const string Performer = "performer";
+        public const string Ensemble = "ensemble";
+    }
+
+    public static class WorkTags
+    {
+        public const string Work = "work";
+        public const string Movement = "movement";
+        public const string MovementNumber = "movementnumber";
+        public const string ShowMovement = "showmovement";
+    }
+
+    public static class RecordingTags
+    {
+        public const string Location = "location";
+    }
+
+    public static class QueueTags
+    {
+        public const string Position = "Pos";
+    }
 }

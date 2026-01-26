@@ -71,10 +71,10 @@ public partial class ArtistPagePresenter
         LogLoadingArtist(artistId);
         try
         {
-            var artist = await _aria.Library.GetArtist(artistId, ct);
+            var artist = await _aria.Library.GetArtistAsync(artistId, ct);
             if (artist == null) throw new InvalidOperationException("Artist not found");
 
-            var albums = (await _aria.Library.GetAlbums(artistId, ct)).ToList();
+            var albums = (await _aria.Library.GetAlbumsAsync(artistId, ct)).ToList();
             var albumModels = albums.Select(a => new AlbumModel(a)).ToList();
 
             GLib.Functions.IdleAdd(0, () =>

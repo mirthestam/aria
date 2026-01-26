@@ -1,8 +1,10 @@
 using Aria.Core;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Gdk;
 using GObject;
 using Gtk;
+using GId = Aria.Infrastructure.GId;
 using ListStore = Gio.ListStore;
 
 namespace Aria.Features.Player.Playlist;
@@ -28,6 +30,8 @@ public partial class Playlist
     [Connect("tracks-list-view")] private ListView _tracksListView;
     private SingleSelection _tracksSelection;
     private bool _suppressSelectionEvent;
+
+    public event EventHandler<(Id id, int index)> EnqueueRequested; 
     public event EventHandler<uint>? TrackSelectionChanged;
 
     partial void Initialize()
@@ -41,7 +45,14 @@ public partial class Playlist
         _signalListItemFactory.OnSetup += (_, args) =>
         {
             var item = (ListItem)args.Object;
-            item.SetChild(new TrackListItem());
+            var child = new TrackListItem();
+
+            var type = GObject.Type.Object;
+            var idWrapperDropTarget = DropTarget.New(type, DragAction.Copy);
+            idWrapperDropTarget.OnDrop += TrackOnGIdDropped;
+            
+            child.AddController(idWrapperDropTarget);
+            item.SetChild(child);
         };
         _signalListItemFactory.OnBind += (_, args) =>
         {
@@ -63,6 +74,19 @@ public partial class Playlist
 
         // TODO: Add context menus to tracks.
         // Should provide access to  playlist functions as well as quick navigation to the artists.
+    }
+
+    private bool TrackOnGIdDropped(DropTarget sender, DropTarget.DropSignalArgs args)
+    {
+        // The user 'dropped' something on a track in this playlist.
+        var value = args.Value.GetObject();
+
+        if (value is not GId gId) return false;
+        
+        var widget = (TrackListItem)sender.Widget!;
+        EnqueueRequested(this, (gId.Id, widget.Model.Position));
+        
+        return true;
     }
 
     public void TogglePage(PlaylistPages page)
@@ -95,12 +119,13 @@ public partial class Playlist
         }
     }
 
-    public void RefreshTracks(IEnumerable<TrackInfo> tracks)
+    public void RefreshTracks(IEnumerable<QueueTrackInfo> tracks)
     {
         _tracksListStore.RemoveAll();
 
-        foreach (var track in tracks)
+        foreach (var queueTrack in tracks)
         {
+            var track = queueTrack.Track;
             var titleText = track?.Title ?? "Unnamed track";
             if (track?.Work?.ShowMovement ?? false)
                 // For  these kind of works, we ignore the
@@ -125,8 +150,8 @@ public partial class Playlist
                 subTitleText = artists;
                 if (details.Count > 0) subTitleText += $" ({string.Join(", ", details)})";
             }
-
-            var item = new TrackModel(track?.Id ?? Id.Empty, titleText, subTitleText, composers,
+            
+            var item = new TrackModel(track?.Id ?? Id.Empty, queueTrack.Position, titleText, subTitleText, composers,
                 track?.Duration ?? TimeSpan.Zero);
             _tracksListStore.Append(item);
         }

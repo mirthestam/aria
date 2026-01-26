@@ -2,10 +2,8 @@ using Aria.Core.Extraction;
 
 namespace Aria.Core.Library;
 
-public record TrackInfo : IHasAssets
+public record TrackInfo : Info, IHasAssets
 {
-    public Id? Id { get; init; }
-
     /// <summary>
     ///     The duration  of the track
     /// </summary>

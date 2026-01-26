@@ -37,54 +37,63 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
     }
     
     public Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken token) => _inner.GetAlbumResourceStreamAsync(resourceId, token);
-    public async Task<AlbumInfo?> GetAlbum(Id albumId, CancellationToken cancellationToken = default)
+
+    public async Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default)
     {
-        var key = $"album:{albumId}";
+        var key = $"id:{id}";
 
         return await GetOrCreateAsync(
             key,
-            ct => _inner.GetAlbum(albumId, ct),
+            ct => _inner.GetItemAsync(id, ct),
+            cancellationToken).ConfigureAwait(false);        
+    }    
+    
+    public async Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default)
+    {
+        var key = $"id:{albumId}";
+
+        return await GetOrCreateAsync(
+            key,
+            ct => _inner.GetAlbumAsync(albumId, ct),
             cancellationToken).ConfigureAwait(false);
     }
     
-    public async Task<IEnumerable<AlbumInfo>> GetAlbums(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(CancellationToken cancellationToken = default)
     {
         // We can treat this data as full albums.
         const string key = "albums:all";
 
         var list = await GetOrCreateAsync(
             key,
-            async ct => (await _inner.GetAlbums(ct).ConfigureAwait(false)).ToArray(),
+            async ct => (await _inner.GetAlbumsAsync(ct).ConfigureAwait(false)).ToArray(),
             cancellationToken).ConfigureAwait(false);
 
         return list;
     }    
 
-    public async Task<ArtistInfo?> GetArtist(Id artistId, CancellationToken cancellationToken = default)
+    public async Task<ArtistInfo?> GetArtistAsync(Id artistId, CancellationToken cancellationToken = default)
     {
-        var key = $"artist:{artistId}";
+        var key = $"id:{artistId}";
 
         return await GetOrCreateAsync(
             key,
-            ct => _inner.GetArtist(artistId, ct),
+            ct => _inner.GetArtistAsync(artistId, ct),
             cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<IEnumerable<ArtistInfo>> GetArtists(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<ArtistInfo>> GetArtistsAsync(CancellationToken cancellationToken = default)
     {
         const string key = "artists:all";
 
         var list = await GetOrCreateAsync(
             key,
-            async ct => (await _inner.GetArtists(ct).ConfigureAwait(false)).ToArray(),
+            async ct => (await _inner.GetArtistsAsync(ct).ConfigureAwait(false)).ToArray(),
             cancellationToken).ConfigureAwait(false);
 
         return list;
     }
-
-
-
-    public async Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId, CancellationToken cancellationToken = default)
+    
+    public async Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(Id artistId, CancellationToken cancellationToken = default)
     {
         // Do not treat this data as complete albums.
         // Artist-specific albums may be incomplete and only include information relevant to that artist.
@@ -93,7 +102,7 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
 
         var list = await GetOrCreateAsync(
             key,
-            async ct => (await _inner.GetAlbums(artistId, ct).ConfigureAwait(false)).ToArray(),
+            async ct => (await _inner.GetAlbumsAsync(artistId, ct).ConfigureAwait(false)).ToArray(),
             cancellationToken).ConfigureAwait(false);
 
         return list;
@@ -130,7 +139,7 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
         }
     }
     
-    public Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default) => _inner.SearchAsync(query, cancellationToken);    
+    public Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default) => _inner.SearchAsync(query, cancellationToken);
 
     public void Dispose()
     {

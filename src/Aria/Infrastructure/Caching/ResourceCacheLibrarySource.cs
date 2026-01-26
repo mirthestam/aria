@@ -41,23 +41,26 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
         TryCleanupTmpFiles();
     }
 
-    public Task<IEnumerable<ArtistInfo>> GetArtists(CancellationToken cancellationToken = default)
-        => _innerLibrary.GetArtists(cancellationToken);
+    public Task<IEnumerable<ArtistInfo>> GetArtistsAsync(CancellationToken cancellationToken = default)
+        => _innerLibrary.GetArtistsAsync(cancellationToken);
 
-    public Task<ArtistInfo?> GetArtist(Id artistId, CancellationToken cancellationToken = default)
-        => _innerLibrary.GetArtist(artistId, cancellationToken);
+    public Task<ArtistInfo?> GetArtistAsync(Id artistId, CancellationToken cancellationToken = default)
+        => _innerLibrary.GetArtistAsync(artistId, cancellationToken);
 
-    public Task<IEnumerable<AlbumInfo>> GetAlbums(CancellationToken cancellationToken = default)
-        => _innerLibrary.GetAlbums(cancellationToken);
+    public Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(CancellationToken cancellationToken = default)
+        => _innerLibrary.GetAlbumsAsync(cancellationToken);
 
-    public Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId, CancellationToken cancellationToken = default)
-        => _innerLibrary.GetAlbums(artistId, cancellationToken);
+    public Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(Id artistId, CancellationToken cancellationToken = default)
+        => _innerLibrary.GetAlbumsAsync(artistId, cancellationToken);
 
-    public Task<AlbumInfo?> GetAlbum(Id albumId, CancellationToken cancellationToken = default) =>
-        _innerLibrary.GetAlbum(albumId, cancellationToken);
+    public Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default) =>
+        _innerLibrary.GetAlbumAsync(albumId, cancellationToken);
 
     public Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default) =>
         _innerLibrary.SearchAsync(query, cancellationToken);
+
+    public Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default) =>
+        _innerLibrary.GetItemAsync(id, cancellationToken);
 
     public async Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken cancellationToken = default)
     {

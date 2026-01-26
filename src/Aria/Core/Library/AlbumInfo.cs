@@ -1,11 +1,7 @@
-using Aria.Core.Extraction;
-
 namespace Aria.Core.Library;
 
-public sealed record AlbumInfo : IHasAssets
+public sealed record AlbumInfo : Info, IHasAssets
 {
-    public Id? Id { get; init; }
-
     /// <summary>
     /// The Title of the album
     /// </summary>

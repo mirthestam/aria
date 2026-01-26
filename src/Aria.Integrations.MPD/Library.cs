@@ -22,7 +22,17 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         OnUpdated();
     }
 
-    public override async Task<AlbumInfo?> GetAlbum(Id albumId, CancellationToken cancellationToken = default)
+    public override async Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default)
+    {
+        return id switch
+        {
+            AlbumId album => await GetAlbumAsync(album, cancellationToken).ConfigureAwait(false),
+            ArtistId artist => await GetArtistAsync(artist, cancellationToken).ConfigureAwait(false),
+            _ => throw new NotSupportedException()
+        };
+    }
+
+    public override async Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default)
     {
         var fullId = (AlbumId)albumId;
 
@@ -53,15 +63,15 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         }
     }
 
-    public override async Task<ArtistInfo?> GetArtist(Id artistId, CancellationToken cancellationToken = default)
+    public override async Task<ArtistInfo?> GetArtistAsync(Id artistId, CancellationToken cancellationToken = default)
     {
         // It is not a problem that we are using All Artists here.
         // The engine has a burst cache 
-        var artists = await GetArtists(cancellationToken).ConfigureAwait(false);
+        var artists = await GetArtistsAsync(cancellationToken).ConfigureAwait(false);
         return artists.FirstOrDefault(artist => artist.Id == artistId);
     }
 
-    public override async Task<IEnumerable<ArtistInfo>> GetArtists(CancellationToken cancellationToken = default)
+    public override async Task<IEnumerable<ArtistInfo>> GetArtistsAsync(CancellationToken cancellationToken = default)
     {
         var artistMap = new Dictionary<Id, ArtistInfo>();
 
@@ -110,9 +120,9 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         }
     }
 
-    public override async Task<IEnumerable<AlbumInfo>> GetAlbums(CancellationToken cancellationToken = default)
+    public override async Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(CancellationToken cancellationToken = default)
     {
-        var artists = (await GetArtists(cancellationToken).ConfigureAwait(false)).ToList();
+        var artists = (await GetArtistsAsync(cancellationToken).ConfigureAwait(false)).ToList();
         var allTags = new List<Tag>();
 
         using (var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false))
@@ -138,7 +148,7 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         return _albumsParser.GetAlbums(allTags);
     }
 
-    public override async Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId,
+    public override async Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(Id artistId,
         CancellationToken cancellationToken = default)
     {
         var mpdArtistId = (ArtistId)artistId;

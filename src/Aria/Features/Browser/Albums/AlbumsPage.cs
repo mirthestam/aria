@@ -1,7 +1,10 @@
 using Adw;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Gdk;
 using GObject;
 using Gtk;
+using GId = Aria.Infrastructure.GId;
 using ListStore = Gio.ListStore;
 
 namespace Aria.Features.Browser.Albums;
@@ -15,7 +18,7 @@ public partial class AlbumsPage
     private SingleSelection _albumsSelection;
     [Connect("artist-stack")] private Stack _artistStack;
     private SignalListItemFactory _signalListItemFactory;
-
+    
     public event Action<AlbumInfo, ArtistInfo>? AlbumSelected;
 
     partial void Initialize()
@@ -24,7 +27,14 @@ public partial class AlbumsPage
         _signalListItemFactory.OnSetup += (_, args) =>
         {
             var item = (ListItem)args.Object;
-            item.SetChild(new AlbumsAlbumListItem());
+            var child = new AlbumsAlbumListItem();
+            var dragSource = DragSource.New();
+            dragSource.Actions = DragAction.Copy;
+            dragSource.OnDragBegin += AlbumOnOnDragBegin;
+            dragSource.OnPrepare += AlbumOnPrepare;
+            child.AddController(dragSource);
+
+            item.SetChild(child);
         };
         _signalListItemFactory.OnBind += (_, args) =>
         {
@@ -40,6 +50,39 @@ public partial class AlbumsPage
         _albumsGridView.SetModel(_albumsSelection);
 
         _albumsGridView.OnActivate += AlbumsGridViewOnOnActivate;
+    }
+
+    private void AlbumOnOnDragBegin(DragSource sender, DragSource.DragBeginSignalArgs args)
+    {
+        var widget = (AlbumsAlbumListItem) sender.GetWidget()!;
+        var cover = widget.Model!.CoverTexture;
+        if (cover != null)
+        {
+            var coverPicture = Picture.NewForPaintable(cover);
+            coverPicture.AddCssClass("cover");
+            coverPicture.CanShrink = true;
+            coverPicture.ContentFit = ContentFit.ScaleDown;
+            coverPicture.AlternativeText = widget.Model.Album.Title;
+            
+            var clamp = Clamp.New();
+            clamp.MaximumSize = 96;
+            clamp.SetChild(coverPicture);
+
+            var dragIcon = DragIcon.GetForDrag(args.Drag);
+            dragIcon.SetChild(clamp);
+        }
+        else
+        {
+            // TODO: Set a default Icon
+        }
+    }
+
+    private ContentProvider? AlbumOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
+    {
+        var widget = (AlbumsAlbumListItem) sender.GetWidget()!;
+        var wrapper = new GId(widget.Model!.Album.Id!);
+        var value = new Value(wrapper);
+        return ContentProvider.NewForValue(value);
     }
 
     public void ShowAlbums(IReadOnlyList<AlbumsAlbumModel> albums)

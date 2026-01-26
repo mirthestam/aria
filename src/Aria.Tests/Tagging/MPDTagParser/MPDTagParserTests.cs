@@ -1,6 +1,7 @@
 ﻿using Aria.Backends.MPD;
 using Aria.Backends.MPD.Extraction;
 using Aria.Core.Extraction;
+using Aria.Infrastructure.Extraction;
 using Aria.Infrastructure.Tagging;
 
 namespace Aria.Tests.Tagging.MPDTagParser;
@@ -22,9 +23,9 @@ public class MPDTagParserTests
     {
         // Arrange
         List<Tag> tags = [
-            new(MPDTags.Album, "My amazing album"),
-            new(MPDTags.AlbumArtist, "Mirthe Stam"),
-            new(MPDTags.Title, "My amazing song")
+            new(MPDTags.AlbumTags.Album, "My amazing album"),
+            new(MPDTags.AlbumTags.AlbumArtist, "Mirthe Stam"),
+            new(MPDTags.TrackTags.Title, "My amazing song")
         ];
 
         // Act - Gebruik de parser uit de constructor

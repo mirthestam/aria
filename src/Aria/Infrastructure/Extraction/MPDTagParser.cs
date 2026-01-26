@@ -1,5 +1,6 @@
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Infrastructure.Extraction;
 
 namespace Aria.Infrastructure.Tagging;
 
@@ -35,59 +36,59 @@ public class MPDTagParser(IIdProvider idProvider) : ITagParser
         foreach (var tag in tags)
             switch (tag.Name.ToLowerInvariant())
             {
-                case MPDTags.File:
+                case MPDTags.FileTags.File:
                     fileNameTag = tag.Value;
                     break;
                 
-                case MPDTags.Date:
+                case MPDTags.TrackTags.Date:
                     dateTag = tag.Value;
                     break;
                 
-                case MPDTags.Movement:
+                case MPDTags.WorkTags.Movement:
                     movementNameTag = tag.Value;
                     break;
 
-                case MPDTags.MovementNumber:
+                case MPDTags.WorkTags.MovementNumber:
                     movementNumberTag = tag.Value;
                     break;
 
-                case MPDTags.ShowMovement:
+                case MPDTags.WorkTags.ShowMovement:
                     showMovementTag = tag.Value == "1";
                     break;
 
-                case MPDTags.Artist:
+                case MPDTags.ArtistTags.Artist:
                     artistTags.Add(tag.Value);
                     break;
 
-                case MPDTags.AlbumArtist:
+                case MPDTags.AlbumTags.AlbumArtist:
                     albumArtistTags.Add(tag.Value);
                     break;
 
-                case MPDTags.Composer:
+                case MPDTags.ArtistTags.Composer:
                     composerTags.Add(tag.Value);
                     break;
 
-                case MPDTags.Title:
+                case MPDTags.TrackTags.Title:
                     titleTag = tag.Value;
                     break;
 
-                case MPDTags.Performer:
+                case MPDTags.ArtistTags.Performer:
                     performerTags.Add(tag.Value);
                     break;
 
-                case MPDTags.Conductor:
+                case MPDTags.ArtistTags.Conductor:
                     conductorTag = tag.Value;
                     break;
 
-                case MPDTags.Work:
+                case MPDTags.WorkTags.Work:
                     workTag = tag.Value;
                     break;
 
-                case MPDTags.Ensemble:
+                case MPDTags.ArtistTags.Ensemble:
                     ensembleTag = tag.Value;
                     break;
 
-                case MPDTags.Duration:
+                case MPDTags.TrackTags.Duration:
                     var seconds = double.Parse(tag.Value);
                     durationTag = TimeSpan.FromSeconds(seconds);
                     break;
@@ -208,11 +209,11 @@ public class MPDTagParser(IIdProvider idProvider) : ITagParser
         {
             switch (tag.Name.ToLowerInvariant())
             {
-                case MPDTags.Track:
+                case MPDTags.AlbumTags.Track:
                     trackNumberTag = tag.Value;
                     break;
                 
-                case MPDTags.Disc:
+                case MPDTags.AlbumTags.Disc:
                     diskTag = tag.Value;
                     break;
             }
@@ -240,7 +241,7 @@ public class MPDTagParser(IIdProvider idProvider) : ITagParser
         foreach (var (tag, value) in tagList)
             switch (tag.ToLowerInvariant())
             {
-                case MPDTags.Album:
+                case MPDTags.AlbumTags.Album:
                     title = value;
                     break;
             }

@@ -5,8 +5,6 @@ using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Core.Queue;
 using Aria.Infrastructure;
-using Aria.Infrastructure.Tagging;
-using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using MpcNET;
 using MpcNET.Commands.Playback;
@@ -18,81 +16,118 @@ namespace Aria.Backends.MPD;
 
 public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : BaseQueue
 {
-    public override async Task<IEnumerable<TrackInfo>> GetTracksAsync()
+    public override async Task<IEnumerable<QueueTrackInfo>> GetTracksAsync()
     {
         var (isSuccess, tagPairs) = await client.SendCommandAsync(new PlaylistInfoCommand()).ConfigureAwait(false);
         if (!isSuccess) throw new InvalidOperationException("Failed to get playlist info");
         if (tagPairs == null) throw new InvalidOperationException("No playlist info found");
 
         var tags = tagPairs.Select(kvp => new Tag(kvp.Key, kvp.Value)).ToList();
+        
         return parser.ParseTracksInformation(tags);
     }
-    
+
     public override async Task PlayAsync(int index)
     {
         await client.SendCommandAsync(new PlayCommand(index)).ConfigureAwait(false);
     }
 
-    public override async Task PlayAsync(TrackInfo track, EnqueueAction action)
+    public override async Task EnqueueAsync(Info info, EnqueueAction action)
     {
-        await PlayAsync([track], action).ConfigureAwait(false);
+        switch (info)
+        {
+            case TrackInfo track:
+                await PlayAsync([track], action).ConfigureAwait(false);
+                break;
+            
+            case AlbumInfo album:
+                await PlayAsync(album.Tracks.Select(t => t.Track), action).ConfigureAwait(false);
+                break;
+        }
     }
-    
-    public override async Task PlayAsync(AlbumInfo album, EnqueueAction action)
+
+    public override async Task EnqueueAsync(Info info, int index)
     {
-        await PlayAsync(album.Tracks.Select(t => t.Track), action).ConfigureAwait(false);
+        switch (info)
+        {
+            case TrackInfo track:
+                await PlayAsync([track], index).ConfigureAwait(false);
+                break;
+            
+            case AlbumInfo album:
+                await PlayAsync(album.Tracks.Select(t => t.Track), index).ConfigureAwait(false);
+                break;
+        }
     }
-    
+
+    private async Task PlayAsync(IEnumerable<TrackInfo> tracks, int index)
+    {
+        try
+        {
+            var commandList = new CommandList();
+            foreach (var track in tracks.Reverse())
+            {
+                commandList.Add(new AddCommand(track.FileName, index));
+            }
+
+            await client.SendCommandAsync(commandList).ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to play tracks");
+        }
+    }
+
     private async Task PlayAsync(IEnumerable<TrackInfo> tracks, EnqueueAction action)
     {
         try
         {
             var commandList = new CommandList();
-            
-            
+
+
             switch (action)
             {
                 case EnqueueAction.Replace:
                     commandList.Add(new ClearCommand());
                     foreach (var track in tracks)
                     {
-                        commandList.Add(new AddCommand(track.FileName));            
+                        commandList.Add(new AddCommand(track.FileName));
                     }
 
-                    commandList.Add(new PlayCommand(0));                
+                    commandList.Add(new PlayCommand(0));
                     break;
                 case EnqueueAction.EnqueueNext:
                     foreach (var track in tracks.Reverse())
                     {
-                        commandList.Add(new AddCommand(track.FileName, Order.CurrentIndex+1 ?? 0));            
+                        commandList.Add(new AddCommand(track.FileName, Order.CurrentIndex + 1 ?? 0));
                     }
 
                     break;
-                
+
                 case EnqueueAction.EnqueueEnd:
                     foreach (var track in tracks)
                     {
-                        commandList.Add(new AddCommand(track.FileName));            
-                    }                
+                        commandList.Add(new AddCommand(track.FileName));
+                    }
+
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action), action, null);
             }
-        
-            await client.SendCommandAsync(commandList).ConfigureAwait(false);        
+
+            await client.SendCommandAsync(commandList).ConfigureAwait(false);
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Failed to play album");
+            logger.LogError(e, "Failed to play tracks");
         }
     }
-    
-    
+
     public async Task UpdateFromStatusAsync(MpdStatus e)
     {
         // We received new information from MPD. Get all relevant information for this playlist.
         var flags = QueueStateChangedFlags.None;
-        
+
         // Consume
         if (Consume.Enabled != e.Consume || !Consume.Supported)
         {
@@ -137,24 +172,24 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
             // We will NOT update the ID; as this would case the player to
             // reload the playlist it had loaded at the connection.
             Id = newPlaylistId;
-            Length = e.PlaylistLength;            
+            Length = e.PlaylistLength;
             flags |= QueueStateChangedFlags.PlaybackOrder;
         }
-        
+
         // Skip comparison unless a playlist ID is present to prevent loading the playlist unnecessarily from the app.
         else if (Id is not QueueId oldId || newPlaylistId.Value != oldId.Value)
         {
             flags |= QueueStateChangedFlags.Id;
             flags |= QueueStateChangedFlags.PlaybackOrder;
-            
+
             // // The playback order changed implicitly, even though the current track may still be at the same index.
             // // This will trigger an order chaange
             // Order = PlaybackOrder.Default;
-            
+
             Id = newPlaylistId;
             Length = e.PlaylistLength;
         }
-        
+
         // Order
         if (Order.CurrentIndex != e.Song)
         {
@@ -165,10 +200,11 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
             };
             flags |= QueueStateChangedFlags.PlaybackOrder;
         }
-        
+
         if (flags.HasFlag(QueueStateChangedFlags.PlaybackOrder))
         {
-            var (isSuccess, keyValuePairs) = await client.SendCommandAsync(new GetCurrentTrackInfoCommand()).ConfigureAwait(false);
+            var (isSuccess, keyValuePairs) =
+                await client.SendCommandAsync(new GetCurrentTrackInfoCommand()).ConfigureAwait(false);
             if (!isSuccess) throw new InvalidOperationException("Failed to get current track info");
             if (keyValuePairs == null) throw new InvalidOperationException("No current track info found");
 

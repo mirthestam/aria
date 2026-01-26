@@ -14,6 +14,8 @@ public partial class AlbumsAlbumListItem
     [Connect("subtitle-label")] private Label _subTitleLabel;
     [Connect("title-label")] private Label _titleLabel;
 
+    public AlbumsAlbumModel? Model => _model;
+    
     public void Initialize(AlbumsAlbumModel model)
     {
         if (_model != null) _model.PropertyChanged -= ModelOnPropertyChanged;

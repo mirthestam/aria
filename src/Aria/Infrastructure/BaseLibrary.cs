@@ -7,12 +7,13 @@ public abstract class BaseLibrary : ILibrarySource
 {
     public virtual event Action? Updated;    
     
-    public virtual Task<IEnumerable<ArtistInfo>> GetArtists(CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<ArtistInfo>());
-    public virtual Task<ArtistInfo?> GetArtist(Id artistId, CancellationToken cancellationToken = default) => Task.FromResult(default(ArtistInfo));
-    public virtual Task<IEnumerable<AlbumInfo>> GetAlbums(CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<AlbumInfo>());
-    public virtual Task<IEnumerable<AlbumInfo>> GetAlbums(Id artistId, CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<AlbumInfo>());
-    public virtual Task<AlbumInfo?> GetAlbum(Id albumId, CancellationToken cancellationToken = default) => Task.FromResult(default(AlbumInfo));
+    public virtual Task<IEnumerable<ArtistInfo>> GetArtistsAsync(CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<ArtistInfo>());
+    public virtual Task<ArtistInfo?> GetArtistAsync(Id artistId, CancellationToken cancellationToken = default) => Task.FromResult(default(ArtistInfo));
+    public virtual Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<AlbumInfo>());
+    public virtual Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(Id artistId, CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<AlbumInfo>());
+    public virtual Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default) => Task.FromResult(default(AlbumInfo));
     public virtual Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default) => Task.FromResult(SearchResults.Empty);
+    public virtual Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default) => Task.FromResult<Info?>(null);
 
     public virtual async Task<Stream> GetAlbumResourceStreamAsync(Id id, CancellationToken ct)
     {

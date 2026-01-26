@@ -25,14 +25,14 @@ public class QueueProxy : IQueueSource
     public Task SetShuffleAsync(bool enabled) => _innerQueue?.SetShuffleAsync(enabled) ?? Task.CompletedTask;
     public Task SetRepeatAsync(bool enabled) => _innerQueue?.SetRepeatAsync(enabled) ?? Task.CompletedTask;
     public Task SetConsumeAsync(bool enabled) => _innerQueue?.SetConsumeAsync(enabled) ?? Task.CompletedTask;
-    public Task<IEnumerable<TrackInfo>> GetTracksAsync() => _innerQueue?.GetTracksAsync() ?? Task.FromResult(Enumerable.Empty<TrackInfo>());
+    public Task<IEnumerable<QueueTrackInfo>> GetTracksAsync() => _innerQueue?.GetTracksAsync() ?? Task.FromResult(Enumerable.Empty<QueueTrackInfo>());
 
     public TrackInfo? CurrentTrack => _innerQueue?.CurrentTrack;
     
     public Task PlayAsync(int index) => _innerQueue?.PlayAsync(index) ?? Task.CompletedTask;
-    public Task PlayAsync(AlbumInfo album, EnqueueAction action) => _innerQueue?.PlayAsync(album, action) ?? Task.CompletedTask;
-    public Task PlayAsync(TrackInfo track, EnqueueAction action) => _innerQueue?.PlayAsync(track, action) ?? Task.CompletedTask;
-
+    public Task EnqueueAsync(Info item, EnqueueAction action) => _innerQueue?.EnqueueAsync(item, action) ?? Task.CompletedTask;
+    public Task EnqueueAsync(Info item, int index) => _innerQueue?.EnqueueAsync(item, index) ?? Task.CompletedTask;
+    
     internal void Attach(IQueueSource queue)
     {
         if (_innerQueue != null) Detach();

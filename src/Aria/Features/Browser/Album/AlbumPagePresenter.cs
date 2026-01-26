@@ -48,7 +48,7 @@ public partial class AlbumPagePresenter(
             return;
         };
         
-        _ =  aria.Queue.PlayAsync(track.Track, IQueue.DefaultEnqueueAction);
+        _ =  aria.Queue.EnqueueAsync(track.Track, IQueue.DefaultEnqueueAction);
         
         switch (IQueue.DefaultEnqueueAction)
         {
@@ -106,7 +106,7 @@ public partial class AlbumPagePresenter(
         // The same applies to the Play button.
     
         if (_album?.Id == null) return;
-        _ = aria.Queue.PlayAsync(_album, EnqueueAction.EnqueueEnd);
+        _ = aria.Queue.EnqueueAsync(_album, EnqueueAction.EnqueueEnd);
         messenger.Send(new ShowToastMessage($"Album '{_album.Title}' added to queue."));
     }
 
@@ -115,7 +115,7 @@ public partial class AlbumPagePresenter(
         LogPlayingAlbum(logger, _album?.Id ?? Id.Unknown);
         
         if (_album?.Id == null) return;
-        _ = aria.Queue.PlayAsync(_album, EnqueueAction.Replace);
+        _ = aria.Queue.EnqueueAsync(_album, EnqueueAction.Replace);
     }
     
     public async Task LoadAsync(AlbumInfo album, ArtistInfo? filteredArtist = null)
@@ -123,7 +123,7 @@ public partial class AlbumPagePresenter(
         LogLoadingAlbum(logger, album.Id ?? Id.Unknown);
         
         // Always assume the album is out of date, or only partial.
-        album = await aria.Library.GetAlbum(album.Id);
+        album = await aria.Library.GetAlbumAsync(album.Id);
         
         AbortLoading();
         _loadCts = new CancellationTokenSource();

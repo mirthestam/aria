@@ -57,7 +57,7 @@ public partial class SearchPagePresenter(ILogger<SearchPagePresenter> logger, IA
         
         var track = _searchResults!.Tracks.First(t => t.Id == trackId);
 
-        _ = aria.Queue.PlayAsync(track, IQueue.DefaultEnqueueAction);
+        _ = aria.Queue.EnqueueAsync(track, IQueue.DefaultEnqueueAction);
     }
 
     private void ViewOnSearchChanged(object? sender, string e)

@@ -6,10 +6,8 @@ namespace Aria.Core.Library;
 ///     Represents an artist in the library.
 /// </summary>
 //public sealed record ArtistInfo(string Name, string NameSort, ArtistRoles Roles)
-public sealed record ArtistInfo
+public sealed record ArtistInfo : Info
 {
-    public Id? Id { get; init; }
-
     public required string Name { get; init; }
     
     /// <summary>

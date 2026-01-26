@@ -1,5 +1,6 @@
 using Aria.Core;
 using Aria.Core.Connection;
+using Aria.Core.Extraction;
 using Aria.Core.Player;
 using Aria.Core.Queue;
 using Aria.Features.Shell;
@@ -29,8 +30,25 @@ public partial class PlaylistPresenter : IRecipient<QueueStateChangedMessage>, I
     {
         _view = view;
         _view.TrackSelectionChanged += ViewOnTrackSelectionChanged;
+        _view.EnqueueRequested += ViewOnEnqueueRequested;
         _view.TogglePage(Playlist.PlaylistPages.Empty);
-    }    
+    }
+
+    private async void ViewOnEnqueueRequested(object? sender, (Id id, int index) args)
+    {
+        try
+        {
+            var info = await _aria.Library.GetItemAsync(args.id);
+            if (info == null) return;
+            
+            _ = _aria.Queue.EnqueueAsync(info, args.index);
+        }
+        catch (Exception exception)
+        {
+            _messenger.Send(new ShowToastMessage("Could not enqueue"));
+            LogCouldNotEnqueue(exception);
+        }
+    }
 
     public async Task RefreshAsync()
     {
@@ -107,4 +125,7 @@ public partial class PlaylistPresenter : IRecipient<QueueStateChangedMessage>, I
 
     [LoggerMessage(LogLevel.Information, "Refreshing playlist")]
     partial void LogRefreshingPlaylist();
+
+    [LoggerMessage(LogLevel.Error, "Could not enqueue")]
+    partial void LogCouldNotEnqueue(Exception e);
 }
