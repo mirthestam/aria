@@ -16,8 +16,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GObject-2.0.Integration", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Gtk-4.0.Integration", "..\lib\gircore\src\Extensions\Gtk-4.0.Integration\Gtk-4.0.Integration.csproj", "{F1A92499-A26C-4BDD-8BDD-7C9A59D31905}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "..\build\_build.csproj", "{6A66BA8C-CA7D-4BF2-853C-A61CA85D8BF8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Aria.Tests", "Aria.Tests\Aria.Tests.csproj", "{1FD7B3B7-4078-47D1-832C-9FAA6C152A4B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Backends", "Backends", "{EC0EAF48-8EBB-4B66-BCA9-6DAF4596CB98}"

@@ -9,6 +9,7 @@ bld/
 [Bb]in/
 [Oo]bj/
 
+
 # .NET Core
 project.lock.json
 project.fragment.lock.json
@@ -31,3 +32,9 @@ project.packagespec.json
 *.sln.DotSettings.user
 rider.project.restore.info
 rider.project.model.nuget.info
+
+# Flatpak
+Builddir/
+repo/
+nuget-sources.json
+*.flatpak

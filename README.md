@@ -11,7 +11,8 @@ A music library client that makes exploring and discovering your collection easy
 
 1. Glone this repo recursive with `git clone --recurse-submodules`
 2. Navigate to the cloned directory
-2. Run the `./build.sh` script
+3. Configure gir.core in `./lib` according to its readme
+4. Run the `./install.sh` script to build and install using flatpak
 
 # Dependencies
 - [.NET 10](https://dotnet.microsoft.com/en-us/)

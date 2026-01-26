@@ -2,9 +2,9 @@
 Type=Application
 Name=Aria
 GenericName=Music Browser
-Comment=Connect to your (classical) music
-Icon=nl.mirthestame.aria
-Exec=aria
+Comment=Connect to your music player
+Icon=nl.mirthestam.aria
+Exec=nl.mirthestam.aria
 Terminal=false
 Categories=GNOME;GTK;Music;Audio;AudioVideo;
 # Translators: Search terms to find this application. Do NOT translate or localize the semicolons! The list MUST also end with a semicolon!

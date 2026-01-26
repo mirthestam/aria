@@ -8,3 +8,6 @@ dotnet build ./src/Aria.App/Aria.App.csproj -c Release --no-self-contained --sou
 dotnet publish ./src/Aria.App/Aria.App.csproj -o ./dist -c Release --no-self-contained --source ./nuget-sources
 cp ./src/Aria.App/bin/Release/net10.0/nl.mirthestam.aria.gresource ./dist
 
+# Pack Aria
+mkdir -p ${FLATPAK_DEST}/bin
+cp -r ./dist/* ${FLATPAK_DEST}/bin
