@@ -20,7 +20,7 @@ To Install using Flatpak:
 3. Run `flatpak install ./flatpak/aria.flatpak` to install the app.
 
 To Run without Flatpak:
-1. Run `prebuild.sh`
+1. Run `prebuild.sh` (this does require Flatpak to be installed to be able to run pre-build tasks)
 2. Run `build.sh` to build the app to `./dist`
 3. Run `./dist/nl.mirthestam.aria` to run the app.
 
