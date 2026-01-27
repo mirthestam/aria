@@ -8,7 +8,7 @@ x86/
 bld/
 [Bb]in/
 [Oo]bj/
-
+dist/
 
 # .NET Core
 project.lock.json
@@ -34,7 +34,8 @@ rider.project.restore.info
 rider.project.model.nuget.info
 
 # Flatpak
-Builddir/
-repo/
+flatpak/Builddir/
+flatpak/repo/*
+flatpak/flatpak-dotnet-generator.py
+flatpak/*.flatpak
 nuget-sources.json
-*.flatpak

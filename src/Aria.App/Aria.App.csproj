@@ -6,6 +6,7 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+        <AssemblyName>nl.mirthestam.aria</AssemblyName>
     </PropertyGroup>
 
 
@@ -20,11 +21,20 @@
         <Content Include="..\..\AUTHORS">
             <Link>AUTHORS</Link>
         </Content>
+        <Content Include="..\..\build.sh">
+          <Link>Scripts\build.sh</Link>
+        </Content>
+        <Content Include="..\..\bundle.sh">
+          <Link>Scripts\bundle.sh</Link>
+        </Content>
         <Content Include="..\..\DOCS.md">
           <Link>DOCS.md</Link>
         </Content>
         <Content Include="..\..\LICENSE">
             <Link>LICENSE</Link>
+        </Content>
+        <Content Include="..\..\prebuild.sh">
+          <Link>Scripts\prebuild.sh</Link>
         </Content>
         <Content Include="..\..\README.md">
             <Link>README.md</Link>

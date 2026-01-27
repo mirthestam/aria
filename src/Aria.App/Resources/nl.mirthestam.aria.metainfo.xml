@@ -6,8 +6,7 @@
   <name>Aria</name>
   <summary>Connect to your music</summary>
   <description>
-    <p>A music library client that makes exploring and discovering your collection easy, with special support for classical music.</p>
-    <p>It works with servers such as MPD or Lyrion, among others.</p>
+    <p>A remote control app for MPD and MPD-based players like Volumio that lets you browse and explore their music libraries, with dedicated support for classical music.</p>
   </description>
   <requires>
     <display_length compare="ge">360</display_length>
@@ -17,6 +16,16 @@
     <control>keyboard</control>
     <control>touch</control>
   </recommends>
+  <screenshots>
+  <screenshot type="default">
+    <image>https://github.com/mirthestam/aria/blob/main/screenshots/medium.png?raw=true</image>
+    <caption>Main window</caption>
+  </screenshot>
+  <screenshot>
+    <image>https://github.com/mirthestam/aria/blob/main/screenshots/small.png?raw=true</image>
+    <caption>Mobile view</caption>
+  </screenshot>
+  </screenshots>
   <custom>
     <value key="Purism::form_factor">mobile</value>
   </custom>

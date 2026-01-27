@@ -1,6 +1,6 @@
 # Aria
 
-A music library client that makes exploring and discovering your collection easy, with special support for classical music. It works with servers such as MPD or Lyrion, among others.
+A remote control app for MPD and MPD-based players like Volumio that lets you browse and explore their music libraries, with dedicated support for classical music.
 
 ![screenshot](screenshots/medium.png)
 
@@ -11,8 +11,18 @@ A music library client that makes exploring and discovering your collection easy
 
 1. Glone this repo recursive with `git clone --recurse-submodules`
 2. Navigate to the cloned directory
-3. Configure gir.core in `./lib` according to its readme
-4. Run the `./install.sh` script to build and install using flatpak
+
+I recommend to install this app using Flatpak.
+
+To Install using Flatpak:
+1. Run `prebuild.sh`
+2. Run `bundle.sh` to create a flatpak bundle
+3. Run `flatpak install ./flatpak/aria.flatpak` to install the app.
+
+To Run without Flatpak:
+1. Run `prebuild.sh`
+2. Run `build.sh` to build the app to `./dist`
+3. Run `./dist/nl.mirthestam.aria` to run the app.
 
 # Dependencies
 - [.NET 10](https://dotnet.microsoft.com/en-us/)
@@ -39,3 +49,6 @@ This project uses the following open source libraries:
 
  - [MpcNET](https://github.com/glucaci/MpcNET) (Gabriel Lucaci)
  - [Gir.Core](https://gircore.github.io/) (Marcel Tiede)
+
+Images:
+ - App icon: [Vynil icons created by Freepik - Flaticon](https://www.flaticon.com/free-icons/vynil).
