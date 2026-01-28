@@ -1,5 +1,4 @@
 using Adw;
-using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Features.Browser.Albums;
 using Aria.Infrastructure;
@@ -12,38 +11,19 @@ using Humanizer;
 
 namespace Aria.Features.Browser.Search;
 
-
-
-[Subclass<ActionRow>]
-public partial class SearchAlbumActionRow
-{
-    public SearchAlbumActionRow(Id id) : this()
-    {
-        AlbumId = id;
-    }
-    public Id AlbumId { get; }
-}
-
-[Subclass<ActionRow>]
-public partial class SearchTrackActionRow
-{
-    public SearchTrackActionRow(Id id) : this()
-    {
-        TrackId = id;
-    }
-    public Id TrackId { get; }
-}
-
-
 [Subclass<Box>]
 [Template<AssemblyResource>("Aria.Features.Browser.Search.SearchPage.ui")]
 public partial class SearchPage
 {
-    private const string ResultsStackpageName = "results-stack-page";
+    private const string ResultsStackPageName = "results-stack-page";
     private const string NoResultsStackPageName = "no-results-stack-page";
     
+    private readonly List<DragSource> _trackDragSources = [];
+    private readonly List<DragSource> _albumDragSources = [];
+    
     [Connect(NoResultsStackPageName)] private StackPage _noResultsStackPage;
-    [Connect(ResultsStackpageName)] private StackPage _resultsStackPage;
+    [Connect(ResultsStackPageName)] private StackPage _resultsStackPage;
+    
     [Connect("search-entry")] private SearchEntry _searchEntry;
     [Connect("search-stack")] private Stack _searchStack;
     
@@ -68,6 +48,8 @@ public partial class SearchPage
 
     partial void Initialize()
     {
+        OnUnmap += OnOnUnmap;
+        
         _searchEntry.OnSearchChanged += SearchEntryOnOnSearchChanged;
         _searchEntry.OnStopSearch += SearchEntryOnOnStopSearch;
         
@@ -80,27 +62,32 @@ public partial class SearchPage
     
     public void Clear()
     {
-        _searchStack.VisibleChildName = NoResultsStackPageName;
-        _searchEntry.SetText("");
-        _searchEntry.GrabFocus();
-
+        foreach (var dragSource in _albumDragSources)
+        {
+            dragSource.OnDragBegin -= AlbumOnOnDragBegin;
+            dragSource.OnPrepare -= AlbumDragOnPrepare;            
+        }
+        _albumDragSources.Clear();
+        
+        foreach (var dragSource in _trackDragSources)
+        {
+            dragSource.OnDragBegin -= AlbumOnOnDragBegin;
+            dragSource.OnPrepare -= TrackOnPrepare;            
+        }
+        _albumDragSources.Clear();        
+        
         _artistListBox.RemoveAll();
         _albumListBox.RemoveAll();
         _workListBox.RemoveAll();
         _trackListBox.RemoveAll();
-
-        // TODO; use the adjustement to scroll back to 0,0
     }
     
     public void ShowResults(SearchResults results)
     {
-        _artistListBox.RemoveAll();
-        _albumListBox.RemoveAll();
-        _workListBox.RemoveAll();
-        _trackListBox.RemoveAll();
+        Clear();
         
         var totalCount = results.Artists.Count + results.Albums.Count + results.Tracks.Count;
-        _searchStack.VisibleChildName = totalCount == 0 ? NoResultsStackPageName : ResultsStackpageName;
+        _searchStack.VisibleChildName = totalCount == 0 ? NoResultsStackPageName : ResultsStackPageName;
         
         _artistBox.Visible = results.Artists.Count > 0;
         _albumBox.Visible = results.Albums.Count > 0;
@@ -109,73 +96,90 @@ public partial class SearchPage
         
         foreach (var artist in results.Artists)
         {
-            var row = ActionRow.New();
-            row.Activatable = true;
-            row.UseMarkup = false;
-            row.Title = artist.Name;
-            
-            row.ActionName = "results.show-artist";
-            row.SetActionTargetValue(Variant.NewString(artist.Id?.ToString() ?? string.Empty));
-
-            var roles = new List<string>();
-            if (artist.Roles.HasFlag(ArtistRoles.Composer)) roles.Add("Composer");
-            if (artist.Roles.HasFlag(ArtistRoles.Arranger)) roles.Add("Arranger");
-            if (artist.Roles.HasFlag(ArtistRoles.Conductor)) roles.Add("Conductor");
-            if (artist.Roles.HasFlag(ArtistRoles.Ensemble)) roles.Add("Ensemble");
-            if (artist.Roles.HasFlag(ArtistRoles.Performer)) roles.Add("Performer");
-            if (artist.Roles.HasFlag(ArtistRoles.Soloist)) roles.Add("Soloist");
-            row.Subtitle = roles.Humanize();
+            var row = CreateArtistRow(artist);
             _artistListBox.Append(row);
         }
 
         foreach (var album in results.Albums)
         {
-            var row = new SearchAlbumActionRow(album.Id!);
-            
-            // Appearance
-            row.Activatable = true;
-            row.UseMarkup = false;
-            row.Title = album.Title;
-            row.Subtitle = album.CreditsInfo.AlbumArtists.Select(a => a.Name).Humanize();
-            
-            // Drag & Drop support
-            var dragSource = DragSource.New();
-            dragSource.Actions = DragAction.Copy;
-            dragSource.OnDragBegin += AlbumOnOnDragBegin;
-            dragSource.OnPrepare += AlbumOnPrepare;
-            row.AddController(dragSource);
-            
-            // Action
-            var albumIdString = album.Id!.ToString();
-            row.ActionName = "results.show-album";
-            row.SetActionTargetValue(Variant.NewString(albumIdString));            
-            
+            var row = CreateAlbumRow(album);
             _albumListBox.Append(row);
         }
 
         foreach (var track in results.Tracks)
         {
-            // Appearance
-            var row = new SearchTrackActionRow(track.Id!);
-            row.Activatable = true;
-            row.UseMarkup = false;
-            row.Title = track.Title;
-            row.Subtitle = track.CreditsInfo.AlbumArtists.Select(a => a.Name).Humanize();
-            
-            // Drag & Drop support
-            var dragSource = DragSource.New();
-            dragSource.Actions = DragAction.Copy;
-            dragSource.OnDragBegin += AlbumOnOnDragBegin;
-            dragSource.OnPrepare += TrackOnPrepare;
-            row.AddController(dragSource);            
-            
-            // Action
-            row.ActionName = "results.enqueue-track";
-            row.SetActionTargetValue(Variant.NewString(track.Id?.ToString() ?? string.Empty));            
-            
+            var row = CreateTrackRow(track);
             _trackListBox.Append(row);
         }
-    }    
+    }
+
+    private SearchTrackActionRow CreateTrackRow(TrackInfo track)
+    {
+        // Appearance
+        var row = new SearchTrackActionRow(track.Id!);
+        row.Activatable = true;
+        row.UseMarkup = false;
+        row.Title = track.Title;
+        row.Subtitle = track.CreditsInfo.AlbumArtists.Select(a => a.Name).Humanize();
+            
+        // Drag & Drop support
+        var dragSource = DragSource.New();
+        dragSource.Actions = DragAction.Copy;
+        dragSource.OnPrepare += TrackOnPrepare;
+        row.AddController(dragSource);         
+        _trackDragSources.Add(dragSource);           
+            
+        // Action
+        row.ActionName = "results.enqueue-track";
+        row.SetActionTargetValue(Variant.NewString(track.Id?.ToString() ?? string.Empty));
+        return row;
+    }
+
+    private SearchAlbumActionRow CreateAlbumRow(AlbumInfo album)
+    {
+        var row = new SearchAlbumActionRow(album.Id!);
+            
+        // Appearance
+        row.Activatable = true;
+        row.UseMarkup = false;
+        row.Title = album.Title;
+        row.Subtitle = album.CreditsInfo.AlbumArtists.Select(a => a.Name).Humanize();
+            
+        // Drag & Drop support
+        var dragSource = DragSource.New();
+        dragSource.Actions = DragAction.Copy;
+        dragSource.OnDragBegin += AlbumOnOnDragBegin;
+        dragSource.OnPrepare += AlbumDragOnPrepare;
+        row.AddController(dragSource);
+        _albumDragSources.Add(dragSource);          
+            
+        // Action
+        var albumIdString = album.Id!.ToString();
+        row.ActionName = "results.show-album";
+        row.SetActionTargetValue(Variant.NewString(albumIdString));
+        return row;
+    }
+
+    private static ActionRow CreateArtistRow(ArtistInfo artist)
+    {
+        var row = ActionRow.New();
+        row.Activatable = true;
+        row.UseMarkup = false;
+        row.Title = artist.Name;
+            
+        row.ActionName = "results.show-artist";
+        row.SetActionTargetValue(Variant.NewString(artist.Id?.ToString() ?? string.Empty));
+
+        var roles = new List<string>();
+        if (artist.Roles.HasFlag(ArtistRoles.Composer)) roles.Add("Composer");
+        if (artist.Roles.HasFlag(ArtistRoles.Arranger)) roles.Add("Arranger");
+        if (artist.Roles.HasFlag(ArtistRoles.Conductor)) roles.Add("Conductor");
+        if (artist.Roles.HasFlag(ArtistRoles.Ensemble)) roles.Add("Ensemble");
+        if (artist.Roles.HasFlag(ArtistRoles.Performer)) roles.Add("Performer");
+        if (artist.Roles.HasFlag(ArtistRoles.Soloist)) roles.Add("Soloist");
+        row.Subtitle = roles.Humanize();
+        return row;
+    }
     
     private void SearchEntryOnOnStopSearch(SearchEntry sender, EventArgs args)
     {
@@ -211,7 +215,7 @@ public partial class SearchPage
         // dragIcon.SetChild(clamp);
     }
     
-    private ContentProvider? AlbumOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
+    private ContentProvider? AlbumDragOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
     {
         var widget = (SearchAlbumActionRow)sender.GetWidget()!;
         var wrapper = new GId(widget.AlbumId);
@@ -225,5 +229,14 @@ public partial class SearchPage
         var wrapper = new GId(widget.TrackId);
         var value = new Value(wrapper);
         return ContentProvider.NewForValue(value);
-    }    
+    }
+    
+    private void OnOnUnmap(Widget sender, EventArgs args)
+    {
+        _searchStack.VisibleChildName = NoResultsStackPageName;
+        _searchEntry.SetText("");
+        _searchEntry.GrabFocus();
+
+        Clear();
+    }
 }

@@ -35,7 +35,6 @@ public partial class BrowserPage
         if (_browserNavigationView.VisiblePageTag == SearchPageName) return;
 
         _browserNavigationView.PushByTag(SearchPageName);
-        SearchPage.Clear();
     }
 
     public void ShowArtistDetailRoot()

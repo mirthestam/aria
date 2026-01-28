@@ -49,6 +49,8 @@ public partial class AlbumPage
     private ArtistInfo? _filteredArtist;
     private IReadOnlyList<AlbumTrackInfo> _filteredTracks;
     
+    private readonly List<DragSource> _trackDragSources = [];
+    
     partial void Initialize()
     {
         var actionGroup = SimpleActionGroup.New();
@@ -57,8 +59,10 @@ public partial class AlbumPage
         actionGroup.AddAction(ShowFullAlbumAction = SimpleAction.New("full", null));
         actionGroup.AddAction(EnqueueTrack = SimpleAction.New("enqueue-track-default", VariantType.String));
         InsertActionGroup("album", actionGroup);
+        
+        OnUnmap += OnUnmapHandler;
     }
-
+    
     public void LoadAlbum(AlbumInfo album, ArtistInfo? filteredArtist = null)
     {
         _filteredArtist = filteredArtist;
@@ -241,9 +245,21 @@ public partial class AlbumPage
         }
     }
 
+    private void RemoveTracks()
+    {
+        // Clean up first
+        foreach (var source in _trackDragSources)
+        {
+            source.OnPrepare -= TrackOnDragPrepare;
+            source.OnDragBegin -= TrackOnDragBegin;
+        }
+        _trackDragSources.Clear();
+        _tracksListBox.RemoveAll();
+    }
+    
     private void UpdateTracksList()
     {
-        _tracksListBox.RemoveAll();
+        RemoveTracks();
         
         if (_filteredTracks.Count == 0)
         {
@@ -307,6 +323,7 @@ public partial class AlbumPage
             dragSource.Actions = DragAction.Copy;
             dragSource.OnDragBegin += TrackOnDragBegin;
             dragSource.OnPrepare += TrackOnDragPrepare;
+            _trackDragSources.Add(dragSource);           
             row.AddController(dragSource);
 
             _tracksListBox.Append(row);
@@ -323,5 +340,12 @@ public partial class AlbumPage
 
     private void TrackOnDragBegin(DragSource sender, DragSource.DragBeginSignalArgs args)
     {
+    }
+    
+    private void OnUnmapHandler(Widget sender, EventArgs args)
+    {
+        // Remove the tracks. 
+        // This unbinds the drag handlers, effectively 'releasing' them.
+        RemoveTracks();
     }
 }
