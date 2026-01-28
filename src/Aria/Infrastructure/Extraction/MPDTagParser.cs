@@ -200,6 +200,43 @@ public class MPDTagParser(IIdProvider idProvider) : ITagParser
         }
     }
 
+    public QueueTrackInfo ParseQueueTrackInformation(IReadOnlyList<Tag> tags)
+    {
+        int? position = null;
+        
+        foreach (var tag in tags)
+        {
+            switch (tag.Name.ToLowerInvariant())
+            {
+                case MPDTags.QueueTags.Position:
+                    position = int.Parse(tag.Value);
+                    break;
+            }
+        }
+
+        if (position == null)
+        {
+            throw new InvalidOperationException("Position tag is missing");
+        }
+        
+        var trackInfo = ParseTrackInformation(tags);
+        
+        var queueTrackInfo = new QueueTrackInfo
+        {
+            Id = null,
+            Position = position.Value,
+            Track = trackInfo
+        };
+
+        var queueTrackId  = idProvider.CreateQueueTrackId(new QueueTrackIdentificationContext
+        {
+            Tags = tags,
+            Track = queueTrackInfo
+        });
+        
+        return queueTrackInfo with { Id = queueTrackId };        
+    }
+
     public AlbumTrackInfo ParseAlbumTrackInformation(IReadOnlyList<Tag> tags)
     {
         var diskTag = "";

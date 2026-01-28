@@ -54,6 +54,6 @@ public static class MPDTags
     public static class QueueTags
     {
         public const string Id = "id";
-        public const string Position = "Pos";
+        public const string Position = "pos";
     }
 }

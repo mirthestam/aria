@@ -2,6 +2,7 @@ namespace Aria.Core.Extraction;
 
 public interface IIdProvider
 {
+    Id CreateQueueTrackId(QueueTrackIdentificationContext context);
     Id CreateTrackId(TrackIdentificationContext context);
     Id CreateArtistId(ArtistIdentificationContext context);
     Id CreateAlbumId(AlbumIdentificationContext context);

@@ -14,6 +14,7 @@ namespace Aria.Features.PlayerBar;
 [Template<AssemblyResource>("Aria.Features.PlayerBar.PlayerBar.ui")]
 public partial class PlayerBar
 {
+    [Connect("cover-picture")] private Picture _coverPicture;
     [Connect("elapsed-bar")] private ProgressBar _progressBar;
     [Connect("subtitle-label")] private Label _subTitleLabel;
     [Connect("title-label")] private Label _titleLabel;
@@ -32,17 +33,18 @@ public partial class PlayerBar
         AddController(idWrapperDropTarget);
     }
 
-    private bool IdWrapperDropTargetOnOnDrop(DropTarget sender, DropTarget.DropSignalArgs args)
+    public void LoadCover(Texture texture)
     {
-        // The user 'dropped' something onto the mini bar.
-        var value = args.Value.GetObject();
-        if (value is not GId gId) return false;
-        
-        EnqueueRequested(this, gId.Id);
-
-        return true;
+        _coverPicture.Visible = true;
+        _coverPicture.SetPaintable(texture);
     }
 
+    public void ClearCover()
+    {
+        _coverPicture.Visible = false;
+        _coverPicture.SetPaintable(null);
+    }    
+    
     public void SetCurrentTrack(TrackInfo? trackInfo)
     {
         if (trackInfo == null)
@@ -85,14 +87,13 @@ public partial class PlayerBar
     
     public void SetPlaybackState(PlaybackState playerState)
     {
-        var elapsedBarVisible = playerState switch
+        _progressBar.Visible = playerState switch
         {
             PlaybackState.Unknown or PlaybackState.Stopped => false,
             PlaybackState.Playing or PlaybackState.Paused => true,
             _ => false
         };
-
-        _progressBar.Visible = elapsedBarVisible;
+        
         _mediaControls.SetPlaybackState(playerState);
     }
 
@@ -106,5 +107,16 @@ public partial class PlayerBar
         {
             _progressBar.Fraction = progressElapsed.TotalSeconds / progressDuration.TotalSeconds;            
         }
+    }
+    
+    private bool IdWrapperDropTargetOnOnDrop(DropTarget sender, DropTarget.DropSignalArgs args)
+    {
+        // The user 'dropped' something onto the mini bar.
+        var value = args.Value.GetObject();
+        if (value is not GId gId) return false;
+        
+        EnqueueRequested(this, gId.Id);
+
+        return true;
     }
 }

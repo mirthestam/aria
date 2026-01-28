@@ -27,9 +27,8 @@ public class QueueProxy : IQueueSource
     public Task SetConsumeAsync(bool enabled) => _innerQueue?.SetConsumeAsync(enabled) ?? Task.CompletedTask;
     public Task<IEnumerable<QueueTrackInfo>> GetTracksAsync() => _innerQueue?.GetTracksAsync() ?? Task.FromResult(Enumerable.Empty<QueueTrackInfo>());
 
-    public TrackInfo? CurrentTrack => _innerQueue?.CurrentTrack;
+    public QueueTrackInfo? CurrentTrack => _innerQueue?.CurrentTrack;
     
-    public Task PlayAsync(int index) => _innerQueue?.PlayAsync(index) ?? Task.CompletedTask;
     public Task EnqueueAsync(Info item, EnqueueAction action) => _innerQueue?.EnqueueAsync(item, action) ?? Task.CompletedTask;
     public Task EnqueueAsync(Info item, int index) => _innerQueue?.EnqueueAsync(item, index) ?? Task.CompletedTask;
     public Task MoveAsync(Id sourceTrackId, int targetPlaylistIndex) => _innerQueue?.MoveAsync(sourceTrackId, targetPlaylistIndex) ?? Task.CompletedTask;

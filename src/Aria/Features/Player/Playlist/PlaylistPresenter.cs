@@ -109,7 +109,7 @@ public partial class PlaylistPresenter : IRecipient<QueueStateChangedMessage>, I
 
     private void ViewOnTrackSelectionChanged(object? sender, uint e)
     {
-        _aria.Queue.PlayAsync((int)e);
+        _aria.Player.PlayAsync((int)e);
     }
 
     private async Task RefreshTracks()
@@ -122,7 +122,7 @@ public partial class PlaylistPresenter : IRecipient<QueueStateChangedMessage>, I
             GLib.Functions.IdleAdd(0, () =>
             {
                 _view?.RefreshTracks(tracks);
-                _view?.TogglePage(tracks.Count != 0 ? Playlist.PlaylistPages.Tracks : Playlist.PlaylistPages.Empty);
+                _view?.TogglePage(_aria.Queue.Length != 0 ? Playlist.PlaylistPages.Tracks : Playlist.PlaylistPages.Empty);
                 return false;
             });            
         }

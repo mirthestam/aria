@@ -22,7 +22,7 @@ public abstract class BasePlayer : IPlayerSource
     
     public virtual PlaybackProgress Progress => PlaybackProgress.Default;
 
-    public virtual Task PlayAsync() => Task.CompletedTask;
+    public virtual Task PlayAsync(int index) => Task.CompletedTask;
 
     public virtual Task PauseAsync() => Task.CompletedTask;
 

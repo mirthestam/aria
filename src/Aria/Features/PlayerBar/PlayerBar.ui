@@ -14,9 +14,25 @@
             <property name="vexpand">False</property>
             <child>
               <object class="AdwClamp" id="art-clam">
+                <property name="halign">start</property>
+                <property name="hexpand">False</property>
                 <property name="maximum-size">34</property>
                 <property name="orientation">vertical</property>
                 <property name="unit">px</property>
+                <property name="valign">fill</property>
+                <property name="vexpand">False</property>
+                <child>
+                  <object class="GtkPicture" id="cover-picture">
+                    <property name="content-fit">contain</property>
+                    <property name="css-classes">cover</property>
+                    <property name="halign">fill</property>
+                    <property name="height-request">32</property>
+                    <property name="hexpand">False</property>
+                    <property name="valign">fill</property>
+                    <property name="vexpand">False</property>
+                    <property name="width-request">32</property>
+                  </object>
+                </child>
               </object>
             </child>
             <child>

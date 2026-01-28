@@ -32,12 +32,7 @@ public interface IQueue
     /// <summary>
     /// Gets detailed information about the currently playing track.
     /// </summary>
-    public TrackInfo? CurrentTrack { get; }
-    
-    /// <summary>
-    /// Plays the track at the specified index in the queue.
-    /// </summary>
-    public Task PlayAsync(int index);
+    public QueueTrackInfo? CurrentTrack { get; }
     
     public Task EnqueueAsync(Info item, EnqueueAction action);
     public Task EnqueueAsync(Info item, int index);

@@ -3,7 +3,6 @@ using Aria.Backends.MPD.Extraction;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Infrastructure;
-using Aria.Infrastructure.Extraction;
 using Microsoft.Extensions.Logging;
 using MpcNET;
 using MpcNET.Commands.Database;

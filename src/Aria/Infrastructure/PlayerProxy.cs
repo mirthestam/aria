@@ -14,9 +14,9 @@ public class PlayerProxy : IPlayerSource
 
     public event Action<PlayerStateChangedFlags>? StateChanged;    
     
-    public Task PlayAsync()
+    public Task PlayAsync(int index)
     {
-        return _innerPlayer?.PlayAsync() ?? Task.CompletedTask;
+        return _innerPlayer?.PlayAsync(index) ?? Task.CompletedTask;
     }
 
     public Task PauseAsync()

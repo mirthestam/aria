@@ -31,9 +31,9 @@ public interface IPlayer
     public PlaybackProgress Progress { get; }
     
     /// <summary>
-    /// Starts playback from the beginning of the playlist
+    /// Starts playback of the current index in the queue.
     /// </summary>
-    Task PlayAsync();
+    Task PlayAsync(int index);
 
     /// <summary>
     /// Pauses the playback if the player is currently playing.

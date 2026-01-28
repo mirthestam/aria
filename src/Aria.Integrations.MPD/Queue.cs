@@ -23,25 +23,20 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         if (tagPairs == null) throw new InvalidOperationException("No playlist info found");
 
         var tags = tagPairs.Select(kvp => new Tag(kvp.Key, kvp.Value)).ToList();
-        
-        return parser.ParseTracksInformation(tags);
-    }
 
-    public override async Task PlayAsync(int index)
-    {
-        await client.SendCommandAsync(new PlayCommand(index)).ConfigureAwait(false);
+        return parser.ParseQueueTracksInformation(tags);
     }
-
+    
     public override async Task EnqueueAsync(Info info, EnqueueAction action)
     {
         switch (info)
         {
             case TrackInfo track:
-                await PlayAsync([track], action).ConfigureAwait(false);
+                await EnqueueAsync([track], action).ConfigureAwait(false);
                 break;
-            
+
             case AlbumInfo album:
-                await PlayAsync(album.Tracks.Select(t => t.Track), action).ConfigureAwait(false);
+                await EnqueueAsync(album.Tracks.Select(t => t.Track), action).ConfigureAwait(false);
                 break;
         }
     }
@@ -51,11 +46,11 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         switch (info)
         {
             case TrackInfo track:
-                await PlayAsync([track], index).ConfigureAwait(false);
+                await EnqueueAsync([track], index).ConfigureAwait(false);
                 break;
-            
+
             case AlbumInfo album:
-                await PlayAsync(album.Tracks.Select(t => t.Track), index).ConfigureAwait(false);
+                await EnqueueAsync(album.Tracks.Select(t => t.Track), index).ConfigureAwait(false);
                 break;
         }
     }
@@ -65,14 +60,14 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         try
         {
             var queueTrackId = (QueueTrackId)sourceTrackId;
-            
+
             // When the target is located after the source in the queue, move it up by one position.
             // MPD seems to handle this by first removing the track, then reinserting it at the new index.
             var tracks = await GetTracksAsync().ConfigureAwait(false);
             var sourceTrack = tracks.FirstOrDefault(t => t.Id == queueTrackId);
             if (sourceTrack == null) throw new InvalidOperationException("Source track not found");
             if (targetPlaylistIndex > sourceTrack.Position) targetPlaylistIndex--;
-            
+
             var command = new MoveIdCommand(queueTrackId.Value, targetPlaylistIndex);
             await client.SendCommandAsync(command).ConfigureAwait(false);
         }
@@ -82,7 +77,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         }
     }
 
-    private async Task PlayAsync(IEnumerable<TrackInfo> tracks, int index)
+    private async Task EnqueueAsync(IEnumerable<TrackInfo> tracks, int index)
     {
         try
         {
@@ -100,7 +95,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         }
     }
 
-    private async Task PlayAsync(IEnumerable<TrackInfo> tracks, EnqueueAction action)
+    private async Task EnqueueAsync(IEnumerable<TrackInfo> tracks, EnqueueAction action)
     {
         try
         {
@@ -195,6 +190,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
             // reload the playlist it had loaded at the connection.
             Id = newPlaylistId;
             Length = e.PlaylistLength;
+            flags |= QueueStateChangedFlags.Id;
             flags |= QueueStateChangedFlags.PlaybackOrder;
         }
 
@@ -205,7 +201,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
             flags |= QueueStateChangedFlags.PlaybackOrder;
 
             // // The playback order changed implicitly, even though the current track may still be at the same index.
-            // // This will trigger an order chaange
+            // // This will trigger an order change
             // Order = PlaybackOrder.Default;
 
             Id = newPlaylistId;
@@ -239,20 +235,23 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
             }
             else
             {
-                var trackInfo = parser.ParseTrackInformation(tags);
-                if (trackInfo.FileName != null)
+                var trackInfo = parser.ParseQueueTrackInformation(tags);
+                if (trackInfo.Track.FileName != null)
                 {
                     // This logic is duplicate with logic in the library.
                     trackInfo = trackInfo with
                     {
-                        Assets =
-                        [
-                            new AssetInfo
-                            {
-                                Id = new AssetId(trackInfo.FileName),
-                                Type = AssetType.FrontCover
-                            }
-                        ]
+                        Track = trackInfo.Track with
+                        {
+                            Assets =
+                            [
+                                new AssetInfo
+                                {
+                                    Id = new AssetId(trackInfo.Track.FileName),
+                                    Type = AssetType.FrontCover
+                                }
+                            ]
+                        }
                     };
                 }
 

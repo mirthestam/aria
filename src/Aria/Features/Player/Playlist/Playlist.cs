@@ -61,6 +61,8 @@ public partial class Playlist
 
         _tracksListStore = ListStore.New(TrackModel.GetGType());
         _tracksSelection = SingleSelection.New(_tracksListStore);
+        _tracksSelection.CanUnselect = true;
+        _tracksSelection.Autoselect = false;
         _tracksListView.SetFactory(_signalListItemFactory);
         _tracksListView.SetModel(_tracksSelection);
 
@@ -155,7 +157,7 @@ public partial class Playlist
                 if (details.Count > 0) subTitleText += $" ({string.Join(", ", details)})";
             }
             
-            var item = new TrackModel(track?.Id ?? Id.Empty, queueTrack.Id, queueTrack.Position, titleText, subTitleText, composers,
+            var item = new TrackModel(track?.Id ?? Id.Empty, queueTrack.Id ?? Id.Empty, queueTrack.Position, titleText, subTitleText, composers,
                 track?.Duration ?? TimeSpan.Zero);
             _tracksListStore.Append(item);
         }

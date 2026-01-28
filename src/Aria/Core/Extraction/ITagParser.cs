@@ -13,6 +13,11 @@ public interface ITagParser
     TrackInfo ParseTrackInformation(IReadOnlyList<Tag> tags);
  
     /// <summary>
+    /// Parses all queue-track-related information from the tags
+    /// </summary>
+    QueueTrackInfo ParseQueueTrackInformation(IReadOnlyList<Tag> tags);
+    
+    /// <summary>
     /// Parses all album-track-related information from the tags
     /// </summary>
     AlbumTrackInfo ParseAlbumTrackInformation(IReadOnlyList<Tag> tags);

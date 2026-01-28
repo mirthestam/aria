@@ -42,7 +42,6 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
         _view.EnqueueRequested += ViewOnEnqueueRequested;
 
         _playlistPresenter.Attach(_view.Playlist);
-        
     }
 
     private async void ViewOnEnqueueRequested(object? sender, Id id)
@@ -68,7 +67,7 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
 
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
-        _ = LoadCover(cancellationToken);
+        _ = RefreshCover(cancellationToken);
         
         Refresh(QueueStateChangedFlags.All);
         Refresh(PlayerStateChangedFlags.All);
@@ -80,7 +79,7 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
     public void Reset()
     {
         _playlistPresenter.Reset();
-        AbortLoadCover();
+        AbortRefreshCover();
         
         GLib.Functions.IdleAdd(0, () =>
         {
@@ -130,20 +129,19 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
             });            
         }
         
-        if (!flags.HasFlag(QueueStateChangedFlags.PlaybackOrder)) return;
-        _ = LoadCover();
+        _ = RefreshCover();
     }
     
-    private void AbortLoadCover()
+    private void AbortRefreshCover()
     {
         _coverArtCancellationTokenSource?.Cancel();
         _coverArtCancellationTokenSource?.Dispose();
         _coverArtCancellationTokenSource = null;
     }
 
-    private async Task LoadCover(CancellationToken externalCancellationToken = default)
+    private async Task RefreshCover(CancellationToken externalCancellationToken = default)
     {
-        AbortLoadCover();
+        AbortRefreshCover();
         
         // Create a new cancellation token source that is optionally linked to an external token.
         // This allows cover loading to be cancelled both internally (e.g., when a new track starts)
@@ -158,9 +156,17 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
         try
         {
             var track = _aria.Queue.CurrentTrack;
-            if (track == null) return;
+            if (track == null)
+            {
+                GLib.Functions.IdleAdd(0, () =>
+                {
+                    _view?.ClearCover();
+                    return false;
+                });
+                return;
+            };
 
-            var coverInfo = track.Assets.FrontCover;
+            var coverInfo = track.Track.Assets.FrontCover;
             var texture = await _resourceTextureLoader.LoadFromAlbumResourceAsync(coverInfo?.Id ?? Id.Empty, cancellationToken);
             if (cancellationToken.IsCancellationRequested) return;
             if (texture == null) return;

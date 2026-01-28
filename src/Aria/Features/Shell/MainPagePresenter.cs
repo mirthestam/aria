@@ -122,7 +122,7 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
             Refresh(QueueStateChangedFlags.All);
             
             await _playerPresenter.RefreshAsync(cancellationToken);
-            await _playerBarPresenter.RefreshAsync();
+            await _playerBarPresenter.RefreshAsync(cancellationToken);
             await _browserHostPresenter.RefreshAsync(cancellationToken);
 
             _logger.LogInformation(cancellationToken.IsCancellationRequested
@@ -225,7 +225,8 @@ public partial class MainPagePresenter : IRecipient<ConnectionStateChangedMessag
                     await _aria.Player.ResumeAsync();
                     break;
                 case PlaybackState.Stopped:
-                    await _aria.Player.PlayAsync();
+                    var currentTrack = _aria.Queue.CurrentTrack;
+                    await _aria.Player.PlayAsync(currentTrack?.Position ?? 0);
                     break;
                 case PlaybackState.Playing:
                     await _aria.Player.PauseAsync();

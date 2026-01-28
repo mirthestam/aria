@@ -4,6 +4,8 @@ namespace Aria.Backends.MPD.Extraction;
 
 public class IdProvider : IIdProvider
 {
+    public Id CreateQueueTrackId(QueueTrackIdentificationContext context) => QueueTrackId.FromContext(context);
+    
     public Id CreateTrackId(TrackIdentificationContext context) => TrackId.FromContext(context);
 
     public Id CreateArtistId(ArtistIdentificationContext context) => ArtistId.FromContext(context);
@@ -13,8 +15,6 @@ public class IdProvider : IIdProvider
 
 public Id Parse(string id)
 {
-    // Getting the parts could be a function in a IdProviderBase
-    
     // Remove surrounding single quotes if present (handles escaped/quoted values)
     // This should either remove ' or "
     if (id is (['\'', _, ..] and [.., '\'']) or (['"', _, ..] and [.., '"']))
