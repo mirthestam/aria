@@ -71,7 +71,9 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
         try
         {
             var albums = await _aria.Library.GetAlbumsAsync(cancellationToken);
-            var albumModels = albums.Select(a => new AlbumsAlbumModel(a)).ToList();
+            var albumModels = albums.Select(a => new AlbumsAlbumModel(a))
+                .OrderBy(a => a.Album.Title)
+                .ToList();
             cancellationToken.ThrowIfCancellationRequested();
 
             GLib.Functions.TimeoutAdd(0, 0, () =>

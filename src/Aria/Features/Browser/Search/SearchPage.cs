@@ -94,19 +94,19 @@ public partial class SearchPage
         _trackBox.Visible = results.Tracks.Count > 0;
         _workBox.Visible = false;
         
-        foreach (var artist in results.Artists)
+        foreach (var artist in results.Artists.OrderBy(a => a.Name))
         {
             var row = CreateArtistRow(artist);
             _artistListBox.Append(row);
         }
 
-        foreach (var album in results.Albums)
+        foreach (var album in results.Albums.OrderBy(a => a.Title))
         {
             var row = CreateAlbumRow(album);
             _albumListBox.Append(row);
         }
 
-        foreach (var track in results.Tracks)
+        foreach (var track in results.Tracks.OrderBy(t => t.Title))
         {
             var row = CreateTrackRow(track);
             _trackListBox.Append(row);
