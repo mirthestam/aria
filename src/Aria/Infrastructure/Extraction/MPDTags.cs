@@ -6,8 +6,6 @@ namespace Aria.Infrastructure.Extraction;
 /// </summary>
 public static class MPDTags
 {
-    public const string Id = "id";
-
     public static class AlbumTags
     {
         public const string Album = "album";
@@ -55,6 +53,7 @@ public static class MPDTags
 
     public static class QueueTags
     {
+        public const string Id = "id";
         public const string Position = "Pos";
     }
 }

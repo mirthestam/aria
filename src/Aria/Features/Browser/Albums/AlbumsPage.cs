@@ -36,14 +36,6 @@ public partial class AlbumsPage
 
         _albumsGridView.OnActivate += AlbumsGridViewOnOnActivate;
     }
-    
-    private ContentProvider? AlbumOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
-    {
-        var widget = (AlbumsAlbumListItem)sender.GetWidget()!;
-        var wrapper = new GId(widget.Model!.Album.Id!);
-        var value = new Value(wrapper);
-        return ContentProvider.NewForValue(value);
-    }
 
     private void Clear()
     {
@@ -114,4 +106,12 @@ public partial class AlbumsPage
         var dragIcon = DragIcon.GetForDrag(args.Drag);
         dragIcon.SetChild(clamp);
     }
+    
+    private ContentProvider? AlbumOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
+    {
+        var widget = (AlbumsAlbumListItem)sender.GetWidget()!;
+        var wrapper = new GId(widget.Model!.Album.Id!);
+        var value = new Value(wrapper);
+        return ContentProvider.NewForValue(value);
+    }    
 }

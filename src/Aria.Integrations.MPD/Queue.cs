@@ -60,6 +60,28 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         }
     }
 
+    public override async Task MoveAsync(Id sourceTrackId, int targetPlaylistIndex)
+    {
+        try
+        {
+            var queueTrackId = (QueueTrackId)sourceTrackId;
+            
+            // When the target is located after the source in the queue, move it up by one position.
+            // MPD seems to handle this by first removing the track, then reinserting it at the new index.
+            var tracks = await GetTracksAsync().ConfigureAwait(false);
+            var sourceTrack = tracks.FirstOrDefault(t => t.Id == queueTrackId);
+            if (sourceTrack == null) throw new InvalidOperationException("Source track not found");
+            if (targetPlaylistIndex > sourceTrack.Position) targetPlaylistIndex--;
+            
+            var command = new MoveIdCommand(queueTrackId.Value, targetPlaylistIndex);
+            await client.SendCommandAsync(command).ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to move track");
+        }
+    }
+
     private async Task PlayAsync(IEnumerable<TrackInfo> tracks, int index)
     {
         try

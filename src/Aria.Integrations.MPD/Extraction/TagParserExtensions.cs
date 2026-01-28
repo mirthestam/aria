@@ -12,10 +12,17 @@ public static class TagParserExtensions
         public IEnumerable<QueueTrackInfo> ParseTracksInformation(IReadOnlyList<Tag> tags)
         {
             var position = 0;
+            var id = 0;
             
             var currentTrackTags = new List<Tag>();
             foreach (var tag in tags)
             {
+                if (tag.Name.Equals(MPDTags.QueueTags.Id, StringComparison.OrdinalIgnoreCase))
+                {
+                    id = int.Parse(tag.Value);
+                    continue;
+                }
+                
                 // MPD returns the track position in the queue as a 'tag' on the song
                 if (tag.Name.Equals(MPDTags.QueueTags.Position, StringComparison.OrdinalIgnoreCase))
                 {
@@ -29,6 +36,7 @@ public static class TagParserExtensions
                     var track = parser.ParseTrackInformation(currentTrackTags);
                     yield return new QueueTrackInfo
                     {
+                        Id = new QueueTrackId(id),
                         Position = position,
                         Track = track
                     };
@@ -43,6 +51,7 @@ public static class TagParserExtensions
                 var track = parser.ParseTrackInformation(currentTrackTags);
                 yield return new QueueTrackInfo
                 {
+                    Id = new QueueTrackId(id),
                     Position = position,
                     Track = track
                 };

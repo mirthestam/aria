@@ -8,14 +8,16 @@ namespace Aria.Features.Player.Playlist;
 [Subclass<Object>]
 public partial class TrackModel
 {
-    public TrackModel(Id id,
+    public TrackModel(Id trackId,
+        Id queueTrackId,
         int position,
         string title,
         string subTitle,
         string composerLine,
         TimeSpan duration) : this()
     {
-        Id = id;
+        TrackId = trackId;
+        QueueTrackId = queueTrackId;
         Position = position;
         Title = title;
         Subtitle = subTitle;
@@ -23,7 +25,8 @@ public partial class TrackModel
         Duration = duration;
     }
     
-    public Id Id { get; }
+    public Id TrackId { get; }
+    public Id QueueTrackId { get; }
     public string Title { get; }
     public string Subtitle { get; }
     public string ComposerLine { get; }

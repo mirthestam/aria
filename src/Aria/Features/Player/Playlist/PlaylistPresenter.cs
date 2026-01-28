@@ -31,7 +31,21 @@ public partial class PlaylistPresenter : IRecipient<QueueStateChangedMessage>, I
         _view = view;
         _view.TrackSelectionChanged += ViewOnTrackSelectionChanged;
         _view.EnqueueRequested += ViewOnEnqueueRequested;
+        _view.MoveRequested += ViewOnMoveRequested;
         _view.TogglePage(Playlist.PlaylistPages.Empty);
+    }
+
+    private async void ViewOnMoveRequested(object? sender, (Id sourceId, int targetIndex) args)
+    {
+        try
+        {
+            await _aria.Queue.MoveAsync(args.sourceId, args.targetIndex);
+        }
+        catch (Exception exception)
+        {
+            _messenger.Send(new ShowToastMessage("Could not move"));
+            LogCouldNotMove(exception);
+        }
     }
 
     private async void ViewOnEnqueueRequested(object? sender, (Id id, int index) args)
@@ -41,7 +55,7 @@ public partial class PlaylistPresenter : IRecipient<QueueStateChangedMessage>, I
             var info = await _aria.Library.GetItemAsync(args.id);
             if (info == null) return;
             
-            _ = _aria.Queue.EnqueueAsync(info, args.index);
+            await _aria.Queue.EnqueueAsync(info, args.index);
         }
         catch (Exception exception)
         {
@@ -128,4 +142,7 @@ public partial class PlaylistPresenter : IRecipient<QueueStateChangedMessage>, I
 
     [LoggerMessage(LogLevel.Error, "Could not enqueue")]
     partial void LogCouldNotEnqueue(Exception e);
+    
+    [LoggerMessage(LogLevel.Error, "Could not move")]
+    partial void LogCouldNotMove(Exception e);    
 }

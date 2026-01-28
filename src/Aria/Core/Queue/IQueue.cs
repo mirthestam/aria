@@ -41,4 +41,6 @@ public interface IQueue
     
     public Task EnqueueAsync(Info item, EnqueueAction action);
     public Task EnqueueAsync(Info item, int index);
+
+    public Task MoveAsync(Id sourceTrackId, int targetPlaylistIndex);
 }
