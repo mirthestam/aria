@@ -11,16 +11,6 @@ using TimeSpan = System.TimeSpan;
 
 namespace Aria.Features.Browser.Album;
 
-[Subclass<ActionRow>]
-public partial class AlbumTrackRow
-{
-    public AlbumTrackRow(Id trackId) : this()
-    {
-        TrackId = trackId;
-    }
-    public Id TrackId { get; set;  }
-}
-
 [Subclass<NavigationPage>]
 [Template<AssemblyResource>("Aria.Features.Browser.Album.AlbumPage.ui")]
 public partial class AlbumPage

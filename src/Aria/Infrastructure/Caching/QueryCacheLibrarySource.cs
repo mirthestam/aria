@@ -69,8 +69,13 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
             cancellationToken).ConfigureAwait(false);
 
         return list;
-    }    
+    }
 
+    public Task<IEnumerable<ArtistInfo>> GetArtistsAsync(ArtistQuery query, CancellationToken cancellationToken = default)
+    {
+        return _inner.GetArtistsAsync(query, cancellationToken);
+    }
+    
     public async Task<ArtistInfo?> GetArtistAsync(Id artistId, CancellationToken cancellationToken = default)
     {
         var key = $"id:{artistId}";

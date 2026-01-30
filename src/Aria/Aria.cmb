@@ -15,10 +15,28 @@
   <ui template-class="AriaFeaturesShellWelcomeConnectionListItem" filename="Features/Shell/Welcome/ConnectionListItem.ui" sha256="7f1e65b17142c6a38a869232fb732fd7a9f71a18be21d56d7c0aaa6a3ebeb9e4"/>
   <ui template-class="AriaFeaturesBrowserBrowserEmptyPage" filename="Features/Browser/BrowserEmptyPage.ui" sha256="b937439ae52384316823605a2a7ba0ed831094b325cf19a97c31af9510069f3d"/>
   <ui template-class="AriaFeaturesBrowserSearchSearchPage" filename="Features/Browser/Search/SearchPage.ui" sha256="fdc805e1d342f338166115c1f8741df473c22d8a04c3db25b86406c1b838c78e"/>
-  <ui template-class="AriaFeaturesBrowserArtistsArtistsPage" filename="Features/Browser/Artists/ArtistsPage.ui" sha256="d033ec99e0d2a95fae66633afbc8c4316764310506888f2a1f645a8376541563"/>
+  <ui template-class="AriaFeaturesBrowserArtistsArtistsPage" filename="Features/Browser/Artists/ArtistsPage.ui" sha256="02d1be8034ee2b5eeb268d046ce5dd8c2515861d4bd7b4cd6d9ade01479f7b0a"/>
   <ui template-class="AriaFeaturesBrowserAlbumsAlbumsPage" filename="Features/Browser/Albums/AlbumsPage.ui" sha256="a96d983cc64d58e74714bbe15422db66f4e1187aab0acbdfd377118447a838ee"/>
   <ui template-class="AriaFeaturesBrowserAlbumAlbumPage" filename="Features/Browser/Album/AlbumPage.ui" sha256="0a078a695f9ff191ebd8c8e0277e10fa7a0e3a510756518b44b5b1541510e07d"/>
   <ui template-class="AriaFeaturesBrowserAlbumsAlbumsAlbumListItem" filename="Features/Browser/Albums/AlbumsAlbumListItem.ui" sha256="e0b5e3ac0de8924a65ae901f292ca17ea638f963eb09af8176395608261b3969"/>
+  <ui>
+    <content><![CDATA[<interface>
+  <requires lib="gtk" version="4.6"/>
+  <object class="GtkPopover">
+    <property name="child">
+      <object class="GtkBox">
+        <property name="orientation">vertical</property>
+        <child>
+          <object class="GtkLabel">
+            <property name="label">Album</property>
+          </object>
+        </child>
+      </object>
+    </property>
+  </object>
+</interface>
+]]></content>
+  </ui>
   <ui template-class="AriaFeaturesBrowserArtistArtistPage" filename="Features/Browser/Artist/ArtistPage.ui" sha256="11982fc08f297409f7e6d96a8e0b09e69e233cb67d5ccc4fd89f13b7df0a1dbc">
     <requires>AriaFeaturesBrowserArtistEmptyPage</requires>
   </ui>

@@ -4,6 +4,7 @@ using Aria.Core.Library;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
+using Gio;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
 
@@ -14,10 +15,12 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
     private readonly ILogger<ArtistsPagePresenter> _logger;
     private readonly IMessenger _messenger;
     private readonly IAria _aria;
+    
+    private const  ArtistsFilter DefaultFilter = ArtistsFilter.Artists;
 
     private CancellationTokenSource? _refreshCancellationTokenSource;
-
     private ArtistsPage? _view;
+    private ArtistsFilter _activeFilter = ArtistsFilter.Main;
 
     public ArtistsPagePresenter(ILogger<ArtistsPagePresenter> logger, IMessenger messenger, IAria aria)
     {
@@ -38,6 +41,7 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
         try
         {
             AbortRefresh();
+            _view?.SetActiveFilter(_activeFilter);
             _view?.RefreshArtists([]);
         }
         catch (Exception e)
@@ -56,6 +60,20 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
         _view = view;
         _view.ArtistSelected += id => { _messenger.Send(new ShowArtistDetailsMessage(id)); };
         _view.AllAlbumsRequested += () => { _messenger.Send(new ShowAllAlbumsMessage()); };
+        _view.SetActiveFilter(_activeFilter);
+        
+        _view.ArtistsFilterAction.OnChangeState += ArtistsFilterActionOnOnChangeState;
+    }
+
+    private void ArtistsFilterActionOnOnChangeState(SimpleAction sender, SimpleAction.ChangeStateSignalArgs args)
+    {
+        var value = args.Value?.GetString(out _);
+        _activeFilter = Enum.TryParse<ArtistsFilter>(value, out var parsed)
+            ? parsed
+            : DefaultFilter;
+        _view?.SetActiveFilter(_activeFilter);
+        
+        _ = RefreshArtistsAsync();
     }
 
     private void AbortRefresh()
@@ -75,8 +93,14 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
 
         try
         {
-            var artists = await _aria.Library.GetArtistsAsync(cancellationToken);
-
+            var query = new ArtistQuery
+            {
+                RequiredRoles = ToRequiredRoles(_activeFilter),
+                Sort = ArtistSort.ByName
+            };
+            
+            var artists = await _aria.Library.GetArtistsAsync(query, cancellationToken);
+            
             if (_view != null)
             {
                 GLib.Functions.TimeoutAdd(0, 0, () =>
@@ -100,6 +124,17 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
         }
     }
 
+    private static ArtistRoles? ToRequiredRoles(ArtistsFilter filter) =>
+        filter switch
+        {
+            ArtistsFilter.Main => ArtistRoles.Main,
+            ArtistsFilter.Artists => null,
+            ArtistsFilter.Composers => ArtistRoles.Composer,
+            ArtistsFilter.Conductors => ArtistRoles.Conductor,
+            ArtistsFilter.Ensembles => ArtistRoles.Ensemble,
+            _ => null
+        };
+    
     [LoggerMessage(LogLevel.Error, "Could not load artists")]
     partial void LogCouldNotLoadArtists(Exception e);
 

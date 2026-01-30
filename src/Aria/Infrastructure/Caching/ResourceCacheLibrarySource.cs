@@ -44,6 +44,9 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
     public Task<IEnumerable<ArtistInfo>> GetArtistsAsync(CancellationToken cancellationToken = default)
         => _innerLibrary.GetArtistsAsync(cancellationToken);
 
+    public Task<IEnumerable<ArtistInfo>> GetArtistsAsync(ArtistQuery query,
+        CancellationToken cancellationToken = default) => _innerLibrary.GetArtistsAsync(query, cancellationToken);
+
     public Task<ArtistInfo?> GetArtistAsync(Id artistId, CancellationToken cancellationToken = default)
         => _innerLibrary.GetArtistAsync(artistId, cancellationToken);
 

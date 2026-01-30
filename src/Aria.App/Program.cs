@@ -20,7 +20,7 @@ using Aria.Features.Shell.Welcome;
 using Aria.Hosting;
 using Aria.Hosting.Extensions;
 using Aria.Infrastructure;
-using Aria.Infrastructure.Tagging;
+using Aria.Infrastructure.Extraction;
 using CommunityToolkit.Mvvm.Messaging;
 using Gio;
 using Microsoft.Extensions.DependencyInjection;

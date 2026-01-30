@@ -9,50 +9,54 @@
     <property name="child">
       <object class="AdwToolbarView">
         <property name="content">
-          <object class="GtkScrolledWindow">
+          <object class="GtkBox">
+            <property name="orientation">vertical</property>
             <child>
-              <object class="GtkBox">
-                <property name="orientation">vertical</property>
+              <object class="GtkScrolledWindow">
+                <property name="hexpand">True</property>
+                <property name="vexpand">True</property>
                 <child>
                   <object class="GtkListView" id="artists-list-view">
                     <property name="css-classes">navigation-sidebar</property>
                     <property name="show-separators">False</property>
+                    <property name="vexpand">True</property>
                   </object>
                 </child>
+              </object>
+            </child>
+            <child>
+              <object class="GtkSeparator">
+                <property name="can-focus">False</property>
+                <property name="can-target">False</property>
+                <property name="focus-on-click">False</property>
+                <property name="halign">fill</property>
+                <property name="height-request">-1</property>
+                <property name="hexpand">False</property>
+                <property name="margin-end">8</property>
+                <property name="margin-start">8</property>
+                <property name="orientation">horizontal</property>
+                <property name="overflow">visible</property>
+                <property name="sensitive">False</property>
+                <property name="valign">start</property>
+                <property name="vexpand">False</property>
+                <property name="vexpand-set">False</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkListBox" id="navigation-menu">
+                <property name="activate-on-single-click">True</property>
+                <property name="css-classes">navigation-sidebar</property>
+                <property name="show-separators">False</property>
+                <property name="valign">end</property>
                 <child>
-                  <object class="GtkSeparator">
-                    <property name="can-focus">False</property>
-                    <property name="can-target">False</property>
-                    <property name="focus-on-click">False</property>
-                    <property name="halign">fill</property>
-                    <property name="height-request">-1</property>
-                    <property name="hexpand">False</property>
-                    <property name="margin-end">8</property>
-                    <property name="margin-start">8</property>
-                    <property name="orientation">horizontal</property>
-                    <property name="overflow">visible</property>
-                    <property name="sensitive">False</property>
-                    <property name="valign">start</property>
-                    <property name="vexpand">False</property>
-                    <property name="vexpand-set">False</property>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkListBox" id="navigation-menu">
-                    <property name="activate-on-single-click">True</property>
-                    <property name="css-classes">navigation-sidebar</property>
-                    <property name="show-separators">False</property>
-                    <child>
-                      <object class="GtkListBoxRow" id="all-albums-row">
-                        <property name="child">
-                          <object class="GtkLabel">
-                            <property name="label">All Albums</property>
-                            <property name="lines">-1</property>
-                            <property name="xalign">0.0</property>
-                          </object>
-                        </property>
+                  <object class="GtkListBoxRow" id="all-albums-row">
+                    <property name="child">
+                      <object class="GtkLabel">
+                        <property name="label">All Albums</property>
+                        <property name="lines">-1</property>
+                        <property name="xalign">0.0</property>
                       </object>
-                    </child>
+                    </property>
                   </object>
                 </child>
               </object>
@@ -74,11 +78,11 @@
               </object>
             </child>
             <child type="title">
-              <object class="GtkMenuButton">
+              <object class="GtkMenuButton" id="artists-menu-button">
                 <property name="active">False</property>
                 <property name="css-classes">flat
 popup</property>
-                <property name="label">Composers</property>
+                <property name="label">Artists</property>
                 <property name="menu-model">artists-filter-menu</property>
                 <property name="visible">True</property>
               </object>
@@ -106,12 +110,32 @@ popup</property>
   <menu id="artists-filter-menu">
     <section id="main-section">
       <item>
-        <attribute name="action">filter.primaryartists</attribute>
+        <attribute name="action">artists.filter</attribute>
         <attribute name="label">Artists</attribute>
+        <attribute name="target">Main</attribute>
       </item>
       <item>
-        <attribute name="action">filter.composers</attribute>
+        <attribute name="action">artists.filter</attribute>
+        <attribute name="label">All Artists</attribute>
+        <attribute name="target">Artists</attribute>
+      </item>
+    </section>
+    <section>
+      <attribute name="label">Classical Music</attribute>
+      <item>
+        <attribute name="action">artists.filter</attribute>
         <attribute name="label">Composers</attribute>
+        <attribute name="target">Composers</attribute>
+      </item>
+      <item>
+        <attribute name="action">artists.filter</attribute>
+        <attribute name="label">Conductors</attribute>
+        <attribute name="target">Conductors</attribute>
+      </item>
+      <item>
+        <attribute name="action">artists.filter</attribute>
+        <attribute name="label">Ensembles</attribute>
+        <attribute name="target">Ensembles</attribute>
       </item>
     </section>
   </menu>

@@ -8,6 +8,7 @@ public abstract class BaseLibrary : ILibrarySource
     public virtual event Action? Updated;    
     
     public virtual Task<IEnumerable<ArtistInfo>> GetArtistsAsync(CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<ArtistInfo>());
+    public virtual Task<IEnumerable<ArtistInfo>> GetArtistsAsync(ArtistQuery query, CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<ArtistInfo>());
     public virtual Task<ArtistInfo?> GetArtistAsync(Id artistId, CancellationToken cancellationToken = default) => Task.FromResult(default(ArtistInfo));
     public virtual Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<AlbumInfo>());
     public virtual Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(Id artistId, CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<AlbumInfo>());

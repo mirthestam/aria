@@ -88,11 +88,28 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         return artists.FirstOrDefault(artist => artist.Id == artistId);
     }
 
+    public override async Task<IEnumerable<ArtistInfo>> GetArtistsAsync(ArtistQuery query, CancellationToken cancellationToken = default)
+    {
+        var artists = await GetArtistsAsync(cancellationToken).ConfigureAwait(false);
+
+        if (query.RequiredRoles is { } requiredRoles)
+            artists = artists.Where(a => (a.Roles & requiredRoles) != 0); // OR operator effectively
+        
+        artists = query.Sort switch
+        {
+            ArtistSort.ByName => artists.OrderBy(a => a.Name),
+            _ => artists
+        };
+
+        return artists;
+    }
+
     public override async Task<IEnumerable<ArtistInfo>> GetArtistsAsync(CancellationToken cancellationToken = default)
     {
         var artistMap = new Dictionary<Id, ArtistInfo>();
 
         using var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false);
+        await FetchAndAdd(new ListCommand(MpdTags.AlbumArtist), ArtistRoles.Main, scope).ConfigureAwait(false);
         await FetchAndAdd(new ListCommand(MpdTags.Artist), ArtistRoles.Performer, scope).ConfigureAwait(false);
         await FetchAndAdd(new ListCommand(MpdTags.Composer), ArtistRoles.Composer, scope).ConfigureAwait(false);
         await FetchAndAdd(new ListCommand(MpdTags.Performer), ArtistRoles.Performer, scope).ConfigureAwait(false);

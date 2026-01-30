@@ -14,6 +14,9 @@ public class LibraryProxy : ILibrarySource
 
     public event Action? Updated;
 
+    public Task<IEnumerable<ArtistInfo>> GetArtistsAsync(ArtistQuery query,
+        CancellationToken cancellationToken = default) => _innerLibrary.GetArtistsAsync(query, cancellationToken);
+
     public Task<ArtistInfo?> GetArtistAsync(Id artistId, CancellationToken cancellationToken = default) =>
         _innerLibrary.GetArtistAsync(artistId, cancellationToken);
 
@@ -29,11 +32,14 @@ public class LibraryProxy : ILibrarySource
     public Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken token) =>
         _innerLibrary.GetAlbumResourceStreamAsync(resourceId, token);
 
-    public Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default) => _innerLibrary.GetAlbumAsync(albumId, cancellationToken);
-    
-    public Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default) => _innerLibrary.SearchAsync(query, cancellationToken);
-    
-    public Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default) => _innerLibrary.GetItemAsync(id, cancellationToken);
+    public Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default) =>
+        _innerLibrary.GetAlbumAsync(albumId, cancellationToken);
+
+    public Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default) =>
+        _innerLibrary.SearchAsync(query, cancellationToken);
+
+    public Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default) =>
+        _innerLibrary.GetItemAsync(id, cancellationToken);
 
     internal void Attach(ILibrarySource library)
     {
@@ -55,6 +61,8 @@ public class LibraryProxy : ILibrarySource
 
     private class EmptyLibrary : ILibrarySource
     {
+        public Task<IEnumerable<ArtistInfo>> GetArtistsAsync(ArtistQuery query, CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<ArtistInfo>());
+
         public Task<ArtistInfo?> GetArtistAsync(Id artistId, CancellationToken cancellationToken = default) =>
             Task.FromResult<ArtistInfo?>(null);
 
@@ -64,19 +72,21 @@ public class LibraryProxy : ILibrarySource
         public Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(CancellationToken cancellationToken = default) =>
             Task.FromResult(Enumerable.Empty<AlbumInfo>());
 
-        public Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(Id artistId, CancellationToken cancellationToken = default) =>
+        public Task<IEnumerable<AlbumInfo>>
+            GetAlbumsAsync(Id artistId, CancellationToken cancellationToken = default) =>
             Task.FromResult(Enumerable.Empty<AlbumInfo>());
 
         public Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken token) =>
             Task.FromResult(Stream.Null);
 
-        public Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default) => Task.FromResult<AlbumInfo?>(null);
+        public Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default) =>
+            Task.FromResult<AlbumInfo?>(null);
 
         public Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default)
             => Task.FromResult(SearchResults.Empty);
 
         public Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default)
-         => Task.FromResult<Info?>(null);
+            => Task.FromResult<Info?>(null);
 
         public event Action? Updated;
     }

@@ -1,6 +1,5 @@
 using Aria.Core.Connection;
 using Aria.Core.Extraction;
-using Aria.Infrastructure.Tagging;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Aria.Infrastructure.Connection;

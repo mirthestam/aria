@@ -2,20 +2,19 @@
 using Aria.Backends.MPD.Extraction;
 using Aria.Core.Extraction;
 using Aria.Infrastructure.Extraction;
-using Aria.Infrastructure.Tagging;
 
 namespace Aria.Tests.Tagging.MPDTagParser;
 
 public class MPDTagParserTests
 {
-    private readonly Aria.Infrastructure.Tagging.MPDTagParser _parser;
+    private readonly Infrastructure.Extraction.MPDTagParser _parser;
 
     public MPDTagParserTests()
     {
         // The MPD ID factory is used here to identify unique items.
         // Note that the MPD tag parser is also compatible with other backends.
         var idFactory = new IdProvider();
-        _parser = new Aria.Infrastructure.Tagging.MPDTagParser(idFactory);
+        _parser = new Infrastructure.Extraction.MPDTagParser(idFactory);
     }
 
     [Fact]

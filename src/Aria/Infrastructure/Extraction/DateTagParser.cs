@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Aria.Infrastructure.Tagging;
+namespace Aria.Infrastructure.Extraction;
 
 public static class DateTagParser
 {

@@ -1,8 +1,7 @@
 using Aria.Core.Extraction;
 using Aria.Core.Library;
-using Aria.Infrastructure.Extraction;
 
-namespace Aria.Infrastructure.Tagging;
+namespace Aria.Infrastructure.Extraction;
 
 /// <summary>
 ///     A tag parser that follows tags as defined by the MPD best practices as documented

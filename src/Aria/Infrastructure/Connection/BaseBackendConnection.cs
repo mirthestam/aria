@@ -3,7 +3,6 @@ using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Core.Player;
 using Aria.Core.Queue;
-using Aria.Infrastructure.Tagging;
 using CommunityToolkit.Mvvm.Messaging;
 
 namespace Aria.Infrastructure.Connection;
