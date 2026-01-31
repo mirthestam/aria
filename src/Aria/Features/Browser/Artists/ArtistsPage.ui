@@ -137,6 +137,11 @@ popup</property>
         <attribute name="label">Ensembles</attribute>
         <attribute name="target">Ensembles</attribute>
       </item>
+      <item>
+        <attribute name="action">artists.filter</attribute>
+        <attribute name="label">Performers</attribute>
+        <attribute name="target">Performers</attribute>
+      </item>
     </section>
   </menu>
 </interface>

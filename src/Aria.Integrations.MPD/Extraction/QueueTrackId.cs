@@ -14,7 +14,7 @@ public class QueueTrackId(int id) : Id.TypedId<int>(id, Key)
 
     public static Id FromContext(QueueTrackIdentificationContext context)
     {
-        var idString = context.Tags.First(t => t.Name.Equals(MPDTags.QueueTags.Id, StringComparison.InvariantCultureIgnoreCase)).Value;
+        var idString = context.Tags.First(t => t.Name.Equals(PicardTagNames.QueueTags.Id, StringComparison.InvariantCultureIgnoreCase)).Value;
         var id = int.Parse(idString);
         return new QueueTrackId(id);
     }

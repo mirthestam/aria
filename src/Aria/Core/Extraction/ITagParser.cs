@@ -26,4 +26,9 @@ public interface ITagParser
     ///     Parses all album-related information from the tags
     /// </summary>
     AlbumInfo ParseAlbumInformation(IReadOnlyList<Tag> tags);
+    
+    /// <summary>
+    /// Is used by the library to determine how to format artists
+    /// </summary>
+    ArtistInfo? ParseArtistInformation(string artistName, string? artistNameSort, ArtistRoles roles);
 }

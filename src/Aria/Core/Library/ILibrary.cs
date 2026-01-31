@@ -4,7 +4,8 @@ namespace Aria.Core.Library;
 
 public enum ArtistSort
 {
-    ByName
+    ByName,
+    ByNameSort
 }
 
 public sealed record ArtistQuery

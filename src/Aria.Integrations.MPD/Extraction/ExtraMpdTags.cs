@@ -11,6 +11,8 @@ public static class ExtraMpdTags
 
     public static ITag Ensemble { get; } = new ExtraTag("ensemble");
 
+    public static ITag ComposerSort { get; } = new ExtraTag("composersort");
+    
     private class ExtraTag : ITag
     {
         internal ExtraTag(string value)

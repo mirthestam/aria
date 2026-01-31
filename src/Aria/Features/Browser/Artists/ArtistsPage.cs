@@ -41,6 +41,7 @@ public partial class ArtistsPage
             ArtistsFilter.Composers => "Composers",
             ArtistsFilter.Conductors => "Conductors",
             ArtistsFilter.Ensembles => "Ensembles",
+            ArtistsFilter.Performers => "Performers",
             _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, null)
         };
         
@@ -48,12 +49,12 @@ public partial class ArtistsPage
         _artistsMenuButton.SetLabel(displayName);
     }
     
-    public void RefreshArtists(IEnumerable<ArtistInfo> artists)
+    public void RefreshArtists(IEnumerable<ArtistInfo> artists, ArtistNameDisplay nameDisplay)
     {
         _artistsListStore.RemoveAll();
         foreach (var artist in artists)
         {
-            var listViewItem = new ArtistModel(artist);
+            var listViewItem = new ArtistModel(artist, nameDisplay);
             _artistsListStore.Append(listViewItem);
         }
     }    

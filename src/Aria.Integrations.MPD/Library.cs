@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Aria.Backends.MPD.Connection;
 using Aria.Backends.MPD.Extraction;
 using Aria.Core.Extraction;
@@ -18,6 +19,12 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
 {
     private readonly AlbumsParser _albumsParser = new(tagParser);
 
+    // Artists can appear with multiple notations in our backend.
+    // This means, we 'deduplicated' them using our tag parser.
+    // However, for a lookup, we need to use those aliases to make sure
+    // we are leaving nothing out.
+    private readonly ConcurrentDictionary<Id, ConcurrentDictionary<string, byte>> _artistAliases = new();
+    
     public void ServerUpdated()
     {
         OnUpdated();
@@ -109,48 +116,91 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         var artistMap = new Dictionary<Id, ArtistInfo>();
 
         using var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false);
-        await FetchAndAdd(new ListCommand(MpdTags.AlbumArtist), ArtistRoles.Main, scope).ConfigureAwait(false);
-        await FetchAndAdd(new ListCommand(MpdTags.Artist), ArtistRoles.Performer, scope).ConfigureAwait(false);
-        await FetchAndAdd(new ListCommand(MpdTags.Composer), ArtistRoles.Composer, scope).ConfigureAwait(false);
-        await FetchAndAdd(new ListCommand(MpdTags.Performer), ArtistRoles.Performer, scope).ConfigureAwait(false);
-        await FetchAndAdd(new ListCommand(ExtraMpdTags.Conductor), ArtistRoles.Conductor, scope).ConfigureAwait(false);
-        await FetchAndAdd(new ListCommand(ExtraMpdTags.Ensemble), ArtistRoles.Ensemble, scope).ConfigureAwait(false);
+
+        await FetchAndAddSingles(new ListCommand(MpdTags.AlbumArtist), ArtistRoles.Main, scope).ConfigureAwait(false);
+        await FetchAndAddSingles(new ListCommand(MpdTags.Artist), ArtistRoles.Performer, scope).ConfigureAwait(false);
+        await FetchAndAddSingles(new ListCommand(MpdTags.Composer), ArtistRoles.Composer, scope).ConfigureAwait(false);
+        await FetchAndAddSingles(new ListCommand(MpdTags.Performer), ArtistRoles.Performer, scope).ConfigureAwait(false);
+        await FetchAndAddSingles(new ListCommand(ExtraMpdTags.Conductor), ArtistRoles.Conductor, scope).ConfigureAwait(false);
+        await FetchAndAddSingles(new ListCommand(ExtraMpdTags.Ensemble), ArtistRoles.Ensemble, scope).ConfigureAwait(false);
+
+        // Disabled because sorting matching is still buggy and needs work
+        //await FetchAndAddDoubles(new ListCommand(ExtraMpdTags.ComposerSort, MpdTags.Composer), ArtistRoles.Composer, scope).ConfigureAwait(false);
 
         return artistMap.Values;
 
-        async Task FetchAndAdd(IMpcCommand<IEnumerable<string>> command, ArtistRoles role,
+        async Task FetchAndAddSingles(IMpcCommand<IEnumerable<string>> command, ArtistRoles role,
             ConnectionScope connectionScope)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var (isSuccess, names) = await connectionScope.SendCommandAsync(command).ConfigureAwait(false);
-            if (isSuccess && names != null)
+            var (isSuccess, result) = await connectionScope.SendCommandAsync(command).ConfigureAwait(false);
+            if (isSuccess && result != null)
             {
-                foreach (var name in names) AddOrUpdate(name, role);
+                foreach (var name in result)
+                    AddOrUpdate(backendArtistName: name, artistNameSort: null, roles: role);
             }
         }
 
-        void AddOrUpdate(string artistName, ArtistRoles roles)
+        async Task FetchAndAddDoubles(IMpcCommand<IEnumerable<string>> command, ArtistRoles role,
+            ConnectionScope connectionScope)
         {
-            var id = new ArtistId(artistName);
-            if (string.IsNullOrWhiteSpace(artistName)) return;
+            cancellationToken.ThrowIfCancellationRequested();
+            var (isSuccess, result) = await connectionScope.SendCommandAsync(command).ConfigureAwait(false);
+            if (isSuccess && result != null)
+            {
+                using var enumerator = result.GetEnumerator();
+                string? lastArtistName = null;
 
+                while (enumerator.MoveNext())
+                {
+                    var current = enumerator.Current;
+                    if (string.IsNullOrWhiteSpace(current)) continue;
+
+                    var isArtistName = artistMap.ContainsKey(new ArtistId(current));
+                    if (isArtistName)
+                    {
+                        lastArtistName = current;
+                        continue;
+                    }
+
+                    if (lastArtistName is null)
+                    {
+                        logger.LogWarning("Sort value '{SortValue}' encountered before any artist name.", current);
+                        continue;
+                    }
+
+                    AddOrUpdate(lastArtistName, current, role);
+                    lastArtistName = null;
+                }
+            }
+        }
+
+        void AddOrUpdate(string backendArtistName, string? artistNameSort, ArtistRoles roles)
+        {
+            if (string.IsNullOrWhiteSpace(backendArtistName)) return;
+            
+            // Parse the info we retrieve.
+            var info = tagParser.ParseArtistInformation(backendArtistName, artistNameSort, roles);
+            if (info == null) return;
+            if (string.IsNullOrWhiteSpace(info.Name)) return;
+            
+            var id = new ArtistId(info.Name);
+            
             if (artistMap.TryGetValue(id, out var existingArtist))
             {
                 artistMap[id] = existingArtist with
                 {
-                    Roles = existingArtist.Roles | roles
+                    NameSort = info.NameSort ?? existingArtist.NameSort,
+                    Roles = existingArtist.Roles | info.Roles
                 };
             }
             else
             {
-                var artistInfo = new ArtistInfo
-                {
-                    Id = id,
-                    Name = artistName,
-                    Roles = roles
-                };
-                artistMap[id] = artistInfo;
+                artistMap[id] = info with { Id = id };
             }
+            
+            // Record the backend/original value as an alias for later queries
+            _artistAliases.GetOrAdd(id, _ => new ConcurrentDictionary<string, byte>())[backendArtistName] = 0;
         }
     }
 
@@ -186,20 +236,28 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
         CancellationToken cancellationToken = default)
     {
         var mpdArtistId = (ArtistId)artistId;
+        if (_artistAliases.IsEmpty) throw new InvalidOperationException("Artists has not been initialized yet");
+        
+        // Expand to all known backend aliases for this canonical artist
+        var aliasMap = _artistAliases.TryGetValue(mpdArtistId, out var aliases) ? aliases : null;
+        var namesToQuery = (aliasMap?.Keys ?? Enumerable.Empty<string>())
+            .Append(mpdArtistId.Value)
+            .Where(x => !string.IsNullOrWhiteSpace(x))
+            .Distinct(StringComparer.Ordinal)
+            .ToList();        
 
         using var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false);
 
         // Either FindCommand or SearchCommand could be used here. SearchCommand is faster because it does not support expressions.
-        var tasks = new[]
+        var tasks = namesToQuery.SelectMany(name => new[]
         {
-            scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.AlbumArtist, mpdArtistId.Value)),
-            scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.Artist, mpdArtistId.Value)),
-            scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.Composer, mpdArtistId.Value)),
-            scope.SendCommandAsync(
-                new MPD.Connection.Commands.SearchCommand(ExtraMpdTags.Conductor, mpdArtistId.Value)),
-            scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(ExtraMpdTags.Ensemble, mpdArtistId.Value)),
-            scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.Performer, mpdArtistId.Value))
-        };
+            scope.SendCommandAsync(new SearchCommand(MpdTags.AlbumArtist, name)),
+            scope.SendCommandAsync(new SearchCommand(MpdTags.Artist, name)),
+            scope.SendCommandAsync(new SearchCommand(MpdTags.Composer, name)),
+            scope.SendCommandAsync(new SearchCommand(ExtraMpdTags.Conductor, name)),
+            scope.SendCommandAsync(new SearchCommand(ExtraMpdTags.Ensemble, name)),
+            scope.SendCommandAsync(new SearchCommand(MpdTags.Performer, name))
+        }).ToArray();
 
         var results = await Task.WhenAll(tasks).ConfigureAwait(false);
 
@@ -208,6 +266,7 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
             .SelectMany(r => r.Content!)
             .Select(pair => new Tag(pair.Key, pair.Value))
             .ToList();
+
 
         return _albumsParser.GetAlbums(allTags);
     }

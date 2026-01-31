@@ -1,10 +1,11 @@
 namespace Aria.Infrastructure.Extraction;
 
+
 /// <summary>
-/// Constants for names of tags as defined by the MPD best practices as documented
-/// https://mpd.readthedocs.io/en/latest/protocol.html#tags
+/// Constants for names of tags as used by the the Picare tagger
+/// https://picard-docs.musicbrainz.org/en/index.html
 /// </summary>
-public static class MPDTags
+public static class PicardTagNames
 {
     public static class AlbumTags
     {
@@ -33,6 +34,7 @@ public static class MPDTags
     {
         public const string Artist = "artist";
         public const string Composer = "composer";
+        public const string ComposerSort = "composersort";
         public const string Conductor = "conductor";
         public const string Performer = "performer";
         public const string Ensemble = "ensemble";
@@ -44,6 +46,11 @@ public static class MPDTags
         public const string Movement = "movement";
         public const string MovementNumber = "movementnumber";
         public const string ShowMovement = "showmovement";
+    }
+
+    public static class GroupTags
+    {
+        public const string Heading = "grouping";
     }
 
     public static class RecordingTags

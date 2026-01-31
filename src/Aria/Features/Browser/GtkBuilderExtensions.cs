@@ -25,6 +25,7 @@ public static class GtkBuilderExtensions
             builder.WithGType<Albums.AlbumsAlbumListItem>();
             builder.WithGType<Albums.AlbumsAlbumModel>();
             builder.WithGType<Albums.AlbumsPage>();
+            builder.WithGType<TrackGroup>();
         }
     }
 }

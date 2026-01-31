@@ -1,27 +1,50 @@
+using System.Text.RegularExpressions;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
 
 namespace Aria.Infrastructure.Extraction;
 
 /// <summary>
-///     A tag parser that follows tags as defined by the MPD best practices as documented
+///     A tag parser that follows tags as defined by the default configuration of MusicBrainz Picard
 ///     https://mpd.readthedocs.io/en/latest/protocol.html#tags
 /// </summary>
-/// <remarks>
-///     This parser is in the common project, because applied tagging scheme is independent  of the loaded backend.
-///     I plan to add other schemes, like  Lyrion, or pure Musicbrainz (Picard).
-/// </remarks>
-public class MPDTagParser(IIdProvider idProvider) : ITagParser
+
+
+/* About Album Artists
+ https://community.metabrainz.org/t/multiple-album-artists/532302/13
+ Picard has no default 'albumartists' multi-list. Also, for 'albumartist'  join phrases do not seem to be standardized.
+ 
+ This script, as proposed in the topic above, converts it to a multi list. MPD supports this multi list. Therefore,
+ we now CAN handle them.
+ 
+ $setmulti(albumartist,%_albumartists%)
+ $setmulti(albumartistsort,%_albumartists_sort%)
+   
+   
+If you want to be able to see ensembles in the artists list,
+you'll need to use the calssic tool to map 'ensemble_names' field to 'ensemble'.
+Do note, this is a single field.
+
+// Ik heb nog afwijkende namen in album artist.
+https://github.com/rdswift/picard-plugins/blob/2.0_RDS_Plugins/plugins/additional_artists_variables/docs/README.md
+die plugin proberen, EN dan documenteren
+ */
+
+public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
 {
+    private sealed record ParsedArtistName(string Name, string? Extra);
+    
+    private static readonly Regex PerformerSuffixRegex = PerformerSuffixRegexFactory();
+    
     public TrackInfo ParseTrackInformation(IReadOnlyList<Tag> tags)
     {
         var artistTags = new List<string>();
         var albumArtistTags = new List<string>();
-        var composerTags = new List<string>();
+        var composerTags = new List<string>();     
         var performerTags = new List<string>();
+        var ensembleTags = new List<string>();
         var titleTag = "";
         var conductorTag = "";
-        var ensembleTag = "";
         var workTag = "";
         var movementNameTag = "";
         var movementNumberTag = "";
@@ -35,59 +58,59 @@ public class MPDTagParser(IIdProvider idProvider) : ITagParser
         foreach (var tag in tags)
             switch (tag.Name.ToLowerInvariant())
             {
-                case MPDTags.FileTags.File:
+                case PicardTagNames.FileTags.File:
                     fileNameTag = tag.Value;
                     break;
                 
-                case MPDTags.TrackTags.Date:
+                case PicardTagNames.TrackTags.Date:
                     dateTag = tag.Value;
                     break;
                 
-                case MPDTags.WorkTags.Movement:
+                case PicardTagNames.WorkTags.Movement:
                     movementNameTag = tag.Value;
                     break;
 
-                case MPDTags.WorkTags.MovementNumber:
+                case PicardTagNames.WorkTags.MovementNumber:
                     movementNumberTag = tag.Value;
                     break;
 
-                case MPDTags.WorkTags.ShowMovement:
+                case PicardTagNames.WorkTags.ShowMovement:
                     showMovementTag = tag.Value == "1";
                     break;
 
-                case MPDTags.ArtistTags.Artist:
+                case PicardTagNames.ArtistTags.Artist:
                     artistTags.Add(tag.Value);
                     break;
 
-                case MPDTags.AlbumTags.AlbumArtist:
+                case PicardTagNames.AlbumTags.AlbumArtist:
                     albumArtistTags.Add(tag.Value);
                     break;
 
-                case MPDTags.ArtistTags.Composer:
+                case PicardTagNames.ArtistTags.Composer:
                     composerTags.Add(tag.Value);
                     break;
 
-                case MPDTags.TrackTags.Title:
+                case PicardTagNames.TrackTags.Title:
                     titleTag = tag.Value;
                     break;
 
-                case MPDTags.ArtistTags.Performer:
+                case PicardTagNames.ArtistTags.Performer:
                     performerTags.Add(tag.Value);
                     break;
+                
+                case PicardTagNames.ArtistTags.Ensemble:
+                    ensembleTags.Add(tag.Value);
+                    break;
 
-                case MPDTags.ArtistTags.Conductor:
+                case PicardTagNames.ArtistTags.Conductor:
                     conductorTag = tag.Value;
                     break;
 
-                case MPDTags.WorkTags.Work:
+                case PicardTagNames.WorkTags.Work:
                     workTag = tag.Value;
                     break;
-
-                case MPDTags.ArtistTags.Ensemble:
-                    ensembleTag = tag.Value;
-                    break;
-
-                case MPDTags.TrackTags.Duration:
+                
+                case PicardTagNames.TrackTags.Duration:
                     var seconds = double.Parse(tag.Value);
                     durationTag = TimeSpan.FromSeconds(seconds);
                     break;
@@ -108,7 +131,8 @@ public class MPDTagParser(IIdProvider idProvider) : ITagParser
         foreach (var performerName in performerTags.Where(performerName => !string.IsNullOrWhiteSpace(performerName)))
             AddArtist(performerName, ArtistRoles.Performer);
 
-        if (!string.IsNullOrWhiteSpace(ensembleTag)) AddArtist(ensembleTag, ArtistRoles.Ensemble);
+        foreach (var ensembleName in ensembleTags.Where(ensembleName => !string.IsNullOrWhiteSpace(ensembleName)))
+            AddArtist(ensembleName, ArtistRoles.Ensemble);
 
         if (!string.IsNullOrWhiteSpace(conductorTag)) AddArtist(conductorTag, ArtistRoles.Conductor);
         
@@ -141,7 +165,10 @@ public class MPDTagParser(IIdProvider idProvider) : ITagParser
 
         void AddArtist(string artistName, ArtistRoles roles)
         {
-            var existingArtist = artists.FirstOrDefault(a => a.Artist.Name == artistName);
+
+            var parts = ParseArtistNameParts(artistName);
+            
+            var existingArtist = artists.FirstOrDefault(a => a.Artist.Name == parts.Name);
             if (existingArtist != null)
             {
                 var index = artists.IndexOf(existingArtist);
@@ -157,8 +184,9 @@ public class MPDTagParser(IIdProvider idProvider) : ITagParser
                     Roles = roles,
                     Artist = new ArtistInfo
                     {
-                        Name = artistName
-                    }
+                        Name = parts.Name
+                    },
+                    AdditionalInformation = parts.Extra
                 };
                 var artistId = idProvider.CreateArtistId(new ArtistIdentificationContext
                 {
@@ -207,7 +235,7 @@ public class MPDTagParser(IIdProvider idProvider) : ITagParser
         {
             switch (tag.Name.ToLowerInvariant())
             {
-                case MPDTags.QueueTags.Position:
+                case PicardTagNames.QueueTags.Position:
                     position = int.Parse(tag.Value);
                     break;
             }
@@ -240,17 +268,22 @@ public class MPDTagParser(IIdProvider idProvider) : ITagParser
     {
         var diskTag = "";
         var trackNumberTag = "";
+        var headingTag = "";
 
         foreach (var tag in tags)
         {
             switch (tag.Name.ToLowerInvariant())
             {
-                case MPDTags.AlbumTags.Track:
+                case PicardTagNames.AlbumTags.Track:
                     trackNumberTag = tag.Value;
                     break;
                 
-                case MPDTags.AlbumTags.Disc:
+                case PicardTagNames.AlbumTags.Disc:
                     diskTag = tag.Value;
+                    break;
+                
+                case PicardTagNames.GroupTags.Heading:
+                    headingTag = tag.Value;
                     break;
             }
         }
@@ -258,16 +291,28 @@ public class MPDTagParser(IIdProvider idProvider) : ITagParser
         var trackInfo = ParseTrackInformation(tags);
         var isTrackNumberFound = int.TryParse(trackNumberTag, out var trackNumber);
 
+        TrackGroup? group = null;
+        
+        if (!string.IsNullOrWhiteSpace(headingTag))
+        {
+            group = new TrackGroup
+            {
+                Title = headingTag,
+                Key = headingTag
+            };
+        }
+        
         var albumTrackInfo = new AlbumTrackInfo
         {
             TrackNumber = isTrackNumberFound ? trackNumber : null,
             VolumeName = diskTag,
-            Track = trackInfo
+            Track = trackInfo,
+            Group = group
         };
         
         return albumTrackInfo;
     }
-
+    
     public AlbumInfo ParseAlbumInformation(IReadOnlyList<Tag> tags)
     {
         var title = "";
@@ -277,7 +322,7 @@ public class MPDTagParser(IIdProvider idProvider) : ITagParser
         foreach (var (tag, value) in tagList)
             switch (tag.ToLowerInvariant())
             {
-                case MPDTags.AlbumTags.Album:
+                case PicardTagNames.AlbumTags.Album:
                     title = value;
                     break;
             }
@@ -302,4 +347,40 @@ public class MPDTagParser(IIdProvider idProvider) : ITagParser
 
         return albumInfo with { Id = id };
     }
+
+    public ArtistInfo? ParseArtistInformation(string artistName, string? artistNameSort, ArtistRoles roles)
+    {
+        var artistNameParts = ParseArtistNameParts(artistName);
+        var artistNameSortParts = ParseArtistNameParts(artistNameSort);
+        
+        return new ArtistInfo
+        {
+            Name = artistNameParts?.Name ?? artistName,
+            NameSort = artistNameSortParts?.Extra ?? artistNameSort,
+            Roles = roles
+        };
+    }
+ 
+    private static ParsedArtistName? ParseArtistNameParts(string? value)
+    {
+        // Picard uses 'Name (Extra)' format for artists.'
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        var trimmed = value.Trim();
+        
+        var match = PerformerSuffixRegex.Match(trimmed);
+        if (!match.Success)
+            return new ParsedArtistName(trimmed, null);
+
+        var name = match.Groups["name"].Value.Trim();
+        var extra = match.Groups["extra"].Value.Trim();
+        
+        return string.IsNullOrWhiteSpace(name)
+            ? new ParsedArtistName(trimmed, null)
+            : new ParsedArtistName(name, string.IsNullOrWhiteSpace(extra) ? null : extra);
+    }    
+    
+    [GeneratedRegex(@"^(?<name>.*?)\s*\((?<extra>[^()]+)\)\s*$", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
+    private static partial Regex PerformerSuffixRegexFactory();
 }

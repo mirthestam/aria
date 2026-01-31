@@ -15,7 +15,7 @@ public static class TagParserExtensions
             foreach (var tag in tags)
             {
                 // Each 'file' key marks the start of a new track in the response stream
-                if (tag.Name.Equals(MPDTags.FileTags.File, StringComparison.OrdinalIgnoreCase) && currentTrackTags.Count > 0)
+                if (tag.Name.Equals(PicardTagNames.FileTags.File, StringComparison.OrdinalIgnoreCase) && currentTrackTags.Count > 0)
                 {
                     var track = parser.ParseQueueTrackInformation(currentTrackTags);
                     yield return track;

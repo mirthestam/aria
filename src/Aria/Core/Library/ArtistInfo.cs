@@ -1,14 +1,15 @@
-using Aria.Core.Extraction;
-
 namespace Aria.Core.Library;
 
 /// <summary>
 ///     Represents an artist in the library.
 /// </summary>
-//public sealed record ArtistInfo(string Name, string NameSort, ArtistRoles Roles)
 public sealed record ArtistInfo : Info
 {
     public required string Name { get; init; }
+
+    public string? NameSort { get; init; }
+    
+    public string? AdditionalInformation { get; init; }
     
     /// <summary>
     ///     The roles of the artist in the library.
@@ -18,5 +19,4 @@ public sealed record ArtistInfo : Info
     ///     composed by Chopin. Therefore, as an artist, he is both a performer and a composer.
     /// </example>
     public ArtistRoles Roles { get; init; }
-    
 }

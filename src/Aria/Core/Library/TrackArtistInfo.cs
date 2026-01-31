@@ -13,4 +13,6 @@ public record TrackArtistInfo
     ///     though, as an artist in general, he is also recognized as a performer.
     /// </example>
     public required ArtistRoles Roles { get; init; } = ArtistRoles.None;
+    
+    public string? AdditionalInformation { get; init; }
 }

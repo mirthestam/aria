@@ -6,5 +6,6 @@ public enum ArtistsFilter
     Main,
     Composers,
     Conductors,
-    Ensembles
+    Ensembles,
+    Performers
 }

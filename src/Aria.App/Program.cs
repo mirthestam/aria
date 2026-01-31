@@ -67,7 +67,7 @@ public class Program
                 
                 x.AddSingleton<IConnectionProfileProvider, ConnectionProfileProvider>();
                 x.AddSingleton<ResourceTextureLoader>();
-                x.AddTransient<ITagParser, MPDTagParser>();                
+                x.AddTransient<ITagParser, PicardTagParser>();                
 
                 // Main
                 x.AddSingleton<MainWindow>();

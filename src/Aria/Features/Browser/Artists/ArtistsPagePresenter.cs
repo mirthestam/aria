@@ -1,8 +1,6 @@
 using Aria.Core;
-using Aria.Core.Connection;
 using Aria.Core.Library;
 using Aria.Features.Shell;
-using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
 using Gio;
 using Microsoft.Extensions.Logging;
@@ -17,6 +15,7 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
     private readonly IAria _aria;
     
     private const  ArtistsFilter DefaultFilter = ArtistsFilter.Artists;
+    private const ArtistNameDisplay DefaultDisplayName = ArtistNameDisplay.Name;
 
     private CancellationTokenSource? _refreshCancellationTokenSource;
     private ArtistsPage? _view;
@@ -42,7 +41,7 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
         {
             AbortRefresh();
             _view?.SetActiveFilter(_activeFilter);
-            _view?.RefreshArtists([]);
+            _view?.RefreshArtists([], DefaultDisplayName);
         }
         catch (Exception e)
         {
@@ -91,23 +90,31 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
         _refreshCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(externalCancellationToken);
         var cancellationToken = _refreshCancellationTokenSource.Token;
 
+
         try
         {
+            var (sort, displayField) = _activeFilter switch
+            {
+                // For now, only use this for the composer view.
+                ArtistsFilter.Composers => (ArtistSort.ByNameSort, ArtistNameDisplay.NameSort),
+                _ => (ArtistSort.ByName, ArtistNameDisplay.Name)
+            };
+
             var query = new ArtistQuery
             {
                 RequiredRoles = ToRequiredRoles(_activeFilter),
-                Sort = ArtistSort.ByName
+                Sort = sort
             };
-            
+
             var artists = await _aria.Library.GetArtistsAsync(query, cancellationToken);
-            
+
             if (_view != null)
             {
                 GLib.Functions.TimeoutAdd(0, 0, () =>
                 {
                     if (cancellationToken.IsCancellationRequested) return false;
                     
-                    _view.RefreshArtists(artists);
+                    _view.RefreshArtists(artists, displayField);
                     return false;
                 });
             }
@@ -132,6 +139,7 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
             ArtistsFilter.Composers => ArtistRoles.Composer,
             ArtistsFilter.Conductors => ArtistRoles.Conductor,
             ArtistsFilter.Ensembles => ArtistRoles.Ensemble,
+            ArtistsFilter.Performers => ArtistRoles.Performer,
             _ => null
         };
     

@@ -11,7 +11,21 @@ public partial class ArtistListItem
 
     public void Update(ArtistModel model)
     {
-        TooltipText = model.Artist.Name;
-        _nameLabel.SetLabel(model.Artist.Name);
+        switch (model.NameDisplay)
+        {
+            case ArtistNameDisplay.Name:
+                TooltipText = model.Artist.Name;
+                _nameLabel.SetLabel(model.Artist.Name);                
+                break;
+            case ArtistNameDisplay.NameSort:
+                var name = model.Artist.NameSort ?? model.Artist.Name;
+                TooltipText = name;
+                _nameLabel.SetLabel(name);                
+                break;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+        
+
     }
 }
