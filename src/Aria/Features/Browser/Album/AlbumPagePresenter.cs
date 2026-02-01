@@ -25,12 +25,30 @@ public partial class AlbumPagePresenter(
     public void Attach(AlbumPage view)
     {
         _view = view;
-        _view.PlayAlbumAction.OnActivate += PlayAlbumActionOnOnActivate;
-        _view.EnqueueAlbumAction.OnActivate += EnqueueAlbumActionOnOnActivate;
         _view.ShowFullAlbumAction.OnActivate += ShowFullAlbumActionOnOnActivate;
         _view.EnqueueTrack.OnActivate += EnqueueTrackOnOnActivate;
     }
 
+    public void Reset()
+    {
+        LogResetting(logger);
+        try
+        {
+            AbortLoading();
+        }
+        catch (Exception e)
+        {
+            LogFailedToAbortLoading(logger, e);
+        }
+    }    
+    
+    private void AbortLoading()
+    {
+        _loadCts?.Cancel();
+        _loadCts?.Dispose();
+        _loadCts = null;
+    }    
+    
     private void EnqueueTrackOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         if (args.Parameter == null)
@@ -74,48 +92,6 @@ public partial class AlbumPagePresenter(
         // If this is invoked, the album was shown partially.
         // Reload the album, but without any filters
         _view?.LoadAlbum(_album!);
-    }
-
-    public void Reset()
-    {
-        LogResetting(logger);
-        try
-        {
-            AbortLoading();
-        }
-        catch (Exception e)
-        {
-            LogFailedToAbortLoading(logger, e);
-        }
-    }    
-
-    private void AbortLoading()
-    {
-        _loadCts?.Cancel();
-        _loadCts?.Dispose();
-        _loadCts = null;
-    }    
-    
-    private void EnqueueAlbumActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
-    {
-        LogEnqueueingAlbum(logger, _album?.Id ?? Id.Unknown);
-        
-        // TODO: Filtering is currently handled in the view.
-        // This logic should be moved to the presenter
-        // so the presenter explicitly controls which tracks are enqueued.
-        // The same applies to the Play button.
-    
-        if (_album?.Id == null) return;
-        _ = aria.Queue.EnqueueAsync(_album, EnqueueAction.EnqueueEnd);
-        messenger.Send(new ShowToastMessage($"Album '{_album.Title}' added to queue."));
-    }
-
-    private void PlayAlbumActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
-    {
-        LogPlayingAlbum(logger, _album?.Id ?? Id.Unknown);
-        
-        if (_album?.Id == null) return;
-        _ = aria.Queue.EnqueueAsync(_album, EnqueueAction.Replace);
     }
     
     public async Task LoadAsync(AlbumInfo album, ArtistInfo? filteredArtist = null)
@@ -164,7 +140,7 @@ public partial class AlbumPagePresenter(
             LogCouldNotLoadAlbumCoverForAlbum(e, album.Id ?? Id.Empty);
         }
     }
-
+    
     [LoggerMessage(LogLevel.Warning, "Could not load album cover for album {albumId}")]
     partial void LogCouldNotLoadAlbumCoverForAlbum(Id albumId);
 

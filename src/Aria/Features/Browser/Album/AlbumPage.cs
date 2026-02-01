@@ -1,6 +1,8 @@
 using Adw;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Core.Queue;
+using Aria.Infrastructure;
 using Gdk;
 using Gio;
 using GLib;
@@ -16,29 +18,77 @@ public partial class AlbumPage
     private AlbumInfo _album;
 
     [Connect("cover-picture")] private Picture _coverPicture;
-    [Connect("play-button")] private Button _playButton;
     [Connect("tracks-box")] private Box _tracksBox;
     
-    [Connect("albumartists-box")] private WrapBox _albumArtistsBox;
+    [Connect("credit-box")] private CreditBox _creditBox;
+    
     [Connect("title-label")] private Label _titleLabel;
-    [Connect("partial-banner")] private Banner _partialBanner;
 
-    public SimpleAction PlayAlbumAction { get; private set; }
-    public SimpleAction EnqueueAlbumAction { get; private set; }
+    [Connect("message-listbox")] private ListBox _messageListBox;
+    [Connect("filter-message-row")]private ActionRow _filterMessageRow;
+
+    [Connect("enqueue-split-button")] private SplitButton _enqueueSplitButton;
+
+    public SimpleAction AlbumEnqueueDefaultAction { get; private set; }    
+    public SimpleAction AlbumEnqueueReplaceAction { get; private set; }
+    public SimpleAction AlbumEnqueueNextAction { get; private set; }
+    public SimpleAction AlbumEnqueueEndAction { get; private set; }
+    
     public SimpleAction ShowFullAlbumAction { get; private set; }
     public SimpleAction EnqueueTrack { get; private set; }
     
     private IReadOnlyList<AlbumTrackInfo> _filteredTracks;
     private readonly List<TrackGroup> _trackGroups = [];
+    private List<TrackArtistInfo> _sharedArtists = [];
 
     partial void Initialize()
     {
         var actionGroup = SimpleActionGroup.New();
-        actionGroup.AddAction(PlayAlbumAction = SimpleAction.New("play", null));
-        actionGroup.AddAction(EnqueueAlbumAction = SimpleAction.New("enqueue", null));
+        actionGroup.AddAction(AlbumEnqueueDefaultAction = SimpleAction.New("enqueue-default", null));        
+        actionGroup.AddAction(AlbumEnqueueReplaceAction = SimpleAction.New("enqueue-replace", null));
+        actionGroup.AddAction(AlbumEnqueueNextAction = SimpleAction.New("enqueue-next", null));
+        actionGroup.AddAction(AlbumEnqueueEndAction = SimpleAction.New("enqueue-end", null));
         actionGroup.AddAction(ShowFullAlbumAction = SimpleAction.New("full", null));
         actionGroup.AddAction(EnqueueTrack = SimpleAction.New("enqueue-track-default", VariantType.String));
         InsertActionGroup("album", actionGroup);
+        //_enqueueSplitButton.InsertActionGroup("album", actionGroup);
+        
+        AlbumEnqueueDefaultAction.OnActivate += AlbumEnqueueDefaultActionOnOnActivate;
+        AlbumEnqueueReplaceAction.OnActivate += AlbumEnqueueReplaceActionOnOnActivate;
+        AlbumEnqueueEndAction.OnActivate += AlbumEnqueueEndActionOnOnActivate;
+        AlbumEnqueueNextAction.OnActivate += AlbumEnqueueNextActionOnOnActivate;
+    }
+
+    private void AlbumEnqueueNextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueFromAction(EnqueueAction.EnqueueNext);
+    private void AlbumEnqueueEndActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueFromAction(EnqueueAction.EnqueueEnd);
+    private void AlbumEnqueueReplaceActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueFromAction(EnqueueAction.Replace);
+    private void AlbumEnqueueDefaultActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueFromAction(null);
+
+    private void EnqueueFromAction(EnqueueAction? enqueueAction = IQueue.DefaultEnqueueAction)
+    {
+        var trackList = _filteredTracks.Select(t => t.Track.Id!.ToString()).ToArray();
+
+        switch (enqueueAction)
+        {
+            case EnqueueAction.Replace:
+                ActivateAction("queue.enqueue-replace", Variant.NewStrv(trackList));
+                break;
+            
+            case EnqueueAction.EnqueueEnd:
+                ActivateAction("queue.enqueue-end", Variant.NewStrv(trackList));
+                break;                
+            
+            case EnqueueAction.EnqueueNext:
+                ActivateAction("queue.enqueue-next", Variant.NewStrv(trackList));
+                break;
+            
+            case null:
+                ActivateAction("queue.enqueue-default", Variant.NewStrv(trackList));
+                break;
+                
+            default:
+                throw new ArgumentOutOfRangeException(nameof(enqueueAction), enqueueAction, null);
+        }
     }
 
     public void LoadAlbum(AlbumInfo album, ArtistInfo? filteredArtist = null)
@@ -49,19 +99,21 @@ public partial class AlbumPage
                 .Where(t => t.Track.CreditsInfo.Artists.Any(a => a.Artist.Id == filteredArtist.Id)).ToList();
             if (_filteredTracks.Count != album.Tracks.Count)
             {
-                _partialBanner.Title = $"Tracks featuring {filteredArtist.Name}";
-                _partialBanner.Visible = true;
+                _filterMessageRow.Title =$"Tracks featuring {filteredArtist.Name}";
+                _messageListBox.Visible = true; 
             }
         }
         else
         {
             _filteredTracks = album.Tracks;
-            _partialBanner.Visible = false;
+            _messageListBox.Visible = false;
         }
 
         _album = album;
 
         SetTitle(album.Title);
+        
+        // Always update header first. It needs updated shared artists from the header.
         UpdateHeader();
         UpdateTracks();
     }
@@ -70,7 +122,7 @@ public partial class AlbumPage
     {
         foreach (var group in _trackGroups)
         {
-            // TODO: invoke their destructor
+            group.RemoveTracks();
             _tracksBox.Remove(group);            
         }
 
@@ -90,11 +142,7 @@ public partial class AlbumPage
             if (currentGroupKey != trackGroupKey && currentGroupTracks.Count > 0)
             {
                 var headerText = currentGroupKey;
-                var trackGroup = new TrackGroup();
-                trackGroup.LoadTracks(currentGroupTracks, headerText, _album);
-                _tracksBox.Append(trackGroup);
-                currentGroupTracks = [];
-                _trackGroups.Add(trackGroup);
+                currentGroupTracks = CreateTrackGroup(headerText, _sharedArtists);
             }
 
             currentGroupKey = trackGroupKey;
@@ -104,14 +152,34 @@ public partial class AlbumPage
         // Add the final group
         if (currentGroupTracks.Count > 0)
         {
-            var headerText = currentGroupKey;
+            _ = CreateTrackGroup(currentGroupKey, _sharedArtists);
+        }
+
+        if (_trackGroups.Count != 1) return;
+        
+        // Decide what to do with a single group.
+        
+        var mainGroup = _trackGroups[0];
+        if (string.IsNullOrWhiteSpace(mainGroup.Header))
+        {
+            // There is just one group. Also, it has no name.
+            // We don't need the header here as we can use the global header.
+            _trackGroups[0].HeaderVisible = false;                
+        }
+
+        return;
+
+        List<AlbumTrackInfo> CreateTrackGroup(string? headerText, IReadOnlyList<TrackArtistInfo> sharedArtists)
+        {
             var trackGroup = new TrackGroup();
-            trackGroup.LoadTracks(currentGroupTracks, headerText, _album);
+            trackGroup.LoadTracks(currentGroupTracks, headerText, sharedArtists);
             _tracksBox.Append(trackGroup);
+            currentGroupTracks = [];
             _trackGroups.Add(trackGroup);
+            return currentGroupTracks;
         }
     }
-
+    
     public void SetCover(Texture texture)
     {
         _coverPicture.SetPaintable(texture);
@@ -135,31 +203,14 @@ public partial class AlbumPage
         //     : duration.ToString(@"mm\:ss");
         //
         // _durationLabel.SetLabel(durationText);
-
-        _albumArtistsBox.RemoveAll();
         
-        var label = Label.New("By ");
-        label.AddCssClass("dimmed");
-        _albumArtistsBox.Append(label);
+        var artists = _album.CreditsInfo.AlbumArtists.ToList();
+        _creditBox.UpdateAlbumCredits(artists);
         
-        foreach (var artist in _album.CreditsInfo.AlbumArtists)
-        {
-            // TODO: Comma separator
-            
-            // Format the button
-            var button = Button.NewWithLabel(artist.Name);
-            button.AddCssClass("link");
-            button.AddCssClass("artist-link");
-
-            // Configure the action
-            button.SetActionName("browser.show-artist");
-            var value = Variant.NewString(artist.Id?.ToString() ?? Id.Unknown.ToString());
-            button.SetActionTargetValue(value);
-
-            _albumArtistsBox.Append(button);
-        }
-
-
+        _sharedArtists = SharedArtistHelper.GetSharedArtists(_album.Tracks).ToList();
+        
+        _creditBox.UpdateTracksCredits(_sharedArtists);
+        
         _titleLabel.SetLabel(_album.Title);
     }
 }

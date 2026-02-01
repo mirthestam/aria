@@ -1,8 +1,8 @@
-using Adw;
-using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Core.Queue;
 using Aria.Infrastructure;
 using Gdk;
+using Gio;
 using GLib;
 using GObject;
 using Gtk;
@@ -14,21 +14,68 @@ namespace Aria.Features.Browser.Album;
 public partial class TrackGroup
 {
     [Connect("tracks-listbox")] private ListBox _tracksListBox;
-
     [Connect("header-label")]  private Label _headerLabel;
-    [Connect("composers-box")] private WrapBox _composersBox;
-    [Connect("arranged-box")] private WrapBox _arrangedBox;
-    [Connect("conductors-box")] private WrapBox _conductorsBox;
-    [Connect("performers-box")] private WrapBox _performersBox;
+    [Connect("credit-box")] private CreditBox _creditBox;
+    [Connect("header-box")] private Box _headerBox;
     
-    [Connect("composers-label")] private Label _composersLabel;
-    [Connect("arranged-label")] private Label _arrangedLabel;
-    [Connect("conductors-label")] private Label _conductorsLabel;
-    [Connect("performers-label")] private Label _performersLabel;    
-
     private readonly List<DragSource> _trackDragSources = [];
+    
+    private IReadOnlyList<TrackArtistInfo> _albumSharedArtists = [];    
     private List<AlbumTrackInfo> _tracks = [];
-    private AlbumInfo _album;
+    
+    private SimpleAction _enqueueDefaultAction;
+    private SimpleAction _enqueueReplaceAction;
+    private SimpleAction _enqueueNextAction;
+    private SimpleAction _enqueueEndAction;
+
+    public bool HeaderVisible
+    {
+        get => _headerBox.Visible;
+        set => _headerBox.Visible = value;
+    }
+    
+    partial void Initialize()
+    {
+        var actionGroup = SimpleActionGroup.New();
+        actionGroup.AddAction(_enqueueDefaultAction = SimpleAction.New("enqueue-default", null));        
+        actionGroup.AddAction(_enqueueReplaceAction = SimpleAction.New("enqueue-replace", null));
+        actionGroup.AddAction(_enqueueNextAction = SimpleAction.New("enqueue-next", null));
+        actionGroup.AddAction(_enqueueEndAction = SimpleAction.New("enqueue-end", null));
+        InsertActionGroup("group", actionGroup);
+        
+        _enqueueDefaultAction.OnActivate += EnqueueDefaultActionOnOnActivate;
+        _enqueueReplaceAction.OnActivate += EnqueueReplaceActionOnOnActivate;
+        _enqueueNextAction.OnActivate += EnqueueNextActionOnOnActivate;
+        _enqueueEndAction.OnActivate += EnqueueEndActionOnOnActivate;
+    }
+
+    private void EnqueueDefaultActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => Enqueue();
+    private void EnqueueEndActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => Enqueue(EnqueueAction.EnqueueEnd);
+    private void EnqueueNextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => Enqueue(EnqueueAction.EnqueueNext);
+    private void EnqueueReplaceActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => Enqueue(EnqueueAction.Replace);
+
+    private void Enqueue(EnqueueAction? enqueueAction = IQueue.DefaultEnqueueAction)
+    {
+        var trackList = _tracks.Select(t => t.Track.Id!.ToString()).ToArray();
+
+        switch (enqueueAction)
+        {
+            case EnqueueAction.Replace:
+                ActivateAction("queue.enqueue-replace", Variant.NewStrv(trackList));
+                break;
+            case EnqueueAction.EnqueueNext:
+                ActivateAction("queue.enqueue-next", Variant.NewStrv(trackList));
+                break;
+            case EnqueueAction.EnqueueEnd:
+                ActivateAction("queue.enqueue-end", Variant.NewStrv(trackList));
+                break;
+            case null:
+                ActivateAction("queue.enqueue-default", Variant.NewStrv(trackList));
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(enqueueAction), enqueueAction, null);
+        }
+    }
 
     public string? Header
     {
@@ -36,14 +83,14 @@ public partial class TrackGroup
         set
         {
             _headerLabel.Label_ = value;
-            _headerLabel.Visible = !string.IsNullOrWhiteSpace(value);
         }
     }
 
-    public void LoadTracks(List<AlbumTrackInfo> tracks, string? headerText, AlbumInfo album)
+    public void LoadTracks(List<AlbumTrackInfo> tracks, string? headerText,
+        IReadOnlyList<TrackArtistInfo> albumSharedArtists)
     {
         _tracks = tracks;
-        _album = album;
+        _albumSharedArtists = albumSharedArtists;
         Header = headerText;
 
         if (tracks.Count == 1)
@@ -56,7 +103,7 @@ public partial class TrackGroup
         UpdateTracksList();
     }
 
-    private void RemoveTracks()
+    public void RemoveTracks()
     {
         // Clean up first
         foreach (var source in _trackDragSources)
@@ -78,7 +125,7 @@ public partial class TrackGroup
             _tracksListBox.SetVisible(false);
             return;
         }
-
+        
         foreach (var albumTrack in _tracks)
         {
             // TODO: We're constructing list items in code here.
@@ -140,10 +187,12 @@ public partial class TrackGroup
     {
         var sharedArtists = SharedArtistHelper.GetSharedArtists(_tracks).ToList();
         
-        FillArtistBox(_composersBox, _composersLabel, sharedArtists, ArtistRoles.Composer);
-        FillArtistBox(_conductorsBox, _conductorsLabel,  sharedArtists, ArtistRoles.Conductor);
-        FillArtistBox(_arrangedBox, _arrangedLabel, sharedArtists, ArtistRoles.Arranger);
-        FillArtistBox(_performersBox, _performersLabel, sharedArtists, ArtistRoles.Performer);
+        // Remove the shared artists from the album's shared artists list.
+        // This way we dont duplicate information from the album header.
+        sharedArtists = sharedArtists.Except(_albumSharedArtists).ToList();
+        
+        _creditBox.UpdateTracksCredits(sharedArtists);
+        _creditBox.UpdateAlbumCredits([]);
     }
 
     private ContentProvider? TrackOnDragPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
@@ -156,57 +205,5 @@ public partial class TrackGroup
 
     private void TrackOnDragBegin(DragSource sender, DragSource.DragBeginSignalArgs args)
     {
-    }
-
-    private void FillArtistBox(WrapBox box, Label label, List<TrackArtistInfo> sharedArtists, ArtistRoles role)
-    {
-        box.RemoveAll();
-        var artists = sharedArtists.Where(a => a.Roles.HasFlag(role)).ToList();
-        
-        label.Visible = artists.Count > 0;
-        box.Visible = artists.Count > 0;
-        
-        if (artists.Count > 0)
-        {
-            for (var i = 0; i < artists.Count; i++)
-            {
-                var artist = artists[i];
-                var isLastArtist = i == artists.Count - 1;
-                var nameButton = CreateArtistButton(artist.Artist);
-                box.Append(nameButton);
-
-                if (artist.AdditionalInformation != null)
-                {
-                    var additionalInfoLabel = Label.New($"({artist.AdditionalInformation})");
-                    additionalInfoLabel.AddCssClass("dimmed");
-                    box.Append(additionalInfoLabel);
-                }
-
-                if (!isLastArtist) box.Append(Label.New(","));
-            }
-        }
-
-        Button CreateArtistButton(ArtistInfo artist)
-        {
-            // Format the button
-            var displayText = artist.Name;
-            var button = Button.NewWithLabel(displayText);
-            button.AddCssClass("link");
-            button.AddCssClass("artist-link");
-
-            // Configure the action
-            button.SetActionName("browser.show-artist");
-            var value = Variant.NewString(artist.Id?.ToString() ?? Id.Unknown.ToString());
-            button.SetActionTargetValue(value);
-
-            return button;
-        }
-
-        Label CreatePrefixLabel(string text)
-        {
-            var label = Label.New(text);
-            label.AddCssClass("dimmed");
-            return label;
-        }
     }
 }

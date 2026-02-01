@@ -2,6 +2,7 @@
 <!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
 <!-- Created with Cambalache 0.99.9 -->
 <cambalache-project version="0.99.0" target_tk="gtk-4.0" depends="libadwaita-1,webkitgtk-6.0">
+  <icontheme-search-path>../Aria.App/Resources/icons</icontheme-search-path>
   <ui template-class="AriaFeaturesPlayerPlaylistPlaylist" filename="Features/Player/Playlist/Playlist.ui" sha256="ae92eb76ddaa373a42ad1d9024c115ccb0300826df2fff2b03c5bee341a77e72"/>
   <ui template-class="AriaFeaturesBrowserArtistEmptyPage" filename="Features/Browser/Artist/EmptyPage.ui" sha256="51a238eabfbaad2da27f142387de038de46215f936f1de0cf495690bbce38629"/>
   <ui template-class="AriaFeaturesBrowserArtistsArtistListItem" filename="Features/Browser/Artists/ArtistListItem.ui" sha256="9365a5f5a484354c28e77f41d3258f871afa330f98fc3bbffe28dd3d6c808977"/>
@@ -17,7 +18,7 @@
   <ui template-class="AriaFeaturesBrowserSearchSearchPage" filename="Features/Browser/Search/SearchPage.ui" sha256="fdc805e1d342f338166115c1f8741df473c22d8a04c3db25b86406c1b838c78e"/>
   <ui template-class="AriaFeaturesBrowserArtistsArtistsPage" filename="Features/Browser/Artists/ArtistsPage.ui" sha256="af0a059565ff236d7856d93cb062c72e14914d0a08901eb5593f5fdb3e6ed613"/>
   <ui template-class="AriaFeaturesBrowserAlbumsAlbumsPage" filename="Features/Browser/Albums/AlbumsPage.ui" sha256="a96d983cc64d58e74714bbe15422db66f4e1187aab0acbdfd377118447a838ee"/>
-  <ui template-class="AriaFeaturesBrowserAlbumAlbumPage" filename="Features/Browser/Album/AlbumPage.ui" sha256="0012c6ce988f9e372d763b9083ef395c088fbe26ebdc29d07a17a9d76f2081be"/>
+  <ui template-class="AriaFeaturesBrowserAlbumCreditBox" filename="Features/Browser/Album/CreditBox.ui" sha256="18be2274f835c1d3f34018f9aa35a9eea943db99c263ff0b249849f039127675"/>
   <ui template-class="AriaFeaturesBrowserAlbumsAlbumsAlbumListItem" filename="Features/Browser/Albums/AlbumsAlbumListItem.ui" sha256="e0b5e3ac0de8924a65ae901f292ca17ea638f963eb09af8176395608261b3969"/>
   <ui>
     <content><![CDATA[<interface>
@@ -37,7 +38,6 @@
 </interface>
 ]]></content>
   </ui>
-  <ui template-class="AriaFeaturesBrowserAlbumTrackGroup" filename="Features/Browser/Album/TrackGroup.ui" sha256="ebef7790789e406ec40ff472014b57e6d66153905234069e8e8abc4cc399c521"/>
   <ui template-class="AriaFeaturesBrowserArtistArtistPage" filename="Features/Browser/Artist/ArtistPage.ui" sha256="11982fc08f297409f7e6d96a8e0b09e69e233cb67d5ccc4fd89f13b7df0a1dbc">
     <requires>AriaFeaturesBrowserArtistEmptyPage</requires>
   </ui>
@@ -49,6 +49,12 @@
   </ui>
   <ui template-class="AriaFeaturesBrowserBrowserHost" filename="Features/Browser/BrowserHost.ui" sha256="3c17a641e3ca0a4a26353195894a2ab22f8440d93172410e6104a3eededd8908">
     <requires>AriaFeaturesBrowserBrowserEmptyPage</requires>
+  </ui>
+  <ui template-class="AriaFeaturesBrowserAlbumTrackGroup" filename="Features/Browser/Album/TrackGroup.ui" sha256="88f38d1074a8f7d7b59a90d8e10fc7a6b4c7d51f4a270accaa6628ee03002528">
+    <requires>AriaFeaturesBrowserAlbumCreditBox</requires>
+  </ui>
+  <ui template-class="AriaFeaturesBrowserAlbumAlbumPage" filename="Features/Browser/Album/AlbumPage.ui" sha256="268902823629e45be17e7b87f4fd3b70737f794ae954c15a08fc2ba4c3eaee08">
+    <requires>AriaFeaturesBrowserAlbumCreditBox</requires>
   </ui>
   <ui template-class="AriaFeaturesBrowserBrowserPage" filename="Features/Browser/BrowserPage.ui" sha256="0de80aa7a2c1677062d844913c49e8b104ae4e48ea0aa973b17158f3fdf07b39">
     <requires>AriaFeaturesBrowserArtistArtistPage</requires>

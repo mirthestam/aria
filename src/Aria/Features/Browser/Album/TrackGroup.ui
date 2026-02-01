@@ -2,19 +2,35 @@
 <!-- Created with Cambalache 0.99.9 -->
 <interface>
   <!-- interface-name MainWindow.ui -->
+  <requires lib="gio" version="2.0"/>
   <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.4"/>
   <template class="AriaFeaturesBrowserAlbumTrackGroup" parent="GtkBox">
     <property name="orientation">vertical</property>
     <property name="spacing">6</property>
     <child>
-      <object class="GtkBox" id="header-box">
+      <object class="GtkBox">
         <property name="orientation">vertical</property>
         <child>
-          <object class="GtkBox">
+          <object class="GtkBox" id="header-box">
+            <property name="orientation">horizontal</property>
             <child>
               <object class="GtkLabel" id="header-label">
                 <property name="css-classes">heading</property>
+                <property name="ellipsize">end</property>
+                <property name="hexpand">True</property>
+                <property name="single-line-mode">True</property>
+                <property name="valign">fill</property>
+                <property name="xalign">0.0</property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwSplitButton">
+                <property name="action-name">group.enqueue-default</property>
+                <property name="css-classes">flat</property>
+                <property name="halign">end</property>
+                <property name="icon-name">list-low-priority-symbolic</property>
+                <property name="menu-model">group-menu</property>
               </object>
             </child>
           </object>
@@ -23,115 +39,7 @@
           <object class="GtkBox" id="info-box">
             <property name="orientation">vertical</property>
             <child>
-              <object class="GtkGrid">
-                <property name="valign">fill</property>
-                <child>
-                  <object class="GtkLabel" id="composers-label">
-                    <property name="css-classes">dimmed</property>
-                    <property name="label">Composed by</property>
-                    <property name="margin-bottom">3</property>
-                    <property name="margin-top">3</property>
-                    <property name="valign">start</property>
-                    <property name="xalign">1.0</property>
-                    <layout>
-                      <property name="column">0</property>
-                      <property name="row">0</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwWrapBox" id="composers-box">
-                    <property name="child-spacing">0</property>
-                    <property name="halign">start</property>
-                    <property name="margin-start">0</property>
-                    <property name="margin-top">0</property>
-                    <property name="valign">fill</property>
-                    <layout>
-                      <property name="column">1</property>
-                      <property name="row">0</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="conductors-label">
-                    <property name="css-classes">dimmed</property>
-                    <property name="label">Conducted by</property>
-                    <property name="margin-bottom">3</property>
-                    <property name="margin-top">3</property>
-                    <property name="valign">start</property>
-                    <property name="xalign">1.0</property>
-                    <layout>
-                      <property name="column">0</property>
-                      <property name="row">2</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwWrapBox" id="conductors-box">
-                    <property name="child-spacing">0</property>
-                    <property name="halign">start</property>
-                    <property name="margin-top">0</property>
-                    <layout>
-                      <property name="column">1</property>
-                      <property name="row">2</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="arranged-label">
-                    <property name="css-classes">dimmed</property>
-                    <property name="label">Arranged by</property>
-                    <property name="margin-end">3</property>
-                    <property name="margin-top">3</property>
-                    <property name="valign">start</property>
-                    <property name="xalign">1.0</property>
-                    <layout>
-                      <property name="column">0</property>
-                      <property name="row">1</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwWrapBox" id="arranged-box">
-                    <property name="child-spacing">0</property>
-                    <property name="halign">start</property>
-                    <property name="margin-start">0</property>
-                    <property name="margin-top">0</property>
-                    <property name="valign">fill</property>
-                    <layout>
-                      <property name="column">1</property>
-                      <property name="row">1</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="GtkLabel" id="performers-label">
-                    <property name="css-classes">dimmed</property>
-                    <property name="label">Performed by</property>
-                    <property name="margin-bottom">3</property>
-                    <property name="margin-top">3</property>
-                    <property name="valign">start</property>
-                    <property name="xalign">1.0</property>
-                    <layout>
-                      <property name="column">0</property>
-                      <property name="row">3</property>
-                    </layout>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwWrapBox" id="performers-box">
-                    <property name="child-spacing">0</property>
-                    <property name="halign">start</property>
-                    <property name="margin-start">0</property>
-                    <property name="margin-top">0</property>
-                    <property name="valign">fill</property>
-                    <layout>
-                      <property name="column">1</property>
-                      <property name="row">3</property>
-                    </layout>
-                  </object>
-                </child>
-              </object>
+              <object class="AriaFeaturesBrowserAlbumCreditBox" id="credit-box"/>
             </child>
           </object>
         </child>
@@ -143,4 +51,18 @@
       </object>
     </child>
   </template>
+  <menu id="group-menu">
+    <item>
+      <attribute name="action">group.enqueue-replace</attribute>
+      <attribute name="label">Replace Queue</attribute>
+    </item>
+    <item>
+      <attribute name="action">group.enqueue-next</attribute>
+      <attribute name="label">Enqueue Next</attribute>
+    </item>
+    <item>
+      <attribute name="action">group.enqueue-end</attribute>
+      <attribute name="label">Enqueue Last</attribute>
+    </item>
+  </menu>
 </interface>

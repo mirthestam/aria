@@ -1,4 +1,7 @@
+using Aria.Core;
 using Aria.Core.Extraction;
+using Aria.Core.Library;
+using Aria.Core.Queue;
 using Aria.Features.Browser.Album;
 using Aria.Features.Browser.Albums;
 using Aria.Features.Browser.Artist;
@@ -17,6 +20,9 @@ public partial class BrowserPagePresenter :
     IRecipient<ShowAllAlbumsMessage>,
     IRecipient<ShowAlbumDetailsMessage>
 {
+    private readonly IAria _aria;
+    private readonly IAriaControl _ariaControl;
+    private readonly IMessenger _messenger;
     private readonly IAlbumPagePresenterFactory _albumPagePresenterFactory;
     private readonly AlbumsPagePresenter _albumsPagePresenter;
 
@@ -33,6 +39,8 @@ public partial class BrowserPagePresenter :
 
     public BrowserPagePresenter(ILogger<BrowserPage> logger,
         IMessenger messenger,
+        IAria aria,
+        IAriaControl ariaControl,
         BrowserNavigationState browserNavigationState,
         AlbumsPagePresenter albumsPagePresenter,
         ArtistPagePresenter artistPagePresenter,
@@ -41,6 +49,9 @@ public partial class BrowserPagePresenter :
         SearchPagePresenter searchPagePresenter)
     {
         _logger = logger;
+        _messenger = messenger;
+        _aria = aria;
+        _ariaControl = ariaControl;
         _artistPagePresenter = artistPagePresenter;
         _artistsPagePresenter = artistsPagePresenter;
         _searchPagePresenter = searchPagePresenter;
@@ -63,14 +74,70 @@ public partial class BrowserPagePresenter :
         _albumsPagePresenter.Attach(view.LibraryAlbumsPage);
         _searchPagePresenter.Attach(view.SearchPage);
 
-        var actionGroup = SimpleActionGroup.New();
+        var browserActionGroup = SimpleActionGroup.New();
 
         _searchAction = SimpleAction.New("search", null);
         _searchAction.OnActivate += SearchActionOnOnActivate;
-        actionGroup.AddAction(_searchAction);
+        browserActionGroup.AddAction(_searchAction);
 
-        view.InsertActionGroup("browser", actionGroup);
+        view.InsertActionGroup("browser", browserActionGroup);
+     
+        _view.EnqueueDefaultAction.OnActivate += DefaultEnqueueActionOnOnActivate;
+        _view.EnqueueEndAction.OnActivate += EnqueueEndActionOnOnActivate;
+        _view.EnqueueNextAction.OnActivate += EnqueueNextActionOnOnActivate;
+        _view.EnqueueReplaceAction.OnActivate += PlayActionOnOnActivate;
     }
+    
+    private void DefaultEnqueueActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueHandler(IQueue.DefaultEnqueueAction, args);
+    private void EnqueueEndActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueHandler(EnqueueAction.EnqueueEnd, args);
+    private void EnqueueNextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueHandler(EnqueueAction.EnqueueNext, args);
+    private void PlayActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueHandler(EnqueueAction.Replace, args);
+
+    private async void EnqueueHandler(EnqueueAction enqueueAction, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            var serializedIds = args.Parameter!.GetStrv(out _);
+            var ids = serializedIds.Select(_ariaControl.Parse).ToArray();
+            
+            // Enqueue the items by id
+            await EnqueueIds(enqueueAction, ids).ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            LogFailedToEnqueueTracks(_logger, e);
+            _messenger.Send(new ShowToastMessage($"Failed to enqueue tracks."));
+        }        
+    }
+    
+    private async Task EnqueueIds(EnqueueAction action, Id[] ids)
+    {
+        var items = new List<Info>();
+        foreach (var id in ids)
+        {
+            // Would be great to have 'GetItems' instead of foreach here.
+            var item =await _aria.Library.GetItemAsync(id).ConfigureAwait(false);
+            if (item == null) continue;
+            items.Add(item);
+        }
+
+        await _aria.Queue.EnqueueAsync(items, action).ConfigureAwait(false);
+        
+        switch (action)
+        {
+            case EnqueueAction.Replace:
+                _messenger.Send(new ShowToastMessage($"Playing tracks."));
+                break;
+            case EnqueueAction.EnqueueNext:
+                _messenger.Send(new ShowToastMessage($"Playing tracks Next."));
+                break;
+            case EnqueueAction.EnqueueEnd:
+                _messenger.Send(new ShowToastMessage($"Added tracks to end of queue."));
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(action), action, null);
+        }
+    }    
 
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
@@ -199,4 +266,7 @@ public partial class BrowserPagePresenter :
 
     [LoggerMessage(LogLevel.Error, "Failed to load library")]
     partial void LogFailedToLoadLibrary(Exception e);
+    
+    [LoggerMessage(LogLevel.Error, "Failed to enqueue tracks.")]
+    static partial void LogFailedToEnqueueTracks(ILogger<BrowserPage> logger, Exception e);    
 }

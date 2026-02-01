@@ -27,18 +27,35 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         return parser.ParseQueueTracksInformation(tags);
     }
     
-    public override async Task EnqueueAsync(Info info, EnqueueAction action)
+    public override Task EnqueueAsync(Info info, EnqueueAction action)
     {
-        switch (info)
-        {
-            case TrackInfo track:
-                await EnqueueAsync([track], action).ConfigureAwait(false);
-                break;
+        return EnqueueAsync([info], action);
+    }
 
-            case AlbumInfo album:
-                await EnqueueAsync(album.Tracks.Select(t => t.Track), action).ConfigureAwait(false);
-                break;
+    public override async Task EnqueueAsync(IEnumerable<Info> items, EnqueueAction action)
+    {
+        // in MPD, we enqueue per track. Therefore, lets's expand our items.
+
+        var tracks = new List<TrackInfo>();
+        foreach (var info in items)
+        {
+            switch (info)
+            {
+                case TrackInfo track:
+                    tracks.Add(track);
+                    break;
+
+                case AlbumInfo album:
+                    tracks.AddRange(album.Tracks.Select(t => t.Track));
+                    break;
+                
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(items), items, null);
+            }            
         }
+        
+        await EnqueueAsync(tracks, action).ConfigureAwait(false);
+        
     }
 
     public override async Task EnqueueAsync(Info info, int index)

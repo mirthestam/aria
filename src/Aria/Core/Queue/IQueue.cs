@@ -9,7 +9,7 @@ namespace Aria.Core.Queue;
 public interface IQueue
 {
     // TODO: Add a settings option to store the user's preferred default action.    
-    public const EnqueueAction DefaultEnqueueAction = EnqueueAction.Replace;
+    public const EnqueueAction DefaultEnqueueAction = EnqueueAction.EnqueueEnd;
     
     public Id Id { get; }
     public int Length { get; }
@@ -35,6 +35,8 @@ public interface IQueue
     public QueueTrackInfo? CurrentTrack { get; }
     
     public Task EnqueueAsync(Info item, EnqueueAction action);
+    public Task EnqueueAsync(IEnumerable<Info> items, EnqueueAction action);
+    
     public Task EnqueueAsync(Info item, int index);
 
     public Task MoveAsync(Id sourceTrackId, int targetPlaylistIndex);

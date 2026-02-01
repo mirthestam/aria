@@ -18,6 +18,7 @@
         <EmbeddedResource Include="Features\Browser\Albums\AlbumsAlbumListItem.ui" />
         <EmbeddedResource Include="Features\Browser\Albums\AlbumsPage.ui" />
         <EmbeddedResource Include="Features\Browser\Album\AlbumPage.ui"/>
+        <EmbeddedResource Include="Features\Browser\Album\CreditBox.ui" />
         <EmbeddedResource Include="Features\Browser\Album\TrackGroup.ui" />
         <EmbeddedResource Include="Features\Browser\Artists\ArtistListItem.ui"/>
         <EmbeddedResource Include="Features\Browser\Artists\ArtistsPage.ui"/>

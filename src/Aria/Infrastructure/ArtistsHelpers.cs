@@ -4,7 +4,7 @@ namespace Aria.Infrastructure;
 
 public static class SharedArtistHelper
 {
-    public static IEnumerable<TrackArtistInfo> GetSharedArtists(List<AlbumTrackInfo> tracks)
+    public static IEnumerable<TrackArtistInfo> GetSharedArtists(IReadOnlyList<AlbumTrackInfo> tracks)
     {
         if (tracks.Count == 0) return [];
 
