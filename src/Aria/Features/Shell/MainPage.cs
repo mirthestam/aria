@@ -1,4 +1,5 @@
 using Adw;
+using Aria.Core;
 using Aria.Features.Browser;
 using Gio;
 using GObject;
@@ -17,17 +18,9 @@ public partial class MainPage
     [Connect("multi-layout-view")] private MultiLayoutView _multiLayoutView;
     [Connect(BottomSheetLayoutName)]private Layout _bottomSheetLayout;
     [Connect(SidebarLayoutName)]private Layout _sidebarLayout;
-
-    public SimpleAction NextAction { get; private set; }
-    public SimpleAction PrevAction { get; private set; }
-    public SimpleAction PlayPauseAction { get; private set; }
-    public SimpleAction ShowArtistAction { get; private set; }
-    
     
     partial void Initialize()
     {
-        InsertActions();
-        
         // HACK: Force MultiLayoutView to switch layouts to ensure actions are properly bound.
         // Without this, actions (like NextAction and PrevAction) may not be correctly bound to widgets
         // in layouts that haven't been activated yet. Temporarily switching to the other layout and back
@@ -50,16 +43,5 @@ public partial class MainPage
     
     public MultiLayoutView MultiLayoutView => _multiLayoutView;
 
-    private void InsertActions()
-    {
-        var playerActionGroup = SimpleActionGroup.New();
-        playerActionGroup.AddAction(NextAction = SimpleAction.New("next", null));
-        playerActionGroup.AddAction(PrevAction = SimpleAction.New("previous", null));
-        playerActionGroup.AddAction(PlayPauseAction = SimpleAction.New("play-pause", null));
-        InsertActionGroup("player", playerActionGroup);
 
-        var browserActionGroup = SimpleActionGroup.New();
-        browserActionGroup.AddAction(ShowArtistAction = SimpleAction.New("show-artist",  GLib.VariantType.String));
-        InsertActionGroup("browser", browserActionGroup);
-    }
 }

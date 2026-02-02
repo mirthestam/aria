@@ -16,6 +16,7 @@ using Task = System.Threading.Tasks.Task;
 namespace Aria.Features.Browser;
 
 public partial class BrowserPagePresenter :
+    IPresenter<BrowserPage>,
     IRecipient<ShowArtistDetailsMessage>,
     IRecipient<ShowAllAlbumsMessage>,
     IRecipient<ShowAlbumDetailsMessage>
@@ -36,6 +37,8 @@ public partial class BrowserPagePresenter :
     private AlbumPagePresenter? _albumPagePresenter;
 
     private SimpleAction _searchAction;
+    private SimpleAction _allAlbumsAction;
+    private SimpleAction _showArtistAction;
 
     public BrowserPagePresenter(ILogger<BrowserPage> logger,
         IMessenger messenger,
@@ -64,30 +67,70 @@ public partial class BrowserPagePresenter :
         messenger.Register<ShowAlbumDetailsMessage>(this);
     }
 
-    private BrowserPage? _view;
+    public BrowserPage? View { get; private set; }
 
-    public void Attach(BrowserPage view)
+    public void Attach(BrowserPage view, AttachContext context)
     {
-        _view = view;
+        View = view;
         _artistPagePresenter.Attach(view.LibraryArtistPage);
         _artistsPagePresenter.Attach(view.LibraryArtistsPage);
         _albumsPagePresenter.Attach(view.LibraryAlbumsPage);
         _searchPagePresenter.Attach(view.SearchPage);
 
+        
         var browserActionGroup = SimpleActionGroup.New();
-
-        _searchAction = SimpleAction.New("search", null);
+        
+        browserActionGroup.AddAction(_searchAction = SimpleAction.New(Accelerators.Browser.Search.Name, null));
+        browserActionGroup.AddAction(_allAlbumsAction = SimpleAction.New(Accelerators.Browser.AllAlbums.Name, null));
+        browserActionGroup.AddAction(_showArtistAction = SimpleAction.New(Accelerators.Browser.ShowArtist.Name,  GLib.VariantType.String));
+        context.SetAccelsForAction($"{Accelerators.Browser.Key}.{Accelerators.Browser.Search.Name}", [Accelerators.Browser.Search.Accels]);
+        context.SetAccelsForAction($"{Accelerators.Browser.Key}.{Accelerators.Browser.AllAlbums.Name}", [Accelerators.Browser.AllAlbums.Accels]);        
+        context.InsertAppActionGroup(Accelerators.Browser.Key, browserActionGroup);
+        
         _searchAction.OnActivate += SearchActionOnOnActivate;
-        browserActionGroup.AddAction(_searchAction);
-
-        view.InsertActionGroup("browser", browserActionGroup);
+        _allAlbumsAction.OnActivate += AllAlbumsActionOnOnActivate;
+        _showArtistAction.OnActivate += ShowArtistActionOnOnActivate;
+        
+        // TODO: queue
+                
      
-        _view.EnqueueDefaultAction.OnActivate += DefaultEnqueueActionOnOnActivate;
-        _view.EnqueueEndAction.OnActivate += EnqueueEndActionOnOnActivate;
-        _view.EnqueueNextAction.OnActivate += EnqueueNextActionOnOnActivate;
-        _view.EnqueueReplaceAction.OnActivate += PlayActionOnOnActivate;
+        View.EnqueueDefaultAction.OnActivate += DefaultEnqueueActionOnOnActivate;
+        View.EnqueueEndAction.OnActivate += EnqueueEndActionOnOnActivate;
+        View.EnqueueNextAction.OnActivate += EnqueueNextActionOnOnActivate;
+        View.EnqueueReplaceAction.OnActivate += PlayActionOnOnActivate;
     }
-    
+
+    private async void ShowArtistActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            if (args.Parameter == null)
+            {
+                return;
+            }
+            
+            var serializedId = args.Parameter.GetString(out _);
+            var artistId = _ariaControl.Parse(serializedId);
+        
+            var artistInfo = await _aria.Library.GetArtistAsync(artistId);
+            if (artistInfo == null)
+            {
+                _messenger.Send(new ShowToastMessage("Could not find this artist."));
+                return;
+            }
+        
+            _messenger.Send(new ShowArtistDetailsMessage(artistInfo));
+        }
+        catch (Exception e)
+        {
+            LogFailedToParseArtistId(e);
+        }
+    }
+
+    private void AllAlbumsActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        ShowAllAlbums();
+    }
     private void DefaultEnqueueActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueHandler(IQueue.DefaultEnqueueAction, args);
     private void EnqueueEndActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueHandler(EnqueueAction.EnqueueEnd, args);
     private void EnqueueNextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueHandler(EnqueueAction.EnqueueNext, args);
@@ -145,7 +188,7 @@ public partial class BrowserPagePresenter :
 
         GLib.Functions.IdleAdd(0, () =>
         {
-            _view?.ShowAllAlbumsRoot();
+            View?.ShowAllAlbumsRoot();
             return false;
         });
         
@@ -176,7 +219,7 @@ public partial class BrowserPagePresenter :
             _artistsPagePresenter.Reset();
             _artistPagePresenter.Reset();
             _searchPagePresenter.Reset();
-            _view?.ShowArtistDetailRoot();
+            View?.ShowArtistDetailRoot();
             LogBrowserPageReset();
         }
         catch (Exception e)
@@ -193,7 +236,7 @@ public partial class BrowserPagePresenter :
         
         GLib.Functions.IdleAdd(0, () =>
         {
-            var albumPageView = _view?.PushAlbumPage();
+            var albumPageView = View?.PushAlbumPage();
             if (albumPageView == null) return false;
             _albumPagePresenter.Attach(albumPageView);
 
@@ -205,14 +248,19 @@ public partial class BrowserPagePresenter :
 
     public void Receive(ShowAllAlbumsMessage message)
     {
+        ShowAllAlbums();
+    }
+
+    private void ShowAllAlbums()
+    {
         LogShowingAllAlbums();
         _browserNavigationState.SelectedArtistId = null;
 
         GLib.Functions.IdleAdd(0, () =>
         {
-            _view?.ShowAllAlbumsRoot();
+            View?.ShowAllAlbumsRoot();
             return false;
-        });        
+        });    
     }
     
     public void Receive(ShowArtistDetailsMessage message)
@@ -221,7 +269,7 @@ public partial class BrowserPagePresenter :
         
         GLib.Functions.IdleAdd(0, () =>
         {
-            _view?.ShowArtistDetailRoot();
+            View?.ShowArtistDetailRoot();
             return false;
         });        
         
@@ -231,7 +279,7 @@ public partial class BrowserPagePresenter :
     private void SearchActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         // User wants to start the search functionality
-        _view?.StartSearch();
+        View?.StartSearch();
     }
     
     [LoggerMessage(LogLevel.Debug, "Refreshing browser page...")]
@@ -269,4 +317,7 @@ public partial class BrowserPagePresenter :
     
     [LoggerMessage(LogLevel.Error, "Failed to enqueue tracks.")]
     static partial void LogFailedToEnqueueTracks(ILogger<BrowserPage> logger, Exception e);    
+    
+    [LoggerMessage(LogLevel.Error, "Failed to parse artist id")]
+    partial void LogFailedToParseArtistId(Exception e);    
 }

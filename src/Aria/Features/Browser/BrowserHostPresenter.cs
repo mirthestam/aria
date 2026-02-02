@@ -1,6 +1,7 @@
 using Aria.Core;
 using Aria.Core.Connection;
 using Aria.Core.Library;
+using Aria.Features.Shell;
 using Aria.Infrastructure;
 using Aria.Infrastructure.Connection;
 using CommunityToolkit.Mvvm.Messaging;
@@ -8,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Aria.Features.Browser;
 
-public partial class BrowserHostPresenter : IRecipient<LibraryUpdatedMessage>
+public partial class BrowserHostPresenter : IPresenter<BrowserHost>, IRecipient<LibraryUpdatedMessage>
 {
     private readonly BrowserPagePresenter _browserPresenter;
     private readonly ILogger<BrowserHostPresenter> _logger;
@@ -26,12 +27,12 @@ public partial class BrowserHostPresenter : IRecipient<LibraryUpdatedMessage>
         messenger.Register(this);
     }
 
-    private BrowserHost View { get; set; } = null!;
+    public BrowserHost View { get; set; } = null!;
 
-    public void Attach(BrowserHost view)
+    public void Attach(BrowserHost view, AttachContext context)
     {
         View = view;
-        _browserPresenter.Attach(view.BrowserPage);
+        _browserPresenter.Attach(view.BrowserPage, context);
     }
     
     public async Task RefreshAsync(CancellationToken cancellationToken = default)

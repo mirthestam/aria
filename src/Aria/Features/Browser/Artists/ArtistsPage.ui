@@ -102,6 +102,10 @@ popup</property>
     </section>
     <section id="main-section">
       <item>
+        <attribute name="action">app.shortcuts</attribute>
+        <attribute name="label">Keyboard Shortcuts</attribute>
+      </item>
+      <item>
         <attribute name="action">win.about</attribute>
         <attribute name="label">_About Aria</attribute>
       </item>

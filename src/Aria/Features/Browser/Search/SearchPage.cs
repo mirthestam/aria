@@ -48,8 +48,6 @@ public partial class SearchPage
 
     partial void Initialize()
     {
-        OnUnmap += OnOnUnmap;
-        
         _searchEntry.OnSearchChanged += SearchEntryOnOnSearchChanged;
         _searchEntry.OnStopSearch += SearchEntryOnOnStopSearch;
         
@@ -229,14 +227,5 @@ public partial class SearchPage
         var wrapper = new GId(widget.TrackId);
         var value = new Value(wrapper);
         return ContentProvider.NewForValue(value);
-    }
-    
-    private void OnOnUnmap(Widget sender, EventArgs args)
-    {
-        _searchStack.VisibleChildName = NoResultsStackPageName;
-        _searchEntry.SetText("");
-        _searchEntry.GrabFocus();
-
-        Clear();
     }
 }

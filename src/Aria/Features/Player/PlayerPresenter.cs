@@ -7,12 +7,13 @@ using Aria.Features.Player.Playlist;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
+using Gio;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
 
 namespace Aria.Features.Player;
 
-public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IRecipient<QueueStateChangedMessage>
+public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerStateChangedMessage>, IRecipient<QueueStateChangedMessage>
 {
     private readonly IAria _aria;
     private readonly ILogger<PlayerPresenter> _logger;
@@ -22,8 +23,14 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
     
     private CancellationTokenSource? _coverArtCancellationTokenSource;
     
-    private Player? _view;
+    public Player? View { get; set; }
 
+    private SimpleAction _nextAction;
+    private SimpleAction _prevAction;
+    private SimpleAction _playPauseAction;
+    private SimpleAction _stopAction;
+    private SimpleAction _clearQueueAction;
+    
     public PlayerPresenter(ILogger<PlayerPresenter> logger, IMessenger messenger, IAria aria,
         ResourceTextureLoader resourceTextureLoader, PlaylistPresenter playlistPresenter)
     {
@@ -35,15 +42,116 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
         messenger.RegisterAll(this);
     }
     
-    public void Attach(Player player)
+    public void Attach(Player player, AttachContext context)
     {
-        _view = player;
-        _view.SeekRequested += ViewOnSeekRequested;
-        _view.EnqueueRequested += ViewOnEnqueueRequested;
+        View = player;
+        View.SeekRequested += ViewOnSeekRequested;
+        View.EnqueueRequested += ViewOnEnqueueRequested;
 
-        _playlistPresenter.Attach(_view.Playlist);
+        _playlistPresenter.Attach(View.Playlist);
+        
+        var playerActionGroup = SimpleActionGroup.New();
+        playerActionGroup.AddAction(_nextAction = SimpleAction.New(Accelerators.Player.Next.Name, null));
+        playerActionGroup.AddAction(_prevAction = SimpleAction.New(Accelerators.Player.Previous.Name, null));
+        playerActionGroup.AddAction(_playPauseAction = SimpleAction.New(Accelerators.Player.PlayPause.Name, null));
+        playerActionGroup.AddAction(_stopAction = SimpleAction.New(Accelerators.Player.Stop.Name, null));
+        context.InsertAppActionGroup(Accelerators.Player.Key, playerActionGroup);
+        
+        context.SetAccelsForAction($"{Accelerators.Player.Key}.{Accelerators.Player.Next.Name}", [Accelerators.Player.Next.Accels]);
+        context.SetAccelsForAction($"{Accelerators.Player.Key}.{Accelerators.Player.Previous.Name}", [Accelerators.Player.Previous.Accels]);
+        context.SetAccelsForAction($"{Accelerators.Player.Key}.{Accelerators.Player.PlayPause.Name}", [Accelerators.Player.PlayPause.Accels]);
+        context.SetAccelsForAction($"{Accelerators.Player.Key}.{Accelerators.Player.Stop.Name}", [Accelerators.Player.Stop.Accels]);       
+        
+        var queueActionGroup = SimpleActionGroup.New();
+        queueActionGroup.AddAction(_clearQueueAction = SimpleAction.New(Accelerators.Queue.Clear.Name, null));
+        context.InsertAppActionGroup(Accelerators.Queue.Key, queueActionGroup);
+        context.SetAccelsForAction($"{Accelerators.Queue.Key}.{Accelerators.Queue.Clear.Name}", [Accelerators.Queue.Clear.Accels]);        
+        
+        _nextAction.OnActivate += NextActionOnOnActivate;
+        _prevAction.OnActivate += PrevActionOnOnActivate;        
+        _playPauseAction.OnActivate += PlayPauseActionOnOnActivate;
+        _stopAction.OnActivate += StopActionOnOnActivate;
+        _clearQueueAction.OnActivate += ClearQueueActionOnOnActivate;
     }
 
+    private async void ClearQueueActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        { 
+            await _aria.Queue.ClearAsync();
+        }
+        catch (Exception e)
+        {
+            PlayerActionFailed(e, sender.Name);
+            _messenger.Send(new ShowToastMessage("Failed to stop playback"));
+        }
+    }
+
+    private async void StopActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        { 
+            await _aria.Player.StopAsync();
+        }
+        catch (Exception e)
+        {
+            PlayerActionFailed(e, sender.Name);
+            _messenger.Send(new ShowToastMessage("Failed to stop playback"));
+        }
+    }
+
+    private async void PrevActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        { 
+            await _aria.Player.PreviousAsync();
+        }
+        catch (Exception e)
+        {
+            PlayerActionFailed(e, sender.Name);
+            _messenger.Send(new ShowToastMessage("Failed to go to previous track"));
+        }
+    }
+
+    private async void NextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            await _aria.Player.NextAsync();
+        }
+        catch (Exception e)
+        {
+            PlayerActionFailed(e, sender.Name);
+            _messenger.Send(new ShowToastMessage("Failed to go to next track"));
+        }
+    }    
+
+    private async void PlayPauseActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            switch (_aria.Player.State)
+            {
+                case PlaybackState.Paused:
+                    await _aria.Player.ResumeAsync();
+                    break;
+                case PlaybackState.Stopped:
+                    var currentTrack = _aria.Queue.CurrentTrack;
+                    await _aria.Player.PlayAsync(currentTrack?.Position ?? 0);
+                    break;
+                case PlaybackState.Playing:
+                    await _aria.Player.PauseAsync();
+                    break;
+            }
+        }
+        catch (Exception e)
+        {
+            PlayerActionFailed(e, sender.Name);
+            _messenger.Send(new ShowToastMessage("Failed to play/pause track"));
+        }
+    }
+    
+    
     private async void ViewOnEnqueueRequested(object? sender, Id id)
     {
         try
@@ -83,7 +191,7 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
         
         GLib.Functions.IdleAdd(0, () =>
         {
-            _view?.ClearCover();
+            View?.ClearCover();
             return false;
         });        
     }
@@ -104,7 +212,7 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
         {
             GLib.Functions.IdleAdd(0, () =>
             {
-                _view?.SetPlaybackState(_aria.Player.State);
+                View?.SetPlaybackState(_aria.Player.State);
                 return false;
             });            
         }
@@ -112,7 +220,7 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
         {
             GLib.Functions.IdleAdd(0, () =>
             {
-                _view?.SetProgress(_aria.Player.Progress.Elapsed, _aria.Player.Progress.Duration);
+                View?.SetProgress(_aria.Player.Progress.Elapsed, _aria.Player.Progress.Duration);
                 return false;
             });            
         }
@@ -124,10 +232,20 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
         {
             GLib.Functions.IdleAdd(0, () =>
             {
-                _view?.SetPlaylistInfo(_aria.Queue.Order.CurrentIndex, _aria.Queue.Length);
+                View?.SetPlaylistInfo(_aria.Queue.Order.CurrentIndex, _aria.Queue.Length);
                 return false;
             });            
         }
+        
+        if (!flags.HasFlag(QueueStateChangedFlags.PlaybackOrder)) return;
+
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            _prevAction.SetEnabled(_aria.Queue.Order.CurrentIndex > 0);
+            _nextAction.SetEnabled(_aria.Queue.Order.HasNext);
+            _playPauseAction.SetEnabled(_aria.Queue.Length > 0);
+            return false;
+        });                
         
         _ = RefreshCover();
     }
@@ -160,7 +278,7 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
             {
                 GLib.Functions.IdleAdd(0, () =>
                 {
-                    _view?.ClearCover();
+                    View?.ClearCover();
                     return false;
                 });
                 return;
@@ -173,7 +291,7 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
             
             GLib.Functions.IdleAdd(0, () =>
             {
-                _view?.LoadCover(texture);
+                View?.LoadCover(texture);
                 return false;
             });            
         }
@@ -186,6 +304,9 @@ public partial class PlayerPresenter : IRecipient<PlayerStateChangedMessage>, IR
             if (!cancellationToken.IsCancellationRequested) LogFailedToLoadAlbumCover(e);
         }
     }
+    
+    [LoggerMessage(LogLevel.Error, "Player action failed: {action}")]
+    partial void PlayerActionFailed(Exception e, string? action);    
     
     [LoggerMessage(LogLevel.Error, "Failed to load album cover")]
     partial void LogFailedToLoadAlbumCover(Exception e);

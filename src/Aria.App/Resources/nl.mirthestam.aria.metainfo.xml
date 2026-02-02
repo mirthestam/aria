@@ -4,7 +4,7 @@
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-or-later</project_license>
   <name>Aria</name>
-  <summary>Connect to your music</summary>
+  <summary>In sync with your music</summary>
   <description>
     <p>A remote control app for MPD and MPD-based players like Volumio that lets you browse and explore their music libraries, with dedicated support for classical music.</p>
   </description>

@@ -56,7 +56,7 @@ suggested-action</property>
             </property>
             <property name="description">To use Aria, connect to a music player on your network.</property>
             <property name="icon-name">folder-music-symbolic</property>
-            <property name="title">Connect to Your Music</property>
+            <property name="title">Connect to your player</property>
           </object>
         </property>
         <child type="top">

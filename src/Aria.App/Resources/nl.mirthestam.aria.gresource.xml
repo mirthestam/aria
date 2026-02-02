@@ -3,8 +3,7 @@
 	<gresource prefix="/nl/mirthestam/aria">
 		<file>nl.mirthestam.aria.metainfo.xml</file>
 		<file>style.css</file>
-	</gresource>
-	<gresource prefix="/nl/mirthestam/aria">
+		<file>shortcuts-dialog.ui</file>
 		<file preprocess="xml-stripblanks">icons/scalable/actions/playlist-symbolic.svg</file>
 		<file preprocess="xml-stripblanks">icons/scalable/actions/play-symbolic.svg</file>
 		<file preprocess="xml-stripblanks">icons/scalable/actions/pause-symbolic.svg</file>

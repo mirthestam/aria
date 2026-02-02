@@ -38,7 +38,6 @@
         <EmbeddedResource Include="Features\Shell\ConnectingPage.ui" />
         <EmbeddedResource Include="Features\Shell\MainPage.ui" />
         <EmbeddedResource Include="Features\Shell\MainWindow.ui" />
-        <EmbeddedResource Include="Features\Shell\ShortcutsDialog.ui" />
         <EmbeddedResource Include="Features\Shell\Welcome\ConnectionListItem.ui" />
         <EmbeddedResource Include="Features\Shell\Welcome\WelcomePage.ui" />
         <EmbeddedResource Include="Resources\vinyl-record.png" />

@@ -40,4 +40,6 @@ public interface IQueue
     public Task EnqueueAsync(Info item, int index);
 
     public Task MoveAsync(Id sourceTrackId, int targetPlaylistIndex);
+
+    public Task ClearAsync();
 }

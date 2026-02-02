@@ -45,7 +45,7 @@ public class Program
         return Host.CreateDefaultBuilder(args)
             .ConfigureLogging(logging =>
             {
-                logging.SetMinimumLevel(LogLevel.Debug);
+                logging.SetMinimumLevel(LogLevel.Information);
                 logging.AddSimpleConsole(options =>
                 {
                     options.TimestampFormat = "[HH:mm:ss] ";
@@ -67,8 +67,8 @@ public class Program
                 
                 x.AddSingleton<IConnectionProfileProvider, ConnectionProfileProvider>();
                 x.AddSingleton<ResourceTextureLoader>();
-                x.AddTransient<ITagParser, PicardTagParser>();                
-
+                x.AddTransient<ITagParser, PicardTagParser>();
+                
                 // Main
                 x.AddSingleton<MainWindow>();
                 x.AddSingleton<MainWindowPresenter>();

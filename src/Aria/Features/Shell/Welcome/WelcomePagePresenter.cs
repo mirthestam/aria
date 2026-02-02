@@ -15,21 +15,22 @@ public partial class WelcomePagePresenter(
     IConnectionProfileFactory connectionProfileFactory,
     IAriaControl ariaControl,
     IMessenger messenger,
-    ILogger<WelcomePagePresenter> logger)
+    ILogger<WelcomePagePresenter> logger) : IPresenter<WelcomePage>
 {
     private CancellationTokenSource? _refreshCancellationTokenSource;
     private CancellationTokenSource? _discoveryCancellationTokenSource;
-    private WelcomePage? _view;
 
-    public void Attach(WelcomePage view)
+    public WelcomePage? View { get; private set; }
+
+    public void Attach(WelcomePage view, AttachContext context)
     {
         connectionProfileProvider.DiscoveryCompleted += ConnectionProfileProviderOnDiscoveryCompleted;
 
-        _view = view;
+        View = view;
 
-        _view.ConnectAction.OnActivate += ConnectActionHandler;
-        _view.NewAction.OnActivate += NewConnectionHandler;
-        _view.ConfigureAction.OnActivate += ConfigureConnectionHandler;
+        View.ConnectAction.OnActivate += ConnectActionHandler;
+        View.NewAction.OnActivate += NewConnectionHandler;
+        View.ConfigureAction.OnActivate += ConfigureConnectionHandler;
     }
 
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
@@ -81,7 +82,7 @@ public partial class WelcomePagePresenter(
             GLib.Functions.IdleAdd(0, () =>
             {
                 if (cancellationToken.IsCancellationRequested) return false;
-                _view?.RefreshConnections(connectionModels);
+                View?.RefreshConnections(connectionModels);
                 return false;
             });
 
@@ -105,7 +106,7 @@ public partial class WelcomePagePresenter(
 
         GLib.Functions.IdleAdd(0, () =>
         {
-            _view?.Discovering = true;
+            View?.Discovering = true;
             return false;
         });
 
@@ -117,7 +118,7 @@ public partial class WelcomePagePresenter(
         {
             GLib.Functions.IdleAdd(0, () =>
             {
-                if (_view != null) _view.Discovering = false;
+                if (View != null) View.Discovering = false;
                 return false;
             });
         }
@@ -130,7 +131,7 @@ public partial class WelcomePagePresenter(
     {
         GLib.Functions.IdleAdd(0, () =>
         {
-            _view?.Discovering = false;
+            View?.Discovering = false;
             return false;
         });
 
@@ -151,7 +152,7 @@ public partial class WelcomePagePresenter(
 
         GLib.Functions.IdleAdd(0, () =>
         {
-            if (_view != null) _view.Discovering = false;
+            if (View != null) View.Discovering = false;
             return false;
         });
 
@@ -176,14 +177,14 @@ public partial class WelcomePagePresenter(
     {
         try
         {
-            if (_view == null) return;
+            if (View == null) return;
 
             var connectionId = ParseConnectionId(args);
 
             var profile = await connectionProfileProvider.GetProfileAsync(connectionId);
             if (profile == null) return;
 
-            var result = await connectDialogPresenter.ShowAsync(_view, profile);
+            var result = await connectDialogPresenter.ShowAsync(View, profile);
 
             switch (result.Outcome)
             {
@@ -217,11 +218,11 @@ public partial class WelcomePagePresenter(
     {
         try
         {
-            if (_view == null) return;
+            if (View == null) return;
 
             var profile = connectionProfileFactory.CreateProfile();
 
-            var result = await connectDialogPresenter.ShowAsync(_view, profile);
+            var result = await connectDialogPresenter.ShowAsync(View, profile);
 
             switch (result.Outcome)
             {

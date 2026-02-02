@@ -94,6 +94,18 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         }
     }
 
+    public override async Task ClearAsync()
+    {
+        try
+        {
+            await client.SendCommandAsync(new ClearCommand()).ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to clear queue");
+        }
+    }
+
     private async Task EnqueueAsync(IEnumerable<TrackInfo> tracks, int index)
     {
         try

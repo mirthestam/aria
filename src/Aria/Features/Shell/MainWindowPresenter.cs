@@ -18,7 +18,8 @@ public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMess
     private readonly IAriaControl _ariaControl;
     private readonly MainPagePresenter _mainPagePresenter;
     private readonly WelcomePagePresenter _welcomePagePresenter;
-    private MainWindow _view;
+
+    public MainWindow View { get; private set; }
 
     private SimpleAction _aboutAction;
     private SimpleAction _disconnectAction;
@@ -47,14 +48,14 @@ public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMess
             switch (message.Value)
             {
                 case ConnectionState.Disconnected:
-                    _view.TogglePage(MainWindow.MainPages.Welcome);
+                    View.TogglePage(MainWindow.MainPages.Welcome);
                     _ = _welcomePagePresenter.RefreshAsync();
                     break;
                 case ConnectionState.Connecting:
-                    _view.TogglePage(MainWindow.MainPages.Connecting);
+                    View.TogglePage(MainWindow.MainPages.Connecting);
                     break;
                 case ConnectionState.Connected:
-                    _view.TogglePage(MainWindow.MainPages.Main);
+                    View.TogglePage(MainWindow.MainPages.Main);
                     break;
             }
             return false;
@@ -63,27 +64,31 @@ public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMess
 
     public void Attach(MainWindow view)
     {
-         _application.SetAccelsForAction("win.disconnect", ["<Control>d"]);
-         
-        _view = view;
-        _welcomePagePresenter.Attach(_view.WelcomePage);
-        _mainPagePresenter.Attach(_view.MainPage);
+        View = view;
+
+        var context = new AttachContext
+        {
+            InsertAppActionGroup = View.InsertActionGroup,
+            SetAccelsForAction = _application.SetAccelsForAction
+        };
+        
+        _welcomePagePresenter.Attach(View.WelcomePage, context);
+        _mainPagePresenter.Attach(View.MainPage, context);
         
         var actionGroup = SimpleActionGroup.New();
+        actionGroup.AddAction(_aboutAction = SimpleAction.New(Accelerators.Window.About.Name, null));
+        actionGroup.AddAction(_disconnectAction = SimpleAction.New(Accelerators.Window.Disconnect.Name, null));
         
-        _aboutAction = SimpleAction.New("about", null);
-        _aboutAction.OnActivate += AboutActionOnOnActivate;
-        actionGroup.AddAction(_aboutAction);
+        context.InsertAppActionGroup(Accelerators.Window.Key, actionGroup);        
+        context.SetAccelsForAction($"{Accelerators.Window.Key}.{Accelerators.Window.About.Name}", [Accelerators.Window.About.Accels]);
+        context.SetAccelsForAction($"{Accelerators.Window.Key}.{Accelerators.Window.Disconnect.Name}", [Accelerators.Window.Disconnect.Accels]);
         
-        // TODO: This action state should be updated based on whether we are connected or not.
-        _disconnectAction = SimpleAction.New("disconnect", null);
+        _aboutAction.OnActivate += AboutActionOnOnActivate;        
         _disconnectAction.OnActivate += DisconnectActionOnActivate;
-        actionGroup.AddAction(_disconnectAction);
-
-        _view.InsertActionGroup("win", actionGroup);
-        _view.TogglePage(MainWindow.MainPages.Welcome);
+        
+        View.TogglePage(MainWindow.MainPages.Welcome);
     }
-
+    
     private async void DisconnectActionOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         try
@@ -98,20 +103,20 @@ public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMess
         finally
         {
             // Whatever happens; always return to the Welcome page
-            _view.TogglePage(MainWindow.MainPages.Welcome);
+            View.TogglePage(MainWindow.MainPages.Welcome);
         }
     }
 
     private void AboutActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         var dialog = AboutDialog.NewFromAppdata("/nl/mirthestam/aria/nl.mirthestam.aria.metainfo.xml", null);
-        dialog.Present(_view);
+        dialog.Present(View);
     }
 
     public async Task StartupAsync()
     {
         await _ariaControl.InitializeAsync();
-        _view.Show();
+        View.Show();
         
         var autoConnected = await _welcomePagePresenter.TryStartAutoConnectAsync();
         if (!autoConnected)
@@ -126,7 +131,7 @@ public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMess
     {
         GLib.Functions.IdleAdd(0, () =>
         {
-            _view.ShowToast(message);            
+            View.ShowToast(message);            
             return false;
         });
     }

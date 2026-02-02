@@ -44,7 +44,6 @@ public partial class MainWindow
     {
         _logger = logger;
         presenter.Attach(this);
-
         
         DefaultHeight = 600;
         DefaultWidth = 800;
