@@ -1,6 +1,7 @@
 using Aria.Core;
 using Aria.Core.Connection;
 using Aria.Core.Library;
+using Aria.Features.Player.Queue;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using Aria.Infrastructure.Connection;
@@ -41,20 +42,26 @@ public partial class BrowserHostPresenter : IPresenter<BrowserHost>, IRecipient<
         await _browserPresenter.RefreshAsync(cancellationToken);
     }    
     
-    public void Reset()
+    public async Task ResetAsync(CancellationToken cancellationToken = default)
     {
-        GLib.Functions.IdleAdd(0, () =>
+        await GtkDispatch.InvokeIdleAsync(() =>
         {
             View.ToggleState(BrowserHost.BrowserState.EmptyCollection);
-            return false;
-        });            
+        }, cancellationToken).ConfigureAwait(false);        
         
         _browserPresenter.Reset();
     }
     
-    public void Receive(LibraryUpdatedMessage message)
+    public async void Receive(LibraryUpdatedMessage message)
     {
-        _ = DeterminePageAsync();
+        try
+        {
+            await DeterminePageAsync();
+        }
+        catch 
+        {
+            // Ok
+        }
     }
     
     private async Task DeterminePageAsync(CancellationToken cancellationToken = default)
@@ -62,22 +69,20 @@ public partial class BrowserHostPresenter : IPresenter<BrowserHost>, IRecipient<
         try
         {
             // Update the page
+            // TODO: Use a helper method for this
             var artists = await _playerApi.Library.GetArtistsAsync(cancellationToken);
             var artistsPresent = artists.Any();
-
-            // TODO: Expose a method in the library for this functionality.  
-            // For MPD, it can be implemented using the COUNT commands.
-            GLib.Functions.IdleAdd(0, () =>
+            
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
                 View.ToggleState(artistsPresent
                     ? BrowserHost.BrowserState.Browser
                     : BrowserHost.BrowserState.EmptyCollection);
-                return false;
-            });            
+            }, cancellationToken).ConfigureAwait(false);            
         }
         catch (OperationCanceledException)
         {
-            
+            // Ok   
         }
         catch (Exception e)
         {

@@ -12,7 +12,7 @@ using Aria.Features.Browser.Artist;
 using Aria.Features.Browser.Artists;
 using Aria.Features.Browser.Search;
 using Aria.Features.Player;
-using Aria.Features.Player.Playlist;
+using Aria.Features.Player.Queue;
 using Aria.Features.PlayerBar;
 using Aria.Features.Shared;
 using Aria.Features.Shell;
@@ -45,7 +45,7 @@ public class Program
         return Host.CreateDefaultBuilder(args)
             .ConfigureLogging(logging =>
             {
-                logging.SetMinimumLevel(LogLevel.Information);
+                logging.SetMinimumLevel(LogLevel.Debug);
                 logging.AddSimpleConsole(options =>
                 {
                     options.TimestampFormat = "[HH:mm:ss] ";
@@ -88,7 +88,7 @@ public class Program
 
                 // Features - Player
                 x.AddSingleton<PlayerPresenter>();
-                x.AddSingleton<PlaylistPresenter>();
+                x.AddSingleton<QueuePresenter>();
 
                 // Feature - PlayerBar
                 x.AddSingleton<PlayerBarPresenter>();

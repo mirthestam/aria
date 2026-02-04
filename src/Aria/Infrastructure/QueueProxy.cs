@@ -10,7 +10,7 @@ namespace Aria.Infrastructure;
 /// </summary>
 public class QueueProxy : IQueueSource
 {
-    public event Action<QueueStateChangedFlags>? StateChanged;
+    public event EventHandler<QueueStateChangedEventArgs>? StateChanged;
     
     private IQueueSource? _innerQueue;
 
@@ -49,8 +49,8 @@ public class QueueProxy : IQueueSource
         _innerQueue = null;
     }
     
-    private void InnerQueueOnStateChanged(QueueStateChangedFlags flags)
+    private void InnerQueueOnStateChanged(object? sender, QueueStateChangedEventArgs args)
     {
-        StateChanged?.Invoke(flags);
+        StateChanged?.Invoke(sender, args);
     }    
 }

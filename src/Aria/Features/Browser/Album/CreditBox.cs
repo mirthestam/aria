@@ -1,4 +1,5 @@
 using Adw;
+using Aria.Core;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
 using GLib;
@@ -90,7 +91,7 @@ public partial class CreditBox
         button.AddCssClass("artist-link");
 
         // Configure the action
-        button.SetActionName("browser.show-artist");
+        button.SetActionName($"{AppActions.Browser.Key}.{AppActions.Browser.ShowArtist.Action}");
         var value = Variant.NewString(artist.Id?.ToString() ?? Id.Unknown.ToString());
         button.SetActionTargetValue(value);
 

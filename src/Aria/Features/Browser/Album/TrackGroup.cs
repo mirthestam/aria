@@ -1,3 +1,4 @@
+using Aria.Core;
 using Aria.Core.Library;
 using Aria.Core.Queue;
 using Aria.Infrastructure;
@@ -61,16 +62,16 @@ public partial class TrackGroup
         switch (enqueueAction)
         {
             case EnqueueAction.Replace:
-                ActivateAction("queue.enqueue-replace", Variant.NewStrv(trackList));
+                ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueReplace.Action}", Variant.NewStrv(trackList));
                 break;
             case EnqueueAction.EnqueueNext:
-                ActivateAction("queue.enqueue-next", Variant.NewStrv(trackList));
+                ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueNext.Action}", Variant.NewStrv(trackList));
                 break;
             case EnqueueAction.EnqueueEnd:
-                ActivateAction("queue.enqueue-end", Variant.NewStrv(trackList));
+                ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueEnd.Action}", Variant.NewStrv(trackList));
                 break;
             case null:
-                ActivateAction("queue.enqueue-default", Variant.NewStrv(trackList));
+                ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueDefault.Action}", Variant.NewStrv(trackList));
                 break;
             default:
                 throw new ArgumentOutOfRangeException(nameof(enqueueAction), enqueueAction, null);

@@ -1,6 +1,6 @@
 namespace Aria.Core.Connection;
 
-public enum ConnectionState
+public enum BackendConnectionState
 {
     Disconnected,
     Connecting,

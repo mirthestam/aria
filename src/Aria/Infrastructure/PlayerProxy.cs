@@ -12,7 +12,7 @@ public class PlayerProxy : IPlayerSource
     //  Simple decorator because underlying integrations can change
     private IPlayerSource? _innerPlayer;
 
-    public event Action<PlayerStateChangedFlags>? StateChanged;    
+    public event EventHandler<PlayerStateChangedEventArgs>? StateChanged;    
     
     public Task PlayAsync(int index)
     {
@@ -74,8 +74,8 @@ public class PlayerProxy : IPlayerSource
         _innerPlayer = null;
     }
     
-    private void InnerPlayerOnStateChanged(PlayerStateChangedFlags flags)
+    private void InnerPlayerOnStateChanged(object? sender, PlayerStateChangedEventArgs args)
     {
-        StateChanged?.Invoke(flags);
+        StateChanged?.Invoke(sender, args);
     }
 }

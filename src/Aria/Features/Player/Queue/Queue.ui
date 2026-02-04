@@ -4,7 +4,7 @@
   <!-- interface-name PlaylistBox.ui -->
   <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.4"/>
-  <template class="AriaFeaturesPlayerPlaylistPlaylist" parent="GtkStack">
+  <template class="AriaFeaturesPlayerQueueQueue" parent="GtkStack">
     <property name="vexpand">True</property>
     <property name="vhomogeneous">False</property>
     <child>

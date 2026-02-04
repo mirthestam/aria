@@ -13,6 +13,8 @@ public record TrackInfo : Info, IHasAssets
     ///     the track title.
     /// </summary>
     public required string Title { get; init; }
+    
+    public required Id? AlbumId { get; init; }
 
     public TrackCreditsInfo CreditsInfo { get; init; } = new();
     

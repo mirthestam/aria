@@ -5,7 +5,7 @@ namespace Aria.Infrastructure;
 
 public abstract class BaseLibrary : ILibrarySource 
 {
-    public virtual event Action? Updated;    
+    public virtual event EventHandler? Updated;    
     
     public virtual Task<IEnumerable<ArtistInfo>> GetArtistsAsync(CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<ArtistInfo>());
     public virtual Task<IEnumerable<ArtistInfo>> GetArtistsAsync(ArtistQuery query, CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<ArtistInfo>());
@@ -41,6 +41,6 @@ public abstract class BaseLibrary : ILibrarySource
     
     protected void OnUpdated()
     {
-        Updated?.Invoke();
+        Updated?.Invoke(this, EventArgs.Empty);
     }            
 }

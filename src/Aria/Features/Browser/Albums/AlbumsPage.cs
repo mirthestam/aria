@@ -1,6 +1,7 @@
 using Adw;
 using Aria.Core.Library;
 using Gdk;
+using Gio;
 using GObject;
 using Gtk;
 using GId = Aria.Infrastructure.GId;
@@ -73,7 +74,7 @@ public partial class AlbumsPage
         widget.Initialize(modelItem);
     }
 
-    private void OnSignalListItemFactoryOnOnSetup(SignalListItemFactory _, SignalListItemFactory.SetupSignalArgs args)
+    private void OnSignalListItemFactoryOnOnSetup(SignalListItemFactory factory, SignalListItemFactory.SetupSignalArgs args)
     {
         var item = (ListItem)args.Object;
         var child = new AlbumsAlbumListItem();
@@ -82,8 +83,7 @@ public partial class AlbumsPage
         dragSource.OnDragBegin += AlbumOnOnDragBegin;
         dragSource.OnPrepare += AlbumOnPrepare;
         child.AddController(dragSource);
-        _albumDragSources.Add(dragSource);       
-
+        _albumDragSources.Add(dragSource);
         item.SetChild(child);
     }
     

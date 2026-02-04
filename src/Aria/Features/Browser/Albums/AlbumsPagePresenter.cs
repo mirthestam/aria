@@ -2,7 +2,10 @@ using Aria.Core;
 using Aria.Core.Connection;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Features.Player.Queue;
+using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
+using GLib;
 using Microsoft.Extensions.Logging;
 using ResourceTextureLoader = Aria.Infrastructure.ResourceTextureLoader;
 
@@ -33,7 +36,11 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
     public void Attach(AlbumsPage view)
     {
         _view = view;
-        _view.AlbumSelected += (albumId, _) => _messenger.Send(new ShowAlbumDetailsMessage(albumId));
+        _view.AlbumSelected += (albumInfo, _) =>
+        {
+            var parameter = Variant.NewString(albumInfo.Id!.ToString()); 
+            _view.ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", parameter);
+        };
     }
     
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
@@ -70,28 +77,22 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
         
         try
         {
-            var albums = await _aria.Library.GetAlbumsAsync(cancellationToken);
+            var albums = await _aria.Library.GetAlbumsAsync(cancellationToken).ConfigureAwait(false);
+            
             var albumModels = albums.Select(a => new AlbumsAlbumModel(a))
                 .OrderBy(a => a.Album.Title)
                 .ToList();
             cancellationToken.ThrowIfCancellationRequested();
 
-            GLib.Functions.TimeoutAdd(0, 0, () =>
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
-                if (cancellationToken.IsCancellationRequested) return false;
-                    
+                if (cancellationToken.IsCancellationRequested) return;
                 _view?.ShowAlbums(albumModels);
-                return false;
-            });            
-            
-            
+            }, cancellationToken).ConfigureAwait(false);
             
             LogAlbumsLoaded();
 
-            // This performs slow I/O (loading all album covers).
-            // Ideally, I/O should not block this thread, but it does, so it is wrapped in a Task.
-            // We do not await it; album art is fetched in the background.
-            _ = Task.Run(() => ProcessArtworkAsync(albumModels, cancellationToken), cancellationToken);
+            await ProcessArtworkAsync(albumModels, cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -107,7 +108,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
         LogLoadingAlbumsArtwork();
         var options = new ParallelOptions
         {
-            MaxDegreeOfParallelism = 4,
+            MaxDegreeOfParallelism = 1,
             CancellationToken = ct
         };
 

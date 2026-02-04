@@ -45,8 +45,8 @@ public partial class MainWindow
         _logger = logger;
         presenter.Attach(this);
         
-        DefaultHeight = 600;
-        DefaultWidth = 800;
+        DefaultHeight = 800;
+        DefaultWidth = 1000;
 
         // These values don't seem to work then from the .UI file.        
         HeightRequest = 294;

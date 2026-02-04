@@ -21,6 +21,10 @@ public class AriaEngine(
     private readonly PlayerProxy _playerProxy = new();
     private readonly QueueProxy _queueProxy = new();
 
+    public event EventHandler<EngineStateChangedEventArgs>? StateChanged;
+    
+    public EngineState State { get; private set; } = EngineState.Stopped;
+
     private ScopedBackendConnection? _backendScope;
 
     public IPlayer Player => _playerProxy;
@@ -33,13 +37,26 @@ public class AriaEngine(
     public Task InitializeAsync()
     {
         // Forward events from the proxies over the messenger for the UI
-        _playerProxy.StateChanged += flags => messenger.Send(new PlayerStateChangedMessage(flags));
-        _libraryProxy.Updated += () => messenger.Send(new LibraryUpdatedMessage());
-        _queueProxy.StateChanged += flags => messenger.Send(new QueueStateChangedMessage(flags));
+        // We ignore events if the engine is not in ready state yet.
+        _playerProxy.StateChanged += (_, args) =>
+        {
+            if (State != EngineState.Ready) return;
+            messenger.Send(new PlayerStateChangedMessage(args.Flags));
+        };
+        _libraryProxy.Updated += ( _, _) =>
+        {
+            if (State != EngineState.Ready) return;            
+            messenger.Send(new LibraryUpdatedMessage());
+        };
+        _queueProxy.StateChanged += (_, args) =>
+        {
+            if (State != EngineState.Ready) return;            
+            messenger.Send(new QueueStateChangedMessage(args.Flags));
+        };
         return Task.CompletedTask;
     }
 
-    public async Task DisconnectAsync()
+    public async Task StopAsync()
     {
         await InternalDisconnectAsync();
     }
@@ -51,15 +68,15 @@ public class AriaEngine(
         return _backendScope?.Connection.IdProvider.Parse(id) ?? Id.Empty;
     }
 
-    public async Task ConnectAsync(Guid profileId, CancellationToken cancellationToken = default)
+    public async Task StartAsync(Guid profileId, CancellationToken cancellationToken = default)
     {
         var profiles = await connectionProfileProvider.GetAllProfilesAsync(cancellationToken).ConfigureAwait(false);
         var profile = profiles.FirstOrDefault(p => p.Id == profileId);
         if (profile == null) throw new InvalidOperationException("No profile found with the given ID");
-        await ConnectAsync(profile, cancellationToken).ConfigureAwait(false);
+        await StartAsync(profile, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task ConnectAsync(IConnectionProfile connectionProfile, CancellationToken cancellationToken = default)
+    public async Task StartAsync(IConnectionProfile connectionProfile, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -68,6 +85,8 @@ public class AriaEngine(
             if (provider == null) throw new NotSupportedException("No provider found for connection profile");
 
             await InternalDisconnectAsync().ConfigureAwait(false);
+
+            SetState(EngineState.Starting);
 
             // Instantiate the backend and connect our session wrappers to the actual backend implementation  
             _backendScope = await provider.CreateAsync(connectionProfile).ConfigureAwait(false);
@@ -81,12 +100,21 @@ public class AriaEngine(
             // Wrap the backend library with its caches
             _resourceCache = new Caching.ResourceCacheLibrarySource(backend.Library, connectionProfile.Id.ToString(),
                 TimeSpan.FromDays(30));
-            _infoCache = new QueryCacheLibrarySource(_resourceCache, TimeSpan.FromSeconds(15));
+            _infoCache = new QueryCacheLibrarySource(_resourceCache, TimeSpan.FromDays(5));
 
             _libraryProxy.Attach(_infoCache);
 
             //  Initialize the backend. This is where it will connect.
             await backend.ConnectAsync(cancellationToken).ConfigureAwait(false);
+            
+            
+            SetState(EngineState.Seeding);
+            
+            await _queueProxy.GetTracksAsync().ConfigureAwait(false);
+            await _libraryProxy.GetArtistsAsync(cancellationToken).ConfigureAwait(false);
+            
+            SetState(EngineState.Ready);
+            
         }
         catch
         {
@@ -97,7 +125,14 @@ public class AriaEngine(
 
     private async Task InternalDisconnectAsync()
     {
-        if (_backendScope == null) return;
+        if (State == EngineState.Stopped) return;
+        
+        SetState(EngineState.Stopping);
+        if (_backendScope == null)
+        {
+            SetState(EngineState.Stopped);
+            return;
+        }
 
         _playerProxy.Detach();
         _queueProxy.Detach();
@@ -113,10 +148,30 @@ public class AriaEngine(
 
         _backendScope.Dispose();
         _backendScope = null;
+        SetState(EngineState.Stopped);
     }
 
-    private void BackendOnConnectionStateChanged(ConnectionState state)
+    private async void BackendOnConnectionStateChanged(BackendConnectionState state)
     {
-        messenger.Send(new ConnectionStateChangedMessage(state));
+        try
+        {
+            if (state == BackendConnectionState.Disconnected)
+            {
+                // For some reason, the backend is disconnected.
+                // It might have lost its connection
+                await InternalDisconnectAsync();
+            }
+        }
+        catch
+        {
+            SetState(EngineState.Stopped);
+        }
+    }
+
+    private void SetState(EngineState newState)
+    {
+        if (State == newState) return;
+        State = newState;
+        StateChanged?.Invoke(this, new EngineStateChangedEventArgs(newState));
     }
 }

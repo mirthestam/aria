@@ -1,5 +1,6 @@
+using Aria.Core.Connection;
 using Aria.Core.Extraction;
-using Aria.Features.Shell;
+using Aria.Infrastructure;
 
 namespace Aria.Core;
 
@@ -7,9 +8,13 @@ public interface IAriaControl
 {
     public Task InitializeAsync();
 
-    public Task ConnectAsync(Guid profileId, CancellationToken cancellationToken = default);
+    public Task StartAsync(Guid profileId, CancellationToken cancellationToken = default);
     
-    public Task DisconnectAsync();
+    public Task StopAsync();
     
-    Id Parse(string id);    
+    public Id Parse(string id);    
+    
+    event EventHandler<EngineStateChangedEventArgs>? StateChanged;
+    
+    public EngineState State { get; }
 }

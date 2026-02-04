@@ -20,7 +20,7 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
 
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _gates = new();
 
-    public event Action? Updated;
+    public event EventHandler? Updated;
 
     public QueryCacheLibrarySource(ILibrarySource inner, TimeSpan slidingWindow)
     {
@@ -30,10 +30,10 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
         _inner.Updated += InnerOnUpdated;
     }
 
-    private void InnerOnUpdated()
+    private void InnerOnUpdated(object? sender, EventArgs e)
     {
         Clear();
-        Updated?.Invoke();
+        Updated?.Invoke(sender, e);
     }
     
     public Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken token) => _inner.GetAlbumResourceStreamAsync(resourceId, token);

@@ -17,5 +17,5 @@ public interface IBackendConnection : IDisposable
 
     Task DisconnectAsync();
     
-    public event Action<ConnectionState>? ConnectionStateChanged;    
+    public event Action<BackendConnectionState>? ConnectionStateChanged;    
 }

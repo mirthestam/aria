@@ -35,13 +35,13 @@ public partial class BackendConnection(
     {
         client.ConnectionChanged += (a, b) =>
         {
-            ConnectionState state;
+            BackendConnectionState state;
             if (client.IsConnected)
-                state = ConnectionState.Connected;
+                state = BackendConnectionState.Connected;
             else if (client.IsConnecting)
-                state = ConnectionState.Connecting;
+                state = BackendConnectionState.Connecting;
             else
-                state = ConnectionState.Disconnected;
+                state = BackendConnectionState.Disconnected;
 
             OnConnectionStateChanged(state);
         };

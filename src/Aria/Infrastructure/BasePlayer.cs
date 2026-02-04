@@ -6,7 +6,7 @@ namespace Aria.Infrastructure;
 
 public abstract class BasePlayer : IPlayerSource
 {
-    public virtual event Action<PlayerStateChangedFlags>? StateChanged;
+    public virtual event EventHandler<PlayerStateChangedEventArgs>? StateChanged;
     
     public virtual Id Id { get; protected set;  } = Id.Empty;
     
@@ -38,6 +38,6 @@ public abstract class BasePlayer : IPlayerSource
 
     protected void OnStateChanged(PlayerStateChangedFlags flags)
     {
-        StateChanged?.Invoke(flags);
+        StateChanged?.Invoke(this, new PlayerStateChangedEventArgs(flags));
     }    
 }

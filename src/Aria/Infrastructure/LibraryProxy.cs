@@ -12,7 +12,7 @@ public class LibraryProxy : ILibrarySource
     private static readonly ILibrarySource Empty = new EmptyLibrary();
     private ILibrarySource _innerLibrary = Empty;
 
-    public event Action? Updated;
+    public event EventHandler? Updated;
 
     public Task<IEnumerable<ArtistInfo>> GetArtistsAsync(ArtistQuery query,
         CancellationToken cancellationToken = default) => _innerLibrary.GetArtistsAsync(query, cancellationToken);
@@ -54,9 +54,9 @@ public class LibraryProxy : ILibrarySource
         _innerLibrary = Empty;
     }
 
-    private void InnerLibraryOnUpdated()
+    private void InnerLibraryOnUpdated(object? sender, EventArgs e)
     {
-        Updated?.Invoke();
+        Updated?.Invoke(sender, e);
     }
 
     private class EmptyLibrary : ILibrarySource
@@ -88,6 +88,6 @@ public class LibraryProxy : ILibrarySource
         public Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default)
             => Task.FromResult<Info?>(null);
 
-        public event Action? Updated;
+        public event EventHandler? Updated;
     }
 }

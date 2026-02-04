@@ -254,7 +254,7 @@ public partial class WelcomePagePresenter(
         await AbortRefreshAndDiscovery();
         
         LogConnectingToProfile(logger, profileId);
-        await ariaControl.ConnectAsync(profileId);
+        await ariaControl.StartAsync(profileId);
 
         LogPersistingProfile(logger, profileId);
         await connectionProfileProvider.PersistProfileAsync(profileId);

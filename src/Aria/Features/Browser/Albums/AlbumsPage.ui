@@ -2,6 +2,7 @@
 <!-- Created with Cambalache 0.99.9 -->
 <interface>
   <!-- interface-name MainWindow.ui -->
+  <requires lib="gio" version="2.0"/>
   <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.4"/>
   <template class="AriaFeaturesBrowserAlbumsAlbumsPage" parent="AdwNavigationPage">
@@ -39,4 +40,12 @@
       </object>
     </child>
   </template>
+  <object class="GtkPopoverMenu" id="album-popover-menu">
+    <property name="menu-model">album-menu</property>
+  </object>
+  <menu id="album-menu">
+    <item>
+      <attribute name="label">Show</attribute>
+    </item>
+  </menu>
 </interface>

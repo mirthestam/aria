@@ -2,6 +2,7 @@ using Adw;
 using Aria.Core;
 using Aria.Core.Connection;
 using Aria.Features.Shell.Welcome;
+using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
 using Gio;
 using Microsoft.Extensions.Logging;
@@ -10,8 +11,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Aria.Features.Shell;
 
-public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMessage>
-    , IRecipient<ShowToastMessage>
+public partial class MainWindowPresenter : IRecipient<ShowToastMessage>
 {
     private readonly Application _application;
     private readonly ILogger<MainWindowPresenter> _logger;
@@ -36,32 +36,41 @@ public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMess
         _welcomePagePresenter = welcomePagePresenter;
         _ariaControl = ariaControl;
         _logger = logger;
-
-        messenger.Register<ConnectionStateChangedMessage>(this);
-        messenger.Register<ShowToastMessage>(this);
+        
+        messenger.Register(this);
+        
+        _ariaControl.StateChanged += AriaControlOnStateChanged;
     }
 
-    public void Receive(ConnectionStateChangedMessage message)
+    private void AriaControlOnStateChanged(object? sender, EngineStateChangedEventArgs e)
     {
         GLib.Functions.IdleAdd(0, () =>
         {
-            switch (message.Value)
+            switch (e.State)
             {
-                case ConnectionState.Disconnected:
+                case EngineState.Stopped:
                     View.TogglePage(MainWindow.MainPages.Welcome);
                     _ = _welcomePagePresenter.RefreshAsync();
                     break;
-                case ConnectionState.Connecting:
+                case EngineState.Starting:
                     View.TogglePage(MainWindow.MainPages.Connecting);
                     break;
-                case ConnectionState.Connected:
+                case EngineState.Seeding:
+                    // Ignore seeding state
+                    break;
+                case EngineState.Ready:
                     View.TogglePage(MainWindow.MainPages.Main);
                     break;
+                case EngineState.Stopping:
+                    // Ignore stopping state
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
             return false;
-        });        
+        });
     }
-
+    
     public void Attach(MainWindow view)
     {
         View = view;
@@ -76,12 +85,12 @@ public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMess
         _mainPagePresenter.Attach(View.MainPage, context);
         
         var actionGroup = SimpleActionGroup.New();
-        actionGroup.AddAction(_aboutAction = SimpleAction.New(Accelerators.Window.About.Name, null));
-        actionGroup.AddAction(_disconnectAction = SimpleAction.New(Accelerators.Window.Disconnect.Name, null));
+        actionGroup.AddAction(_aboutAction = SimpleAction.New(AppActions.Window.About.Action, null));
+        actionGroup.AddAction(_disconnectAction = SimpleAction.New(AppActions.Window.Disconnect.Action, null));
         
-        context.InsertAppActionGroup(Accelerators.Window.Key, actionGroup);        
-        context.SetAccelsForAction($"{Accelerators.Window.Key}.{Accelerators.Window.About.Name}", [Accelerators.Window.About.Accels]);
-        context.SetAccelsForAction($"{Accelerators.Window.Key}.{Accelerators.Window.Disconnect.Name}", [Accelerators.Window.Disconnect.Accels]);
+        context.InsertAppActionGroup(AppActions.Window.Key, actionGroup);        
+        context.SetAccelsForAction($"{AppActions.Window.Key}.{AppActions.Window.About.Action}", [AppActions.Window.About.Accelerator]);
+        context.SetAccelsForAction($"{AppActions.Window.Key}.{AppActions.Window.Disconnect.Action}", [AppActions.Window.Disconnect.Accelerator]);
         
         _aboutAction.OnActivate += AboutActionOnOnActivate;        
         _disconnectAction.OnActivate += DisconnectActionOnActivate;
@@ -93,7 +102,7 @@ public partial class MainWindowPresenter : IRecipient<ConnectionStateChangedMess
     {
         try
         {
-            await _ariaControl.DisconnectAsync();
+            await _ariaControl.StopAsync();
         }
         catch (Exception e)
         {

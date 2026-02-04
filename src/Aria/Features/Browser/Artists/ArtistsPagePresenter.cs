@@ -1,8 +1,11 @@
 using Aria.Core;
 using Aria.Core.Library;
+using Aria.Features.Player.Queue;
 using Aria.Features.Shell;
+using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
 using Gio;
+using GLib;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
 
@@ -57,8 +60,11 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
     public void Attach(ArtistsPage view)
     {
         _view = view;
-        _view.ArtistSelected += id => { _messenger.Send(new ShowArtistDetailsMessage(id)); };
-        _view.AllAlbumsRequested += () => { _messenger.Send(new ShowAllAlbumsMessage()); };
+        _view.ArtistSelected += artistInfo =>
+        {
+            var parameter = Variant.NewString(artistInfo.Id!.ToString());
+            _view.ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowArtist.Action}", parameter);
+        };
         _view.SetActiveFilter(_activeFilter);
         
         _view.ArtistsFilterAction.OnChangeState += ArtistsFilterActionOnOnChangeState;
@@ -86,11 +92,10 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
     {
         LogRefreshingArtists();
         AbortRefresh();
-
+        
         _refreshCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(externalCancellationToken);
         var cancellationToken = _refreshCancellationTokenSource.Token;
-
-
+        
         try
         {
             var (sort, displayField) = _activeFilter switch
@@ -105,18 +110,16 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
                 RequiredRoles = ToRequiredRoles(_activeFilter),
                 Sort = sort
             };
-
-            var artists = await _aria.Library.GetArtistsAsync(query, cancellationToken);
+            
+            var artists = await _aria.Library.GetArtistsAsync(query, cancellationToken).ConfigureAwait(false);
 
             if (_view != null)
             {
-                GLib.Functions.TimeoutAdd(0, 0, () =>
+                await GtkDispatch.InvokeIdleAsync(() =>
                 {
-                    if (cancellationToken.IsCancellationRequested) return false;
-                    
+                    if (cancellationToken.IsCancellationRequested) return;
                     _view.RefreshArtists(artists, displayField);
-                    return false;
-                });
+                }, cancellationToken).ConfigureAwait(false);                        
             }
 
             LogArtistsRefreshed();

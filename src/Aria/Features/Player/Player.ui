@@ -49,7 +49,7 @@
                       </object>
                     </child>
                     <child>
-                      <object class="AriaFeaturesPlayerPlaylistPlaylist" id="playlist">
+                      <object class="AriaFeaturesPlayerQueueQueue" id="playlist">
                         <property name="vexpand">True</property>
                       </object>
                     </child>

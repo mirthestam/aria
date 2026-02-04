@@ -31,21 +31,6 @@ public partial class BrowserPage
     public AlbumsPage LibraryAlbumsPage => _libraryAlbumsPage;
     public SearchPage SearchPage => _searchPage;
     public NavigationSplitView NavigationSplitView => _libraryNavigationSplitView;
-
-    public SimpleAction EnqueueDefaultAction { get; private set; }    
-    public SimpleAction EnqueueReplaceAction { get; private set; }
-    public SimpleAction EnqueueNextAction { get; private set; }
-    public SimpleAction EnqueueEndAction { get; private set; }
-    
-    partial void Initialize()
-    {
-        var actionGroup = SimpleActionGroup.New();
-        actionGroup.AddAction(EnqueueDefaultAction = SimpleAction.New("enqueue-default", VariantType.NewArray(VariantType.String)));        
-        actionGroup.AddAction(EnqueueReplaceAction = SimpleAction.New("enqueue-replace", VariantType.NewArray(VariantType.String)));
-        actionGroup.AddAction(EnqueueNextAction = SimpleAction.New("enqueue-next", VariantType.NewArray(VariantType.String)));
-        actionGroup.AddAction(EnqueueEndAction = SimpleAction.New("enqueue-end", VariantType.NewArray(VariantType.String)));
-        InsertActionGroup("queue", actionGroup);
-    }
     
     public void StartSearch()
     {

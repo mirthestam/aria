@@ -6,15 +6,15 @@ namespace Aria.Infrastructure;
 
 public interface IPlayerSource : IPlayer
 {
-    event Action<PlayerStateChangedFlags>? StateChanged;    
+    event EventHandler<PlayerStateChangedEventArgs>? StateChanged;    
 }
 
 public interface IQueueSource : IQueue
 {
-    event Action<QueueStateChangedFlags>? StateChanged;    
+    event EventHandler<QueueStateChangedEventArgs>? StateChanged;    
 }
 
 public interface ILibrarySource : ILibrary
 {
-    event Action? Updated;    
+    event EventHandler? Updated;    
 }

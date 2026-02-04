@@ -3,21 +3,24 @@ using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Core.Player;
 using Aria.Core.Queue;
-using Aria.Features.Player.Playlist;
+using Aria.Features.Player.Queue;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
 using Gio;
+using GLib;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
+using TimeSpan = System.TimeSpan;
 
 namespace Aria.Features.Player;
 
 public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerStateChangedMessage>, IRecipient<QueueStateChangedMessage>
 {
     private readonly IAria _aria;
+    private readonly IAriaControl _ariaControl;
     private readonly ILogger<PlayerPresenter> _logger;
-    private readonly PlaylistPresenter _playlistPresenter;
+    private readonly QueuePresenter _queuePresenter;
     private readonly ResourceTextureLoader _resourceTextureLoader;
     private readonly IMessenger _messenger;
     
@@ -25,19 +28,25 @@ public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerSta
     
     public Player? View { get; set; }
 
-    private SimpleAction _nextAction;
-    private SimpleAction _prevAction;
-    private SimpleAction _playPauseAction;
-    private SimpleAction _stopAction;
-    private SimpleAction _clearQueueAction;
+    private SimpleAction _playerNextTrackAction;
+    private SimpleAction _playerPreviousTrackAction;
+    private SimpleAction _playerPlayPauseAction;
+    private SimpleAction _playerStopAction;
     
+    private SimpleAction _queueEnqueueDefaultAction;
+    private SimpleAction _queueEnqueueReplaceAction;
+    private SimpleAction _queueEnqueueNextAction;
+    private SimpleAction _queueEnqueueEndAction;
+    private SimpleAction _queueClearAction;    
+
     public PlayerPresenter(ILogger<PlayerPresenter> logger, IMessenger messenger, IAria aria,
-        ResourceTextureLoader resourceTextureLoader, PlaylistPresenter playlistPresenter)
+        ResourceTextureLoader resourceTextureLoader, QueuePresenter queuePresenter, IAriaControl ariaControl)
     {
         _messenger = messenger;
         _logger = logger;
         _resourceTextureLoader = resourceTextureLoader;
-        _playlistPresenter = playlistPresenter;
+        _queuePresenter = queuePresenter;
+        _ariaControl = ariaControl;
         _aria = aria;
         messenger.RegisterAll(this);
     }
@@ -48,33 +57,94 @@ public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerSta
         View.SeekRequested += ViewOnSeekRequested;
         View.EnqueueRequested += ViewOnEnqueueRequested;
 
-        _playlistPresenter.Attach(View.Playlist);
+        _queuePresenter.Attach(View.Queue);
         
         var playerActionGroup = SimpleActionGroup.New();
-        playerActionGroup.AddAction(_nextAction = SimpleAction.New(Accelerators.Player.Next.Name, null));
-        playerActionGroup.AddAction(_prevAction = SimpleAction.New(Accelerators.Player.Previous.Name, null));
-        playerActionGroup.AddAction(_playPauseAction = SimpleAction.New(Accelerators.Player.PlayPause.Name, null));
-        playerActionGroup.AddAction(_stopAction = SimpleAction.New(Accelerators.Player.Stop.Name, null));
-        context.InsertAppActionGroup(Accelerators.Player.Key, playerActionGroup);
+        playerActionGroup.AddAction(_playerNextTrackAction = SimpleAction.New(AppActions.Player.Next.Action, null));
+        playerActionGroup.AddAction(_playerPreviousTrackAction = SimpleAction.New(AppActions.Player.Previous.Action, null));
+        playerActionGroup.AddAction(_playerPlayPauseAction = SimpleAction.New(AppActions.Player.PlayPause.Action, null));
+        playerActionGroup.AddAction(_playerStopAction = SimpleAction.New(AppActions.Player.Stop.Action, null));
+        context.InsertAppActionGroup(AppActions.Player.Key, playerActionGroup);
         
-        context.SetAccelsForAction($"{Accelerators.Player.Key}.{Accelerators.Player.Next.Name}", [Accelerators.Player.Next.Accels]);
-        context.SetAccelsForAction($"{Accelerators.Player.Key}.{Accelerators.Player.Previous.Name}", [Accelerators.Player.Previous.Accels]);
-        context.SetAccelsForAction($"{Accelerators.Player.Key}.{Accelerators.Player.PlayPause.Name}", [Accelerators.Player.PlayPause.Accels]);
-        context.SetAccelsForAction($"{Accelerators.Player.Key}.{Accelerators.Player.Stop.Name}", [Accelerators.Player.Stop.Accels]);       
+        context.SetAccelsForAction($"{AppActions.Player.Key}.{AppActions.Player.Next.Action}", [AppActions.Player.Next.Accelerator]);
+        context.SetAccelsForAction($"{AppActions.Player.Key}.{AppActions.Player.Previous.Action}", [AppActions.Player.Previous.Accelerator]);
+        context.SetAccelsForAction($"{AppActions.Player.Key}.{AppActions.Player.PlayPause.Action}", [AppActions.Player.PlayPause.Accelerator]);
+        context.SetAccelsForAction($"{AppActions.Player.Key}.{AppActions.Player.Stop.Action}", [AppActions.Player.Stop.Accelerator]);       
         
         var queueActionGroup = SimpleActionGroup.New();
-        queueActionGroup.AddAction(_clearQueueAction = SimpleAction.New(Accelerators.Queue.Clear.Name, null));
-        context.InsertAppActionGroup(Accelerators.Queue.Key, queueActionGroup);
-        context.SetAccelsForAction($"{Accelerators.Queue.Key}.{Accelerators.Queue.Clear.Name}", [Accelerators.Queue.Clear.Accels]);        
+        queueActionGroup.AddAction(_queueClearAction = SimpleAction.New(AppActions.Queue.Clear.Action, null));
+        queueActionGroup.AddAction(_queueEnqueueDefaultAction = SimpleAction.New(AppActions.Queue.EnqueueDefault.Action, VariantType.NewArray(VariantType.String)));        
+        queueActionGroup.AddAction(_queueEnqueueReplaceAction = SimpleAction.New(AppActions.Queue.EnqueueReplace.Action, VariantType.NewArray(VariantType.String)));
+        queueActionGroup.AddAction(_queueEnqueueNextAction = SimpleAction.New(AppActions.Queue.EnqueueNext.Action, VariantType.NewArray(VariantType.String)));
+        queueActionGroup.AddAction(_queueEnqueueEndAction = SimpleAction.New(AppActions.Queue.EnqueueEnd.Action, VariantType.NewArray(VariantType.String)));        
+        context.InsertAppActionGroup(AppActions.Queue.Key, queueActionGroup);
+        context.SetAccelsForAction($"{AppActions.Queue.Key}.{AppActions.Queue.Clear.Action}", [AppActions.Queue.Clear.Accelerator]);        
         
-        _nextAction.OnActivate += NextActionOnOnActivate;
-        _prevAction.OnActivate += PrevActionOnOnActivate;        
-        _playPauseAction.OnActivate += PlayPauseActionOnOnActivate;
-        _stopAction.OnActivate += StopActionOnOnActivate;
-        _clearQueueAction.OnActivate += ClearQueueActionOnOnActivate;
+        _playerNextTrackAction.OnActivate += PlayerNextTrackActionOnOnActivate;
+        _playerPreviousTrackAction.OnActivate += PlayerPreviousTrackActionOnOnActivate;        
+        _playerPlayPauseAction.OnActivate += PlayerPlayPauseActionOnOnActivate;
+        _playerStopAction.OnActivate += PlayerStopActionOnOnActivate;
+        
+        _queueClearAction.OnActivate += QueueClearActionOnOnActivate;
+        
+        _queueEnqueueDefaultAction.OnActivate += DefaultQueueEnqueueActionOnOnActivate;
+        _queueEnqueueEndAction.OnActivate += QueueEnqueueEndActionOnOnActivate;
+        _queueEnqueueNextAction.OnActivate += QueueEnqueueNextActionOnOnActivate;
+        _queueEnqueueReplaceAction.OnActivate += PlayActionOnOnActivate;        
     }
 
-    private async void ClearQueueActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    private void DefaultQueueEnqueueActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueHandler(IQueue.DefaultEnqueueAction, args);
+    private void QueueEnqueueEndActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueHandler(EnqueueAction.EnqueueEnd, args);
+    private void QueueEnqueueNextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueHandler(EnqueueAction.EnqueueNext, args);
+    private void PlayActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) => EnqueueHandler(EnqueueAction.Replace, args);
+
+    private async void EnqueueHandler(EnqueueAction enqueueAction, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            var serializedIds = args.Parameter!.GetStrv(out _);
+            var ids = serializedIds.Select(_ariaControl.Parse).ToArray();
+            
+            // Enqueue the items by id
+            await EnqueueIds(enqueueAction, ids).ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            LogFailedToEnqueueTracks(_logger, e);
+            _messenger.Send(new ShowToastMessage($"Failed to enqueue tracks."));
+        }        
+    }
+    
+    private async Task EnqueueIds(EnqueueAction action, Id[] ids)
+    {
+        var items = new List<Info>();
+        foreach (var id in ids)
+        {
+            // Would be great to have 'GetItems' instead of foreach here.
+            var item =await _aria.Library.GetItemAsync(id).ConfigureAwait(false);
+            if (item == null) continue;
+            items.Add(item);
+        }
+
+        await _aria.Queue.EnqueueAsync(items, action).ConfigureAwait(false);
+        
+        switch (action)
+        {
+            case EnqueueAction.Replace:
+                _messenger.Send(new ShowToastMessage($"Playing tracks."));
+                break;
+            case EnqueueAction.EnqueueNext:
+                _messenger.Send(new ShowToastMessage($"Playing tracks Next."));
+                break;
+            case EnqueueAction.EnqueueEnd:
+                _messenger.Send(new ShowToastMessage($"Added tracks to end of queue."));
+                break;
+            default:
+                throw new ArgumentOutOfRangeException(nameof(action), action, null);
+        }
+    }    
+    
+    private async void QueueClearActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         try
         { 
@@ -87,7 +157,7 @@ public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerSta
         }
     }
 
-    private async void StopActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    private async void PlayerStopActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         try
         { 
@@ -100,7 +170,7 @@ public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerSta
         }
     }
 
-    private async void PrevActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    private async void PlayerPreviousTrackActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         try
         { 
@@ -113,7 +183,7 @@ public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerSta
         }
     }
 
-    private async void NextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    private async void PlayerNextTrackActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         try
         {
@@ -126,7 +196,7 @@ public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerSta
         }
     }    
 
-    private async void PlayPauseActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    private async void PlayerPlayPauseActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         try
         {
@@ -151,7 +221,6 @@ public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerSta
         }
     }
     
-    
     private async void ViewOnEnqueueRequested(object? sender, Id id)
     {
         try
@@ -175,18 +244,16 @@ public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerSta
 
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
-        _ = RefreshCover(cancellationToken);
-        
         Refresh(QueueStateChangedFlags.All);
         Refresh(PlayerStateChangedFlags.All);
 
-        await _playlistPresenter.RefreshAsync();
-
+        await _queuePresenter.RefreshAsync(cancellationToken);
+        await RefreshCover(cancellationToken);        
     }
 
     public void Reset()
     {
-        _playlistPresenter.Reset();
+        _queuePresenter.Reset();
         AbortRefreshCover();
         
         GLib.Functions.IdleAdd(0, () =>
@@ -241,9 +308,9 @@ public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerSta
 
         GLib.Functions.IdleAdd(0, () =>
         {
-            _prevAction.SetEnabled(_aria.Queue.Order.CurrentIndex > 0);
-            _nextAction.SetEnabled(_aria.Queue.Order.HasNext);
-            _playPauseAction.SetEnabled(_aria.Queue.Length > 0);
+            _playerPreviousTrackAction.SetEnabled(_aria.Queue.Order.CurrentIndex > 0);
+            _playerNextTrackAction.SetEnabled(_aria.Queue.Order.HasNext);
+            _playerPlayPauseAction.SetEnabled(_aria.Queue.Length > 0);
             return false;
         });                
         
@@ -285,7 +352,10 @@ public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerSta
             };
 
             var coverInfo = track.Track.Assets.FrontCover;
-            var texture = await _resourceTextureLoader.LoadFromAlbumResourceAsync(coverInfo?.Id ?? Id.Empty, cancellationToken);
+            //var texture = await _resourceTextureLoader.LoadFromAlbumResourceAsync(coverInfo?.Id ?? Id.Empty, cancellationToken).ConfigureAwait(false);
+            var texture = await Task.Run(
+                () => _resourceTextureLoader.LoadFromAlbumResourceAsync(coverInfo?.Id ?? Id.Empty, cancellationToken),
+                cancellationToken).ConfigureAwait(false);
             if (cancellationToken.IsCancellationRequested) return;
             if (texture == null) return;
             
@@ -313,4 +383,7 @@ public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerSta
     
     [LoggerMessage(LogLevel.Error, "Could not enqueue")]
     partial void LogCouldNotEnqueue(Exception e);    
+
+    [LoggerMessage(LogLevel.Error, "Failed to enqueue tracks.")]
+    static partial void LogFailedToEnqueueTracks(ILogger<PlayerPresenter> logger, Exception e);    
 }

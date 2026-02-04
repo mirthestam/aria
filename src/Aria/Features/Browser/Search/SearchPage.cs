@@ -1,4 +1,5 @@
 using Adw;
+using Aria.Core;
 using Aria.Core.Library;
 using Aria.Features.Browser.Albums;
 using Aria.Infrastructure;
@@ -42,20 +43,10 @@ public partial class SearchPage
     public event EventHandler<string>? SearchChanged;
     public event EventHandler? SearchStopped;
     
-    public SimpleAction ShowAlbumAction { get; private set; }
-    public SimpleAction ShowArtistAction { get; private set; }
-    public SimpleAction EnqueueTrackAction { get; private set; }
-
     partial void Initialize()
     {
         _searchEntry.OnSearchChanged += SearchEntryOnOnSearchChanged;
         _searchEntry.OnStopSearch += SearchEntryOnOnStopSearch;
-        
-        var actionGroup = SimpleActionGroup.New();
-        actionGroup.AddAction(ShowAlbumAction = SimpleAction.New("show-album", VariantType.String));
-        actionGroup.AddAction(ShowArtistAction = SimpleAction.New("show-artist", VariantType.String));
-        actionGroup.AddAction(EnqueueTrackAction = SimpleAction.New("enqueue-track", VariantType.String));
-        InsertActionGroup("results", actionGroup);
     }
     
     public void Clear()
@@ -128,8 +119,9 @@ public partial class SearchPage
         _trackDragSources.Add(dragSource);           
             
         // Action
-        row.ActionName = "results.enqueue-track";
-        row.SetActionTargetValue(Variant.NewString(track.Id?.ToString() ?? string.Empty));
+        row.ActionName = $"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueDefault.Action}";
+        var param = Variant.NewArray(VariantType.String, [Variant.NewString(track.Id?.ToString() ?? string.Empty)]);
+        row.SetActionTargetValue(param);
         return row;
     }
 
@@ -153,8 +145,10 @@ public partial class SearchPage
             
         // Action
         var albumIdString = album.Id!.ToString();
-        row.ActionName = "results.show-album";
-        row.SetActionTargetValue(Variant.NewString(albumIdString));
+        row.ActionName = $"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}";
+        var param = Variant.NewString(albumIdString);
+        row.SetActionTargetValue(param);
+        
         return row;
     }
 
@@ -165,8 +159,9 @@ public partial class SearchPage
         row.UseMarkup = false;
         row.Title = artist.Name;
             
-        row.ActionName = "results.show-artist";
-        row.SetActionTargetValue(Variant.NewString(artist.Id?.ToString() ?? string.Empty));
+        row.ActionName = $"{AppActions.Browser.Key}.{AppActions.Browser.ShowArtist.Action}";
+        var param = Variant.NewString(artist.Id!.ToString());
+        row.SetActionTargetValue(param);
 
         var roles = new List<string>();
         if (artist.Roles.HasFlag(ArtistRoles.Composer)) roles.Add("Composer");

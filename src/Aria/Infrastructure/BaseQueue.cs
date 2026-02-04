@@ -6,7 +6,7 @@ namespace Aria.Infrastructure;
 
 public abstract class BaseQueue : IQueueSource
 {
-    public virtual event Action<QueueStateChangedFlags>? StateChanged;
+    public virtual event EventHandler<QueueStateChangedEventArgs>? StateChanged;
     
     public virtual Id Id { get; protected set; } = Id.Empty;
 
@@ -42,6 +42,6 @@ public abstract class BaseQueue : IQueueSource
 
     protected void OnStateChanged(QueueStateChangedFlags flags)
     {
-        StateChanged?.Invoke(flags);
+        StateChanged?.Invoke(this, new QueueStateChangedEventArgs(flags));
     }        
 }

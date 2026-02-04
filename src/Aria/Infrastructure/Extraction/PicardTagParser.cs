@@ -1,13 +1,44 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
 
 namespace Aria.Infrastructure.Extraction;
 
+public sealed class ParsedTags
+{
+    public int? QueuePosition { get; set; }
+
+    public string FileName { get; set; } = "";
+    public string Date { get; set; } = "";
+    public string Title { get; set; } = "";
+    public TimeSpan Duration { get; set; } = TimeSpan.Zero;
+
+    public string AlbumTitle { get; set; } = "";
+
+    public string Work { get; set; } = "";
+    public string MovementName { get; set; } = "";
+    public string MovementNumber { get; set; } = "";
+    public bool ShowMovement { get; set; }
+
+    public string Disc { get; set; } = "";
+    public string TrackNumber { get; set; } = "";
+    public string Heading { get; set; } = "";
+
+    public List<string> ArtistTags { get; } = new();
+    public List<string> AlbumArtistTags { get; } = new();
+    public List<string> ComposerTags { get; } = new();
+    public List<string> PerformerTags { get; } = new();
+    public List<string> EnsembleTags { get; } = new();
+    public string Conductor { get; set; } = "";
+}
+
+
 /// <summary>
 ///     A tag parser that follows tags as defined by the default configuration of MusicBrainz Picard
 ///     https://mpd.readthedocs.io/en/latest/protocol.html#tags
 /// </summary>
+
 
 
 /* About Album Artists
@@ -33,179 +64,325 @@ die plugin proberen, EN dan documenteren
 public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
 {
     private sealed record ParsedArtistName(string Name, string? Extra);
-    
+
     private static readonly Regex PerformerSuffixRegex = PerformerSuffixRegexFactory();
     
-    public TrackInfo ParseTrackInformation(IReadOnlyList<Tag> tags)
+    public QueueTrackInfo ParseQueueTrackInformation(IReadOnlyList<Tag> tags)
     {
-        var artistTags = new List<string>();
-        var albumArtistTags = new List<string>();
-        var composerTags = new List<string>();     
-        var performerTags = new List<string>();
-        var ensembleTags = new List<string>();
-        var titleTag = "";
-        var conductorTag = "";
-        var workTag = "";
-        var movementNameTag = "";
-        var movementNumberTag = "";
-        var showMovementTag = false;
-        var durationTag = TimeSpan.Zero;
-        var dateTag = "";
-        var fileNameTag = "";
-
-        // TODO: Create a test project to test this parser based upon various scenario's
-        // TODO: Implement support here for Sort tags for at all known roles
-        foreach (var tag in tags)
-            switch (tag.Name.ToLowerInvariant())
-            {
-                case PicardTagNames.FileTags.File:
-                    fileNameTag = tag.Value;
-                    break;
-                
-                case PicardTagNames.TrackTags.Date:
-                    dateTag = tag.Value;
-                    break;
-                
-                case PicardTagNames.WorkTags.Movement:
-                    movementNameTag = tag.Value;
-                    break;
-
-                case PicardTagNames.WorkTags.MovementNumber:
-                    movementNumberTag = tag.Value;
-                    break;
-
-                case PicardTagNames.WorkTags.ShowMovement:
-                    showMovementTag = tag.Value == "1";
-                    break;
-
-                case PicardTagNames.ArtistTags.Artist:
-                    artistTags.Add(tag.Value);
-                    break;
-
-                case PicardTagNames.AlbumTags.AlbumArtist:
-                    albumArtistTags.Add(tag.Value);
-                    break;
-
-                case PicardTagNames.ArtistTags.Composer:
-                    composerTags.Add(tag.Value);
-                    break;
-
-                case PicardTagNames.TrackTags.Title:
-                    titleTag = tag.Value;
-                    break;
-
-                case PicardTagNames.ArtistTags.Performer:
-                    performerTags.Add(tag.Value);
-                    break;
-                
-                case PicardTagNames.ArtistTags.Ensemble:
-                    ensembleTags.Add(tag.Value);
-                    break;
-
-                case PicardTagNames.ArtistTags.Conductor:
-                    conductorTag = tag.Value;
-                    break;
-
-                case PicardTagNames.WorkTags.Work:
-                    workTag = tag.Value;
-                    break;
-                
-                case PicardTagNames.TrackTags.Duration:
-                    var seconds = double.Parse(tag.Value);
-                    durationTag = TimeSpan.FromSeconds(seconds);
-                    break;
-            }
-
-        var albumArtists = new List<ArtistInfo>();
-        var artists = new List<TrackArtistInfo>();
-
-        foreach (var artistName in artistTags.Where(artistName => !string.IsNullOrWhiteSpace(artistName)))
-            AddArtist(artistName, ArtistRoles.None);
-
-        foreach (var artistName in albumArtistTags.Where(artistName => !string.IsNullOrWhiteSpace(artistName)))
-            AddAlbumArtist(artistName);
-
-        foreach (var composerName in composerTags.Where(composerName => !string.IsNullOrWhiteSpace(composerName)))
-            AddArtist(composerName, ArtistRoles.Composer);
-
-        foreach (var performerName in performerTags.Where(performerName => !string.IsNullOrWhiteSpace(performerName)))
-            AddArtist(performerName, ArtistRoles.Performer);
-
-        foreach (var ensembleName in ensembleTags.Where(ensembleName => !string.IsNullOrWhiteSpace(ensembleName)))
-            AddArtist(ensembleName, ArtistRoles.Ensemble);
-
-        if (!string.IsNullOrWhiteSpace(conductorTag)) AddArtist(conductorTag, ArtistRoles.Conductor);
+        var parsed = ParseTags(tags);
         
+        if (parsed.QueuePosition is null) throw new InvalidOperationException("Position tag is missing");
+
+        var credits = BuildCredits(parsed);
+
         var trackInfo = new TrackInfo
         {
-            FileName = fileNameTag,
-            CreditsInfo = new TrackCreditsInfo
-            {
-                Artists = artists.AsReadOnly(),
-                AlbumArtists = albumArtists.AsReadOnly()
-            },
+            FileName = parsed.FileName,
+            CreditsInfo = credits.TrackCredits,
             Work = new WorkInfo
             {
-                Work = workTag,
-                MovementName = movementNameTag,
-                MovementNumber = movementNumberTag,
-                ShowMovement = showMovementTag
+                Work = parsed.Work,
+                MovementName = parsed.MovementName,
+                MovementNumber = parsed.MovementNumber,
+                ShowMovement = parsed.ShowMovement
             },
-            Title = titleTag,
-            Duration = durationTag,
-            ReleaseDate = DateTagParser.ParseDate(dateTag)
+            Title = parsed.Title,
+            Duration = parsed.Duration,
+            ReleaseDate = DateTagParser.ParseDate(parsed.Date),
+            AlbumId = Id.Unknown
         };
-        
-        var trackId = idProvider.CreateTrackId(new TrackIdentificationContext
-        {
-            Track = trackInfo
-        });        
 
-        return trackInfo with { Id = trackId };
+        var trackId = idProvider.CreateTrackId(new TrackIdentificationContext { Track = trackInfo });
+        trackInfo = trackInfo with { Id = trackId };
+
+        var albumInfo = BuildAlbumInfo(parsed, trackInfo);
+        trackInfo = trackInfo with { AlbumId = albumInfo.Id };
+
+        var queueTrackInfo = new QueueTrackInfo
+        {
+            Id = null,
+            Position = parsed.QueuePosition.Value,
+            Track = trackInfo
+        };
+
+        var queueTrackId = idProvider.CreateQueueTrackId(new QueueTrackIdentificationContext
+        {
+            Tags = tags,
+            Track = queueTrackInfo
+        });
+
+        return queueTrackInfo with { Id = queueTrackId };
+    }
+
+    public AlbumTrackInfo ParseAlbumTrackInformation(IReadOnlyList<Tag> tags)
+    {
+        var parsed = ParseTags(tags);
+
+        var trackInfo = ParseTrackInformation(tags);
+
+        int? trackNumber = null;
+        if (int.TryParse(parsed.TrackNumber, NumberStyles.Integer, CultureInfo.InvariantCulture, out var tn))
+            trackNumber = tn;
+
+        TrackGroup? group = null;
+        if (!string.IsNullOrWhiteSpace(parsed.Heading))
+        {
+            group = new TrackGroup
+            {
+                Title = parsed.Heading,
+                Key = parsed.Heading
+            };
+        }
+
+        return new AlbumTrackInfo
+        {
+            TrackNumber = trackNumber,
+            VolumeName = parsed.Disc,
+            Track = trackInfo,
+            Group = group
+        };
+    }
+
+    public AlbumInfo ParseAlbumInformation(IReadOnlyList<Tag> tags)
+    {
+        var parsed = ParseTags(tags);
+        
+        var credits = BuildCredits(parsed);
+
+        var trackInfoForAlbumCredits = new TrackInfo
+        {
+            FileName = parsed.FileName,
+            CreditsInfo = credits.TrackCredits,
+            Work = new WorkInfo
+            {
+                Work = parsed.Work,
+                MovementName = parsed.MovementName,
+                MovementNumber = parsed.MovementNumber,
+                ShowMovement = parsed.ShowMovement
+            },
+            Title = parsed.Title,
+            Duration = parsed.Duration,
+            ReleaseDate = DateTagParser.ParseDate(parsed.Date),
+            AlbumId = Id.Unknown
+        };
+
+        var albumInfo = new AlbumInfo
+        {
+            Title = parsed.AlbumTitle,
+            CreditsInfo = new AlbumCreditsInfo
+            {
+                Artists = trackInfoForAlbumCredits.CreditsInfo.Artists,
+                AlbumArtists = trackInfoForAlbumCredits.CreditsInfo.AlbumArtists
+            },
+            ReleaseDate = trackInfoForAlbumCredits.ReleaseDate
+        };
+
+        var id = idProvider.CreateAlbumId(new AlbumIdentificationContext { Album = albumInfo });
+        return albumInfo with { Id = id };
+    }
+
+    public ArtistInfo? ParseArtistInformation(string artistName, string? artistNameSort, ArtistRoles roles)
+    {
+        var artistNameParts = ParseArtistNameParts(artistName);
+        var artistNameSortParts = ParseArtistNameParts(artistNameSort);
+
+        return new ArtistInfo
+        {
+            Name = artistNameParts?.Name ?? artistName,
+            NameSort = artistNameSortParts?.Extra ?? artistNameSort,
+            Roles = roles
+        };
+    }
+    
+    private static ParsedTags ParseTags(IReadOnlyList<Tag> tags)
+    {
+        var parsed = new ParsedTags();
+
+        foreach (var tag in tags)
+        {
+            if (tag.Name.Equals(PicardTagNames.QueueTags.Position, StringComparison.OrdinalIgnoreCase))
+            {
+                if (int.TryParse(tag.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var pos))
+                    parsed.QueuePosition = pos;
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.FileTags.File, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.FileName = tag.Value;
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.TrackTags.Date, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.Date = tag.Value;
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.TrackTags.Duration, StringComparison.OrdinalIgnoreCase))
+            {
+                if (double.TryParse(tag.Value, NumberStyles.Float, CultureInfo.InvariantCulture, out var seconds))
+                    parsed.Duration = TimeSpan.FromSeconds(seconds);
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.TrackTags.Title, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.Title = tag.Value;
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.AlbumTags.Album, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.AlbumTitle = tag.Value;
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.WorkTags.Work, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.Work = tag.Value;
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.WorkTags.Movement, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.MovementName = tag.Value;
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.WorkTags.MovementNumber, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.MovementNumber = tag.Value;
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.WorkTags.ShowMovement, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.ShowMovement = tag.Value == "1";
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.ArtistTags.Artist, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.ArtistTags.Add(tag.Value);
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.AlbumTags.AlbumArtist, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.AlbumArtistTags.Add(tag.Value);
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.ArtistTags.Composer, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.ComposerTags.Add(tag.Value);
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.ArtistTags.Performer, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.PerformerTags.Add(tag.Value);
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.ArtistTags.Ensemble, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.EnsembleTags.Add(tag.Value);
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.ArtistTags.Conductor, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.Conductor = tag.Value;
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.AlbumTags.Disc, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.Disc = tag.Value;
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.AlbumTags.Track, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.TrackNumber = tag.Value;
+                continue;
+            }
+
+            if (tag.Name.Equals(PicardTagNames.GroupTags.Heading, StringComparison.OrdinalIgnoreCase))
+            {
+                parsed.Heading = tag.Value;
+            }
+        }
+
+        return parsed;
+    }
+
+    private sealed record BuiltCredits(TrackCreditsInfo TrackCredits);
+
+    private BuiltCredits BuildCredits(ParsedTags parsed)
+    {
+        var albumArtists = new List<ArtistInfo>();
+        var artists = new List<TrackArtistInfo>();
+        
+        foreach (var s in parsed.ArtistTags)
+            if (!string.IsNullOrWhiteSpace(s))
+                AddArtist(s, ArtistRoles.None);
+
+        foreach (var s in parsed.AlbumArtistTags)
+            if (!string.IsNullOrWhiteSpace(s))
+                AddAlbumArtist(s);
+
+        foreach (var s in parsed.ComposerTags)
+            if (!string.IsNullOrWhiteSpace(s))
+                AddArtist(s, ArtistRoles.Composer);
+
+        foreach (var s in parsed.PerformerTags)
+            if (!string.IsNullOrWhiteSpace(s))
+                AddArtist(s, ArtistRoles.Performer);
+
+        foreach (var s in parsed.EnsembleTags)
+            if (!string.IsNullOrWhiteSpace(s))
+                AddArtist(s, ArtistRoles.Ensemble);
+
+        if (!string.IsNullOrWhiteSpace(parsed.Conductor))
+            AddArtist(parsed.Conductor, ArtistRoles.Conductor);
+
+        return new BuiltCredits(new TrackCreditsInfo
+        {
+            Artists = artists.AsReadOnly(),
+            AlbumArtists = albumArtists.AsReadOnly()
+        });
 
         void AddArtist(string artistName, ArtistRoles roles)
         {
-
             var parts = ParseArtistNameParts(artistName);
-            
+
             var existingArtist = artists.FirstOrDefault(a => a.Artist.Name == parts.Name);
             if (existingArtist != null)
             {
                 var index = artists.IndexOf(existingArtist);
-                artists[index] = existingArtist with
-                {
-                    Roles = existingArtist.Roles | roles
-                };
+                artists[index] = existingArtist with { Roles = existingArtist.Roles | roles };
+                return;
             }
-            else
+
+            var artistInfo = new TrackArtistInfo
             {
-                var artistInfo = new TrackArtistInfo
-                {
-                    Roles = roles,
-                    Artist = new ArtistInfo
-                    {
-                        Name = parts.Name
-                    },
-                    AdditionalInformation = parts.Extra
-                };
-                var artistId = idProvider.CreateArtistId(new ArtistIdentificationContext
-                {
-                    Artist = artistInfo.Artist
-                });
+                Roles = roles,
+                Artist = new ArtistInfo { Name = parts.Name },
+                AdditionalInformation = parts.Extra
+            };
 
-                artistInfo = artistInfo with
-                {
-                    Artist = artistInfo.Artist with { Id = artistId }
-                };
+            var artistId = idProvider.CreateArtistId(new ArtistIdentificationContext { Artist = artistInfo.Artist });
+            artistInfo = artistInfo with { Artist = artistInfo.Artist with { Id = artistId } };
 
-                artists.Add(artistInfo);
-            }
+            artists.Add(artistInfo);
         }
 
         void AddAlbumArtist(string artistName)
         {
             var existingArtist = albumArtists.FirstOrDefault(a => a.Name == artistName);
-            // TODO: This is the point where I can update Sort information  if it is present on another track,  but not yet known/            
             if (existingArtist != null) return;
 
             var artistInfo = new ArtistInfo
@@ -213,125 +390,17 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
                 Name = artistName,
                 Roles = ArtistRoles.None
             };
-            var artistId = idProvider.CreateArtistId(new ArtistIdentificationContext
-            {
-                Artist = artistInfo
-            });
 
-            artistInfo = artistInfo with
-            {
-                Id = artistId
-            };
-
-            albumArtists.Add(artistInfo);
+            var artistId = idProvider.CreateArtistId(new ArtistIdentificationContext { Artist = artistInfo });
+            albumArtists.Add(artistInfo with { Id = artistId });
         }
     }
 
-    public QueueTrackInfo ParseQueueTrackInformation(IReadOnlyList<Tag> tags)
+    private AlbumInfo BuildAlbumInfo(ParsedTags parsed, TrackInfo trackInfo)
     {
-        int? position = null;
-        
-        foreach (var tag in tags)
-        {
-            switch (tag.Name.ToLowerInvariant())
-            {
-                case PicardTagNames.QueueTags.Position:
-                    position = int.Parse(tag.Value);
-                    break;
-            }
-        }
-
-        if (position == null)
-        {
-            throw new InvalidOperationException("Position tag is missing");
-        }
-        
-        var trackInfo = ParseTrackInformation(tags);
-        
-        var queueTrackInfo = new QueueTrackInfo
-        {
-            Id = null,
-            Position = position.Value,
-            Track = trackInfo
-        };
-
-        var queueTrackId  = idProvider.CreateQueueTrackId(new QueueTrackIdentificationContext
-        {
-            Tags = tags,
-            Track = queueTrackInfo
-        });
-        
-        return queueTrackInfo with { Id = queueTrackId };        
-    }
-
-    public AlbumTrackInfo ParseAlbumTrackInformation(IReadOnlyList<Tag> tags)
-    {
-        var diskTag = "";
-        var trackNumberTag = "";
-        var headingTag = "";
-
-        foreach (var tag in tags)
-        {
-            switch (tag.Name.ToLowerInvariant())
-            {
-                case PicardTagNames.AlbumTags.Track:
-                    trackNumberTag = tag.Value;
-                    break;
-                
-                case PicardTagNames.AlbumTags.Disc:
-                    diskTag = tag.Value;
-                    break;
-                
-                case PicardTagNames.GroupTags.Heading:
-                    headingTag = tag.Value;
-                    break;
-            }
-        }
-        
-        var trackInfo = ParseTrackInformation(tags);
-        var isTrackNumberFound = int.TryParse(trackNumberTag, out var trackNumber);
-
-        TrackGroup? group = null;
-        
-        if (!string.IsNullOrWhiteSpace(headingTag))
-        {
-            group = new TrackGroup
-            {
-                Title = headingTag,
-                Key = headingTag
-            };
-        }
-        
-        var albumTrackInfo = new AlbumTrackInfo
-        {
-            TrackNumber = isTrackNumberFound ? trackNumber : null,
-            VolumeName = diskTag,
-            Track = trackInfo,
-            Group = group
-        };
-        
-        return albumTrackInfo;
-    }
-    
-    public AlbumInfo ParseAlbumInformation(IReadOnlyList<Tag> tags)
-    {
-        var title = "";
-        var tagList = tags.ToList();
-
-        // TODO: Implement more fields. I.e. the date
-        foreach (var (tag, value) in tagList)
-            switch (tag.ToLowerInvariant())
-            {
-                case PicardTagNames.AlbumTags.Album:
-                    title = value;
-                    break;
-            }
-
-        var trackInfo = ParseTrackInformation(tagList);
-
         var albumInfo = new AlbumInfo
         {
-            Title = title,
+            Title = parsed.AlbumTitle,
             CreditsInfo = new AlbumCreditsInfo
             {
                 Artists = trackInfo.CreditsInfo.Artists,
@@ -340,27 +409,40 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
             ReleaseDate = trackInfo.ReleaseDate
         };
 
-        var id = idProvider.CreateAlbumId(new AlbumIdentificationContext
-        {
-            Album = albumInfo
-        });
-
-        return albumInfo with { Id = id };
+        var albumId = idProvider.CreateAlbumId(new AlbumIdentificationContext { Album = albumInfo });
+        return albumInfo with { Id = albumId };
     }
 
-    public ArtistInfo? ParseArtistInformation(string artistName, string? artistNameSort, ArtistRoles roles)
+    private TrackInfo ParseTrackInformation(IReadOnlyList<Tag> tags)
     {
-        var artistNameParts = ParseArtistNameParts(artistName);
-        var artistNameSortParts = ParseArtistNameParts(artistNameSort);
-        
-        return new ArtistInfo
+        var parsed = ParseTags(tags);
+
+        var credits = BuildCredits(parsed);
+
+        var trackInfo = new TrackInfo
         {
-            Name = artistNameParts?.Name ?? artistName,
-            NameSort = artistNameSortParts?.Extra ?? artistNameSort,
-            Roles = roles
+            FileName = parsed.FileName,
+            CreditsInfo = credits.TrackCredits,
+            Work = new WorkInfo
+            {
+                Work = parsed.Work,
+                MovementName = parsed.MovementName,
+                MovementNumber = parsed.MovementNumber,
+                ShowMovement = parsed.ShowMovement
+            },
+            Title = parsed.Title,
+            Duration = parsed.Duration,
+            ReleaseDate = DateTagParser.ParseDate(parsed.Date),
+            AlbumId = Id.Unknown
         };
+
+        var trackId = idProvider.CreateTrackId(new TrackIdentificationContext { Track = trackInfo });
+        trackInfo = trackInfo with { Id = trackId };
+
+        var albumInfo = BuildAlbumInfo(parsed, trackInfo);
+        return trackInfo with { AlbumId = albumInfo.Id };
     }
- 
+    
     private static ParsedArtistName? ParseArtistNameParts(string? value)
     {
         // Picard uses 'Name (Extra)' format for artists.'
@@ -368,19 +450,19 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
             return null;
 
         var trimmed = value.Trim();
-        
+
         var match = PerformerSuffixRegex.Match(trimmed);
         if (!match.Success)
             return new ParsedArtistName(trimmed, null);
 
         var name = match.Groups["name"].Value.Trim();
         var extra = match.Groups["extra"].Value.Trim();
-        
+
         return string.IsNullOrWhiteSpace(name)
             ? new ParsedArtistName(trimmed, null)
             : new ParsedArtistName(name, string.IsNullOrWhiteSpace(extra) ? null : extra);
-    }    
-    
+    }
+
     [GeneratedRegex(@"^(?<name>.*?)\s*\((?<extra>[^()]+)\)\s*$", RegexOptions.Compiled | RegexOptions.CultureInvariant)]
     private static partial Regex PerformerSuffixRegexFactory();
 }

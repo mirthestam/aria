@@ -1,18 +1,19 @@
 using Aria.Core;
 using Aria.Core.Connection;
-using Aria.Core.Queue;
 using Aria.Features.Browser;
 using Aria.Features.Player;
 using Aria.Features.PlayerBar;
+using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
 
 namespace Aria.Features.Shell;
 
-public partial class MainPagePresenter : IPresenter<MainPage>, IRecipient<ConnectionStateChangedMessage>
+public partial class MainPagePresenter : IPresenter<MainPage>
 {
     private readonly ILogger<MainPagePresenter> _logger;
+    private readonly IAriaControl _ariaControl;
     private readonly BrowserHostPresenter _browserHostPresenter;
     private readonly PlayerPresenter _playerPresenter;
     private readonly PlayerBarPresenter _playerBarPresenter;
@@ -25,15 +26,20 @@ public partial class MainPagePresenter : IPresenter<MainPage>, IRecipient<Connec
         BrowserHostPresenter browserHostPresenter,
         PlayerPresenter playerPresenter,
         PlayerBarPresenter playerBarPresenter,
-        IMessenger messenger)
+        IMessenger messenger, IAriaControl ariaControl)
     {
         _logger = logger;
         _browserHostPresenter = browserHostPresenter;
         _playerPresenter = playerPresenter;
         _playerBarPresenter = playerBarPresenter;
+        _ariaControl = ariaControl;
+        
+        
+        _ariaControl.StateChanged += AriaControlOnStateChanged;
+        
         messenger.RegisterAll(this);
     }
-
+    
     public void Attach(MainPage view, AttachContext context)
     {
         View = view;
@@ -44,24 +50,24 @@ public partial class MainPagePresenter : IPresenter<MainPage>, IRecipient<Connec
     
     public MainPage? View { get; private set; }
     
-    public void Receive(ConnectionStateChangedMessage message)
+    
+    private void AriaControlOnStateChanged(object? sender, EngineStateChangedEventArgs e)
     {
-        switch (message.Value)
+        switch (e.State)
         {
-            case ConnectionState.Connected:
+            case EngineState.Ready:
                 CancelActiveRefresh();
-                _activeTask = SequenceTaskAsync(() => OnConnectedAsync());
+                _activeTask = SequenceTaskAsync(() => OnEngineReadyAsync());
                 break;
-
-            case ConnectionState.Disconnected:
+            
+            case EngineState.Stopped:
                 CancelActiveRefresh();
-                _activeTask = SequenceTaskAsync(() => OnDisconnectedAsync());
+                _activeTask = SequenceTaskAsync(() => OnEngineStoppedAsync());
                 break;
-            case ConnectionState.Connecting:
-                _ = OnConnectingAsync();
-                break;
-            default:
-                throw new InvalidOperationException("Unexpected connection state");
+            
+            case EngineState.Starting:
+                _ = OnEngineStartingAsync();
+                break;                
         }
     }
     
@@ -79,11 +85,16 @@ public partial class MainPagePresenter : IPresenter<MainPage>, IRecipient<Connec
         {
             LogLoadingUiForConnectedBackend();
             
+            _logger.LogWarning("Refreshing player.");
             await _playerPresenter.RefreshAsync(cancellationToken);
+            
+            _logger.LogWarning("Refreshing playerbar.");
             await _playerBarPresenter.RefreshAsync(cancellationToken);
+            
+            _logger.LogWarning("Refreshing browser.");
             await _browserHostPresenter.RefreshAsync(cancellationToken);
-
-            _logger.LogInformation(cancellationToken.IsCancellationRequested
+            
+            _logger.LogWarning(cancellationToken.IsCancellationRequested
                 ? "UI refresh was cancelled before completion."
                 : "UI succesfully refreshed.");
         }
@@ -106,7 +117,7 @@ public partial class MainPagePresenter : IPresenter<MainPage>, IRecipient<Connec
         try
         {
             LogDisconnectedFromBackendUnloadingUi();
-            _browserHostPresenter.Reset();
+            await _browserHostPresenter.ResetAsync(cancellationToken);
             _playerPresenter.Reset();
             _playerBarPresenter.Reset();
             LogUiIsReset();
@@ -118,17 +129,17 @@ public partial class MainPagePresenter : IPresenter<MainPage>, IRecipient<Connec
         }        
     }
     
-    private async Task OnConnectedAsync(CancellationToken cancellationToken = default)
+    private async Task OnEngineReadyAsync(CancellationToken cancellationToken = default)
     {
         await RefreshAsync(cancellationToken);
     }
     
-    private async Task OnConnectingAsync()
+    private async Task OnEngineStartingAsync()
     {
         await Task.CompletedTask;
     }
 
-    private async Task OnDisconnectedAsync(CancellationToken cancellationToken = default)
+    private async Task OnEngineStoppedAsync(CancellationToken cancellationToken = default)
     {
         await Reset(cancellationToken);
     }

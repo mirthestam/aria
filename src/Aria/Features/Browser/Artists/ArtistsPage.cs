@@ -1,4 +1,5 @@
 using Adw;
+using Aria.Core;
 using Aria.Core.Library;
 using Gio;
 using GLib;
@@ -24,7 +25,6 @@ public partial class ArtistsPage
     public SimpleAction ArtistsFilterAction { get; private set; }   
 
     public event Action<ArtistInfo>? ArtistSelected;
-    public event Action? AllAlbumsRequested;    
     
     partial void Initialize()
     {
@@ -97,7 +97,7 @@ public partial class ArtistsPage
     private void NavigationMenuOnOnRowActivated(ListBox sender, ListBox.RowActivatedSignalArgs args)
     {
         _artistsSelectionModel.UnselectAll();
-        AllAlbumsRequested?.Invoke();
+        ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.AllAlbums.Action}", null);
     }
 
     private void ArtistsSelectionModelOnOnSelectionModelChanged(SelectionModel sender,

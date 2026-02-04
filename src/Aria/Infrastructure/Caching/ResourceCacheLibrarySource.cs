@@ -214,7 +214,7 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
         }
     }
 
-    public event Action? Updated
+    public event EventHandler? Updated
     {
         add => _innerLibrary.Updated += value;
         remove => _innerLibrary.Updated -= value;

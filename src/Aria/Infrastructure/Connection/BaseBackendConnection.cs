@@ -13,7 +13,7 @@ public abstract class BaseBackendConnection(
     ILibrarySource library,
     IIdProvider idProvider) : IBackendConnection
 {
-    public virtual event Action<ConnectionState>? ConnectionStateChanged;    
+    public virtual event Action<BackendConnectionState>? ConnectionStateChanged;    
     
     public virtual bool IsConnected => false;
     public ITagParser TagParser { get; protected set; } = null!;
@@ -25,15 +25,15 @@ public abstract class BaseBackendConnection(
 
     public virtual Task ConnectAsync(CancellationToken cancellationToken = default)
     {
-        OnConnectionStateChanged(ConnectionState.Connecting);
-        OnConnectionStateChanged(ConnectionState.Connected);
+        OnConnectionStateChanged(BackendConnectionState.Connecting);
+        OnConnectionStateChanged(BackendConnectionState.Connected);
         
         return Task.CompletedTask;
     }
 
     public virtual Task DisconnectAsync()
     {
-        OnConnectionStateChanged(ConnectionState.Disconnected);
+        OnConnectionStateChanged(BackendConnectionState.Disconnected);
 
         return Task.CompletedTask;
     }
@@ -53,7 +53,7 @@ public abstract class BaseBackendConnection(
         TagParser = tagParser;
     }
     
-    protected void OnConnectionStateChanged(ConnectionState flags)
+    protected void OnConnectionStateChanged(BackendConnectionState flags)
     {
         ConnectionStateChanged?.Invoke(flags);
     }        

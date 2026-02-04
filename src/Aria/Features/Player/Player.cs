@@ -15,9 +15,9 @@ public partial class Player
 {
     [Connect("album-picture")] private Picture _coverPicture;
     [Connect("playback-controls")] private PlaybackControls _playbackControls;
-    [Connect("playlist")] private Playlist.Playlist _playlist;
+    [Connect("playlist")] private Queue.Queue _queue;
     
-    public Playlist.Playlist Playlist => _playlist;
+    public Queue.Queue Queue => _queue;
 
     public event SeekRequestedAsyncHandler? SeekRequested;    
     

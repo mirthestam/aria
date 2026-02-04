@@ -33,8 +33,8 @@
         <EmbeddedResource Include="Features\Player\PlaybackControls.ui"/>
         <EmbeddedResource Include="Features\Player\Player.ui"/>
         <EmbeddedResource Include="Features\Player\MediaControls.ui"/>
-        <EmbeddedResource Include="Features\Player\Playlist\TrackListItem.ui" />
-        <EmbeddedResource Include="Features\Player\Playlist\Playlist.ui" />
+        <EmbeddedResource Include="Features\Player\Queue\TrackListItem.ui" />
+        <EmbeddedResource Include="Features\Player\Queue\Queue.ui" />
         <EmbeddedResource Include="Features\Shell\ConnectingPage.ui" />
         <EmbeddedResource Include="Features\Shell\MainPage.ui" />
         <EmbeddedResource Include="Features\Shell\MainWindow.ui" />

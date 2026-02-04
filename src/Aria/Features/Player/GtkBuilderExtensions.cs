@@ -1,3 +1,4 @@
+using Aria.Features.Player.Queue;
 using Aria.Hosting;
 
 namespace Aria.Features.Player;
@@ -11,8 +12,8 @@ public static class GtkBuilderExtensions
             builder.WithGType<MediaControls>();
             builder.WithGType<PlaybackControls>();
             builder.WithGType<Player>();
-            builder.WithGType<Playlist.Playlist>();
-            builder.WithGType<Playlist.TrackListItem>();
+            builder.WithGType<Queue.Queue>();
+            builder.WithGType<TrackListItem>();
         }
     }
 }

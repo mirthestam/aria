@@ -8,11 +8,6 @@ namespace Aria.Core.Extraction;
 public interface ITagParser
 {
     /// <summary>
-    /// Parses all  track-related information from the tags
-    /// </summary>
-    TrackInfo ParseTrackInformation(IReadOnlyList<Tag> tags);
- 
-    /// <summary>
     /// Parses all queue-track-related information from the tags
     /// </summary>
     QueueTrackInfo ParseQueueTrackInformation(IReadOnlyList<Tag> tags);
