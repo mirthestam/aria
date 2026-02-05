@@ -7,9 +7,10 @@ public class QueueTrackId(int id) : Id.TypedId<int>(id, Key)
 {
     public const string Key = "QUE";
     
-    public static Id Parse(int value)
+    public static Id Parse(string value)
     {
-        return new QueueTrackId(value);
+        var id = int.Parse(value);
+        return new QueueTrackId(id);
     }
 
     public static Id FromContext(QueueTrackIdentificationContext context)

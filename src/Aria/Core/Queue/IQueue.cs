@@ -42,4 +42,10 @@ public interface IQueue
     public Task MoveAsync(Id sourceTrackId, int targetPlaylistIndex);
 
     public Task ClearAsync();
+    
+    /// <summary>
+    /// Removes the specified track from the queue.
+    /// </summary>
+    /// <param name="id">The ID of the queue track</param>
+    public Task RemoveTrackAsync(Id id);
 }

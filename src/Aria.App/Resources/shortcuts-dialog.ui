@@ -12,25 +12,25 @@
         <property name="title">Playback</property>
         <child>
           <object class="AdwShortcutsItem">
-            <property name="action-name">player.play-pause</property>
+            <property name="action-name">aria-player.play-pause</property>
             <property name="title">Play / Pause</property>
           </object>
         </child>
         <child>
           <object class="AdwShortcutsItem">
-            <property name="action-name">player.next</property>
+            <property name="action-name">aria-player.next</property>
             <property name="title">Next Track</property>
           </object>
         </child>
         <child>
           <object class="AdwShortcutsItem">
-            <property name="action-name">player.previous</property>
+            <property name="action-name">aria-player.previous</property>
             <property name="title">Previous Track</property>
           </object>
         </child>
         <child>
           <object class="AdwShortcutsItem">
-            <property name="action-name">player.stop</property>
+            <property name="action-name">aria-player.stop</property>
             <property name="title">Stop</property>
           </object>
         </child>
@@ -40,7 +40,7 @@
       <object class="AdwShortcutsSection">
         <child>
           <object class="AdwShortcutsItem">
-            <property name="action-name">queue.clear</property>
+            <property name="action-name">aria-queue.clear</property>
             <property name="title">Clear Queue</property>
           </object>
         </child>
@@ -51,13 +51,13 @@
         <property name="title">Browser</property>
         <child>
           <object class="AdwShortcutsItem">
-            <property name="action-name">browser.search</property>
+            <property name="action-name">aria-browser.search</property>
             <property name="title">Search</property>
           </object>
         </child>
         <child>
           <object class="AdwShortcutsItem">
-            <property name="action-name">browser.all-albums</property>
+            <property name="action-name">aria-browser.show-all-albums</property>
             <property name="title">Show All Albums</property>
           </object>
         </child>

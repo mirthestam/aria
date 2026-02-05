@@ -67,7 +67,7 @@
           <object class="AdwHeaderBar">
             <child type="start">
               <object class="GtkButton" id="search-button">
-                <property name="action-name">browser.search</property>
+                <property name="action-name">aria-browser.search</property>
                 <property name="icon-name">system-search-symbolic</property>
               </object>
             </child>

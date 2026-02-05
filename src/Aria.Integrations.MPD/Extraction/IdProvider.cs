@@ -33,6 +33,7 @@ public Id Parse(string id)
             ArtistId.Key => ArtistId.Parse(value),
             TrackId.Key => TrackId.Parse(value),
             AlbumId.Key => AlbumId.Parse(value, ArtistId.Parse),
+            QueueTrackId.Key => QueueTrackId.Parse(value),
             _ => throw new NotSupportedException($"Unknown ID key: `{parts[0]}`")
         };
     }

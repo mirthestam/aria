@@ -106,6 +106,19 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         }
     }
 
+    public override async Task RemoveTrackAsync(Id trackId)
+    {
+        try
+        {
+            var queueTrackId = (QueueTrackId)trackId;
+            await client.SendCommandAsync(new DeleteIdCommand(queueTrackId.Value)).ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to remove track");
+        }
+    }
+    
     private async Task EnqueueAsync(IEnumerable<TrackInfo> tracks, int index)
     {
         try

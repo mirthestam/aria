@@ -6,7 +6,10 @@ using Aria.Core.Queue;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
+using Gio;
+using Gtk;
 using Microsoft.Extensions.Logging;
+using Task = System.Threading.Tasks.Task;
 
 namespace Aria.Features.Player.Queue;
 
@@ -61,12 +64,12 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
         _view.MoveRequested += ViewOnMoveRequested;
         _view.TogglePage(Queue.QueuePages.Empty);
     }
-
-    private async void ViewOnMoveRequested(object? sender, (Id sourceId, int targetIndex) args)
+    
+    private async void ViewOnMoveRequested(object? sender, MoveRequestedEventArgs args)
     {
         try
         {
-            await _aria.Queue.MoveAsync(args.sourceId, args.targetIndex);
+            await _aria.Queue.MoveAsync(args.SourceId, args.TargetIndex);
         }
         catch (Exception exception)
         {
@@ -75,14 +78,14 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
         }
     }
 
-    private async void ViewOnEnqueueRequested(object? sender, (Id id, int index) args)
+    private async void ViewOnEnqueueRequested(object? sender, EnqueueRequestedEventArgs args)
     {
         try
         {
-            var info = await _aria.Library.GetItemAsync(args.id);
+            var info = await _aria.Library.GetItemAsync(args.Id);
             if (info == null) return;
             
-            await _aria.Queue.EnqueueAsync(info, args.index);
+            await _aria.Queue.EnqueueAsync(info, args.Index);
         }
         catch (Exception exception)
         {
@@ -137,9 +140,9 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
 
     }
 
-    private void ViewOnTrackSelectionChanged(object? sender, uint e)
+    private void ViewOnTrackSelectionChanged(object? sender, TrackSelectionChangedEventArgs e)
     {
-        _aria.Player.PlayAsync((int)e);
+        _aria.Player.PlayAsync((int)e.SelectedIndex);
     }
 
     private async Task RefreshTracksAsync(CancellationToken externalCancellationToken = default)

@@ -1,10 +1,8 @@
-using Adw;
 using Aria.Core;
 using Aria.Core.Connection;
 using Aria.Features.Shell.Welcome;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
-using Gio;
 using Microsoft.Extensions.Logging;
 using Application = Adw.Application;
 using Task = System.Threading.Tasks.Task;
@@ -20,10 +18,7 @@ public partial class MainWindowPresenter : IRecipient<ShowToastMessage>
     private readonly WelcomePagePresenter _welcomePagePresenter;
 
     public MainWindow View { get; private set; }
-
-    private SimpleAction _aboutAction;
-    private SimpleAction _disconnectAction;
-
+    
     public MainWindowPresenter(IMessenger messenger,
         MainPagePresenter mainPagePresenter,
         WelcomePagePresenter welcomePagePresenter,
@@ -84,42 +79,9 @@ public partial class MainWindowPresenter : IRecipient<ShowToastMessage>
         _welcomePagePresenter.Attach(View.WelcomePage, context);
         _mainPagePresenter.Attach(View.MainPage, context);
         
-        var actionGroup = SimpleActionGroup.New();
-        actionGroup.AddAction(_aboutAction = SimpleAction.New(AppActions.Window.About.Action, null));
-        actionGroup.AddAction(_disconnectAction = SimpleAction.New(AppActions.Window.Disconnect.Action, null));
-        
-        context.InsertAppActionGroup(AppActions.Window.Key, actionGroup);        
-        context.SetAccelsForAction($"{AppActions.Window.Key}.{AppActions.Window.About.Action}", [AppActions.Window.About.Accelerator]);
-        context.SetAccelsForAction($"{AppActions.Window.Key}.{AppActions.Window.Disconnect.Action}", [AppActions.Window.Disconnect.Accelerator]);
-        
-        _aboutAction.OnActivate += AboutActionOnOnActivate;        
-        _disconnectAction.OnActivate += DisconnectActionOnActivate;
-        
-        View.TogglePage(MainWindow.MainPages.Welcome);
-    }
-    
-    private async void DisconnectActionOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
-    {
-        try
-        {
-            await _ariaControl.StopAsync();
-        }
-        catch (Exception e)
-        {
-            ShowToast("Failed to disconnect. Please restart Aria.");
-            LogFailedToDisconnect(e);
-        }
-        finally
-        {
-            // Whatever happens; always return to the Welcome page
-            View.TogglePage(MainWindow.MainPages.Welcome);
-        }
-    }
+        InitializeActions(context);
 
-    private void AboutActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
-    {
-        var dialog = AboutDialog.NewFromAppdata("/nl/mirthestam/aria/nl.mirthestam.aria.metainfo.xml", null);
-        dialog.Present(View);
+        View.TogglePage(MainWindow.MainPages.Welcome);
     }
 
     public async Task StartupAsync()

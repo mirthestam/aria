@@ -2,7 +2,6 @@ using Adw;
 using Aria.Core;
 using Aria.Core.Library;
 using Aria.Features.Browser.Albums;
-using Aria.Infrastructure;
 using Gdk;
 using Gio;
 using GLib;
@@ -18,9 +17,6 @@ public partial class SearchPage
 {
     private const string ResultsStackPageName = "results-stack-page";
     private const string NoResultsStackPageName = "no-results-stack-page";
-    
-    private readonly List<DragSource> _trackDragSources = [];
-    private readonly List<DragSource> _albumDragSources = [];
     
     [Connect(NoResultsStackPageName)] private StackPage _noResultsStackPage;
     [Connect(ResultsStackPageName)] private StackPage _resultsStackPage;
@@ -57,26 +53,14 @@ public partial class SearchPage
     
     public void Clear()
     {
-        foreach (var dragSource in _albumDragSources)
-        {
-            dragSource.OnDragBegin -= AlbumOnOnDragBegin;
-            dragSource.OnPrepare -= AlbumDragOnPrepare;            
-        }
-        _albumDragSources.Clear();
-        
-        foreach (var dragSource in _trackDragSources)
-        {
-            dragSource.OnDragBegin -= AlbumOnOnDragBegin;
-            dragSource.OnPrepare -= TrackOnPrepare;            
-        }
-        _albumDragSources.Clear();        
-        
+        ClearDragDrop();
+
         _artistListBox.RemoveAll();
         _albumListBox.RemoveAll();
         _workListBox.RemoveAll();
         _trackListBox.RemoveAll();
     }
-    
+
     public void ShowResults(SearchResults results)
     {
         Clear();
@@ -157,7 +141,17 @@ public partial class SearchPage
         
         return row;
     }
+    
+    private void SearchEntryOnOnStopSearch(SearchEntry sender, EventArgs args)
+    {
+        SearchStopped?.Invoke(this, EventArgs.Empty);
+    }
 
+    private void SearchEntryOnOnSearchChanged(SearchEntry sender, EventArgs args)
+    {
+        SearchChanged?.Invoke(this, _searchEntry.GetText());
+    }
+    
     private static ActionRow CreateArtistRow(ArtistInfo artist)
     {
         var row = ActionRow.New();
@@ -178,55 +172,5 @@ public partial class SearchPage
         if (artist.Roles.HasFlag(ArtistRoles.Soloist)) roles.Add("Soloist");
         row.Subtitle = roles.Humanize();
         return row;
-    }
-    
-    private void SearchEntryOnOnStopSearch(SearchEntry sender, EventArgs args)
-    {
-        SearchStopped?.Invoke(this, EventArgs.Empty);
-    }
-
-    private void SearchEntryOnOnSearchChanged(SearchEntry sender, EventArgs args)
-    {
-        SearchChanged?.Invoke(this, _searchEntry.GetText());
-    }
-    
-    private void AlbumOnOnDragBegin(DragSource sender, DragSource.DragBeginSignalArgs args)
-    {
-        return;
-        // TODO: when album art is available in the album row,
-        // Use the code below to use it as the drag icon.
-        
-        // var widget = (SearchAlbumActionRow)sender.GetWidget()!;
-        // var cover = widget.Model!.CoverTexture;
-        // if (cover == null) return;
-        
-        // var coverPicture = Picture.NewForPaintable(cover);
-        // coverPicture.AddCssClass("cover");
-        // coverPicture.CanShrink = true;
-        // coverPicture.ContentFit = ContentFit.ScaleDown;
-        // coverPicture.AlternativeText = widget.Model.Album.Title;
-        //
-        // var clamp = Clamp.New();
-        // clamp.MaximumSize = 96;
-        // clamp.SetChild(coverPicture);
-        //
-        // var dragIcon = DragIcon.GetForDrag(args.Drag);
-        // dragIcon.SetChild(clamp);
-    }
-    
-    private ContentProvider? AlbumDragOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
-    {
-        var widget = (SearchAlbumActionRow)sender.GetWidget()!;
-        var wrapper = new GId(widget.AlbumId);
-        var value = new Value(wrapper);
-        return ContentProvider.NewForValue(value);
     }    
-    
-    private ContentProvider? TrackOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
-    {
-        var widget = (SearchTrackActionRow)sender.GetWidget()!;
-        var wrapper = new GId(widget.TrackId);
-        var value = new Value(wrapper);
-        return ContentProvider.NewForValue(value);
-    }
 }

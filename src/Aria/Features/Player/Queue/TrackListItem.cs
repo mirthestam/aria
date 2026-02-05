@@ -1,5 +1,9 @@
 using System.ComponentModel;
+using Aria.Core;
 using Aria.Core.Library;
+using Gdk;
+using Gio;
+using GLib;
 using GObject;
 using Gtk;
 
@@ -14,6 +18,9 @@ public partial class TrackListItem
     [Connect("duration-label")] private Label _durationLabel;
     [Connect("subtitle-label")] private Label _subTitleLabel;
     [Connect("title-label")] private Label _titleLabel;
+    
+    [Connect("gesture-click")] private GestureClick _gestureClick;    
+    [Connect("popover-menu")] private PopoverMenu _popoverMenu;
 
     public QueueTrackModel? Model { get; private set; }
 
@@ -34,36 +41,39 @@ public partial class TrackListItem
         _subTitleLabel.Visible = !string.IsNullOrEmpty(model.SubTitleText);
         _composerLabel.Visible = !string.IsNullOrEmpty(model.ComposersText);
         _durationLabel.SetLabel(model.DurationText);
+        
+        _gestureClick.OnPressed += GestureClickOnOnPressed;        
 
         ConfigureContextMenu();
         SetCoverPicture();
     }
+    
+    private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
+    {
+        var rect = new Rectangle
+        {
+            X = (int)Math.Round(args.X),
+            Y = (int)Math.Round(args.Y),
+        };
 
+        _popoverMenu.SetPointingTo(rect);
+
+        if (!_popoverMenu.Visible)
+            _popoverMenu.Popup();
+    }
+    
     private void ConfigureContextMenu()
     {
-        // var argument = Variant.NewArray(VariantType.String, [Variant.NewString(Model.Album.Id!.ToString())]);
-        //
-        // var menu = new Menu();
-        // menu.AppendItem(MenuItem.New("Show Album", $"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}::{Model.Album.Id}"));
-        //
-        //
-        // var enqueueMenu = new Menu();
-        //
-        // var replaceQueueItem = MenuItem.New("Play now (Replace queue)", null);
-        // replaceQueueItem.SetActionAndTargetValue($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueReplace.Action}", argument);
-        // enqueueMenu.AppendItem(replaceQueueItem);
-        //
-        // var playNextItem = MenuItem.New("Play after current track", null);
-        // playNextItem.SetActionAndTargetValue($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueNext.Action}", argument);
-        // enqueueMenu.AppendItem(playNextItem);        
-        //
-        // var playLastItem = MenuItem.New("Add to queue", null);
-        // playLastItem.SetActionAndTargetValue($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueEnd.Action}", argument);
-        // enqueueMenu.AppendItem(playLastItem);        
-        //
-        // menu.AppendSection(null, enqueueMenu);
-        //
-        // _popoverMenu.SetMenuModel(menu);
+        var menu = new Menu();
+        menu.AppendItem(MenuItem.New("Remove", $"queue.delete-selection"));
+        menu.AppendItem(MenuItem.New("Show Album", $"queue.show-album"));        
+        
+        var playlistSection = new Menu();
+        playlistSection.AppendItem(MenuItem.New("Clear", $"{AppActions.Queue.Key}.{AppActions.Queue.Clear.Action}"));
+        
+        menu.AppendSection(null, playlistSection);
+        
+        _popoverMenu.SetMenuModel(menu);
     }
 
     private void SetCoverPicture()

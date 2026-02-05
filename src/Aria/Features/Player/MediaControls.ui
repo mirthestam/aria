@@ -11,20 +11,20 @@
     <property name="vexpand">True</property>
     <child>
       <object class="GtkButton" id="skip-backward-button">
-        <property name="action-name">player.previous</property>
+        <property name="action-name">aria-player.previous</property>
         <property name="icon-name">media-skip-backward-symbolic</property>
         <property name="tooltip-text">Previous track</property>
       </object>
     </child>
     <child>
       <object class="AriaFeaturesSharedPlayButton" id="playback-start-button">
-        <property name="action-name">player.play-pause</property>
+        <property name="action-name">aria-player.play-pause</property>
         <property name="icon-name">media-playback-start-symbolic</property>
       </object>
     </child>
     <child>
       <object class="GtkButton" id="skip-forward-button">
-        <property name="action-name">player.next</property>
+        <property name="action-name">aria-player.next</property>
         <property name="icon-name">media-skip-forward-symbolic</property>
         <property name="tooltip-text">Next track</property>
       </object>

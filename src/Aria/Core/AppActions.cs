@@ -14,7 +14,7 @@ public static class AppActions
 
     public static class Browser
     {
-        public static readonly string Key = "browser";
+        public static readonly string Key = "aria-browser";
         
         public static readonly AppAction Search = new("search", "<Control>f");        
         public static readonly AppAction AllAlbums = new("show-all-albums", "<Control>h");
@@ -25,19 +25,21 @@ public static class AppActions
 
     public static class Queue
     {
-        public static readonly string Key = "queue";
+        public static readonly string Key = "aria-queue";
         
-        public static readonly AppAction Clear = new("clear", "<Control>n");
+        public static readonly AppAction Clear = new("clear", "<Control>Delete");
         
         public static readonly AppAction EnqueueDefault = new("enqueue-default");
         public static readonly AppAction EnqueueReplace = new("enqueue-replace");
         public static readonly AppAction EnqueueNext = new("enqueue-next");
         public static readonly AppAction EnqueueEnd = new("enqueue-end");
+        
+        public static readonly AppAction RemoveTrack = new("remove-track", "delete");
     }
 
     public static class Player
     {
-        public static readonly string Key = "player";
+        public static readonly string Key = "aria-player";
         
         public static readonly AppAction PlayPause = new("play-pause", "<Control>space");        
         public static readonly AppAction Stop = new("stop", "<Control><Shift>space");

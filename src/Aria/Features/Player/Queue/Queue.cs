@@ -1,20 +1,14 @@
-using Aria.Core.Extraction;
-using Gdk;
+using Aria.Infrastructure;
 using GObject;
 using Gtk;
-using GId = Aria.Infrastructure.GId;
 using ListStore = Gio.ListStore;
 
 namespace Aria.Features.Player.Queue;
-
-
 
 [Subclass<Stack>]
 [Template<AssemblyResource>("Aria.Features.Player.Queue.Queue.ui")]
 public partial class Queue
 {
-    private const uint GTK_INVALID_LIST_POSITION = 4294967295;
-    
     public enum QueuePages
     {
         Tracks,
@@ -32,10 +26,10 @@ public partial class Queue
     private ListStore _tracksListStore;
     private SingleSelection _tracksSelection;
     private bool _suppressSelectionEvent;
-
-    public event EventHandler<(Id id, int index)> EnqueueRequested;
-    public event EventHandler<(Id sourceId, int targetIndex)> MoveRequested;
-    public event EventHandler<uint>? TrackSelectionChanged;
+    
+    public event EventHandler<EnqueueRequestedEventArgs> EnqueueRequested;
+    public event EventHandler<MoveRequestedEventArgs> MoveRequested;
+    public event EventHandler<TrackSelectionChangedEventArgs>? TrackSelectionChanged;
 
     partial void Initialize()
     {
@@ -57,10 +51,12 @@ public partial class Queue
 
         _tracksSelection.OnSelectionChanged += (_, _) =>
         {
-            if (!_suppressSelectionEvent) TrackSelectionChanged?.Invoke(this, _tracksSelection.GetSelected());
+            if (!_suppressSelectionEvent) TrackSelectionChanged?.Invoke(this, new TrackSelectionChangedEventArgs(_tracksSelection.GetSelected()));
         };
+        
+        InitializeQueueActionGroup();
     }
-
+    
     public void TogglePage(QueuePages page)
     {
         var pageName = page switch
@@ -89,7 +85,7 @@ public partial class Queue
                 
                 _tracksSelection.SelectItem((uint)index, true);
                 
-                if (currentSelected != GTK_INVALID_LIST_POSITION)
+                if (currentSelected != GtkConstants.GtkInvalidListPosition)
                 {
                     _tracksListView.ScrollTo((uint)index, ListScrollFlags.Focus, null);
                 }                
@@ -100,7 +96,7 @@ public partial class Queue
             _suppressSelectionEvent = false;
         }
     }
-
+    
     public void RefreshTracks(IEnumerable<QueueTrackModel> tracks)
     {
         // We assume the caller (presenter) reuses QueueTrackModel instances where possible.
@@ -159,70 +155,23 @@ public partial class Queue
             _tracksListStore.Remove((uint)i);
         }
     }
-
-    private ContentProvider? TrackOnDragPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
-    {
-        var widget = (TrackListItem)sender.GetWidget()!;
-        var data = new GQueueTrackId(widget.Model!.QueueTrackId);
-        var value = new Value(data);
-        return ContentProvider.NewForValue(value);
-    }
-
-    private void OnSignalListItemFactoryOnOnBind(SignalListItemFactory _, SignalListItemFactory.BindSignalArgs args)
-    {
-        var listItem = (ListItem)args.Object;
-        var modelItem = (QueueTrackModel)listItem.GetItem()!;
-        var widget = (TrackListItem)listItem.GetChild()!;
-        widget.Initialize(modelItem);
-    }
-
+    
     private void OnSignalListItemFactoryOnOnSetup(SignalListItemFactory _, SignalListItemFactory.SetupSignalArgs args)
     {
         var item = (ListItem)args.Object;
         var child = new TrackListItem();
 
         // Drag source
-        var dragSource = DragSource.New();
-        dragSource.Actions = DragAction.Move;
-        dragSource.OnPrepare += TrackOnDragPrepare;
-        child.AddController(dragSource);
-
-        // Drag targets
-        var type = GObject.Type.Object;
-
-        var idWrapperDropTarget = DropTarget.New(type, DragAction.Copy);
-        idWrapperDropTarget.OnDrop += TrackOnGIdDropped;
-        child.AddController(idWrapperDropTarget);
-
-        var playlistPositionDropTarget = DropTarget.New(type, DragAction.Move);
-        playlistPositionDropTarget.OnDrop += TrackOnPlaylistPositionDropped;
-        child.AddController(playlistPositionDropTarget);
+        SetupDragDropForItem(child);
 
         item.SetChild(child);
-    }
-
-    private bool TrackOnGIdDropped(DropTarget sender, DropTarget.DropSignalArgs args)
+    }    
+    
+    private static void OnSignalListItemFactoryOnOnBind(SignalListItemFactory _, SignalListItemFactory.BindSignalArgs args)
     {
-        // The user 'dropped' something on a track in this playlist.
-        var value = args.Value.GetObject();
-
-        if (value is not GId gId) return false;
-
-        var widget = (TrackListItem)sender.Widget!;
-        EnqueueRequested(this, (gId.Id, widget.Model!.Position));
-
-        return true;
-    }
-
-    private bool TrackOnPlaylistPositionDropped(DropTarget sender, DropTarget.DropSignalArgs args)
-    {
-        // The user 'dropped' something on a track in this playlist.
-        var value = args.Value.GetObject();
-
-        if (value is not GQueueTrackId queueTrackId) return false;
-        var widget = (TrackListItem)sender.Widget!;
-
-        MoveRequested(this, (queueTrackId.Id, widget.Model!.Position));
-        return true;
+        var listItem = (ListItem)args.Object;
+        var modelItem = (QueueTrackModel)listItem.GetItem()!;
+        var widget = (TrackListItem)listItem.GetChild()!;
+        widget.Initialize(modelItem);
     }
 }

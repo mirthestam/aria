@@ -1,9 +1,11 @@
+using Aria.Core;
 using Aria.Core.Extraction;
 using Aria.Core.Player;
 using Aria.Infrastructure;
 using Gdk;
 using GObject;
 using Gtk;
+using Object = GObject.Object;
 
 namespace Aria.Features.Player;
 
@@ -31,7 +33,19 @@ public partial class Player
         var type = GObject.Type.Object;        
         var idWrapperDropTarget = DropTarget.New(type, DragAction.Copy);
         idWrapperDropTarget.OnDrop  += IdWrapperDropTargetOnOnDrop;
-        AddController(idWrapperDropTarget);        
+        AddController(idWrapperDropTarget);
+        
+        ShortcutController shortcutController = new();
+        var shortcut = Shortcut.New(ShortcutTrigger.ParseString("<Control>y"),
+            ShortcutAction.ParseString($"{AppActions.Queue.Key}.{AppActions.Queue.Clear}"));
+        shortcut.OnNotify += ShortcutOnOnNotify;
+        shortcutController.AddShortcut(shortcut);
+        AddController(shortcutController);
+    }
+
+    private void ShortcutOnOnNotify(Object sender, NotifySignalArgs args)
+    {
+        throw new NotImplementedException();
     }
 
     private bool IdWrapperDropTargetOnOnDrop(DropTarget sender, DropTarget.DropSignalArgs args)

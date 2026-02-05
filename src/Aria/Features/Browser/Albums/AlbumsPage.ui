@@ -23,6 +23,17 @@
                         <property name="single-click-activate">False</property>
                         <property name="tab-behavior">item</property>
                         <property name="vexpand">True</property>
+                        <child>
+                          <object class="GtkPopoverMenu" id="album-popover-menu">
+                            <property name="halign">start</property>
+                            <property name="has-arrow">false</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkGestureClick" id="gesture-click">
+                            <property name="button">3</property>
+                          </object>
+                        </child>
                       </object>
                     </property>
                     <property name="hscrollbar-policy">never</property>
@@ -40,12 +51,4 @@
       </object>
     </child>
   </template>
-  <object class="GtkPopoverMenu" id="album-popover-menu">
-    <property name="menu-model">album-menu</property>
-  </object>
-  <menu id="album-menu">
-    <item>
-      <attribute name="label">Show</attribute>
-    </item>
-  </menu>
 </interface>
