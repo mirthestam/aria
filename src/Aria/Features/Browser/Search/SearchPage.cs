@@ -1,13 +1,10 @@
 using Adw;
 using Aria.Core;
 using Aria.Core.Library;
-using Aria.Features.Browser.Albums;
 using Gdk;
-using Gio;
 using GLib;
 using GObject;
 using Gtk;
-using Humanizer;
 
 namespace Aria.Features.Browser.Search;
 
@@ -99,7 +96,7 @@ public partial class SearchPage
         row.Activatable = true;
         row.UseMarkup = false;
         row.Title = track.Title;
-        row.Subtitle = track.CreditsInfo.AlbumArtists.Select(a => a.Name).Humanize();
+        row.Subtitle = string.Join(", ", track.CreditsInfo.AlbumArtists.Select(a => a.Name));
             
         // Drag & Drop support
         var dragSource = DragSource.New();
@@ -123,7 +120,7 @@ public partial class SearchPage
         row.Activatable = true;
         row.UseMarkup = false;
         row.Title = album.Title;
-        row.Subtitle = album.CreditsInfo.AlbumArtists.Select(a => a.Name).Humanize();
+        row.Subtitle = string.Join(", ", album.CreditsInfo.AlbumArtists.Select(a => a.Name));        
             
         // Drag & Drop support
         var dragSource = DragSource.New();
@@ -170,7 +167,7 @@ public partial class SearchPage
         if (artist.Roles.HasFlag(ArtistRoles.Ensemble)) roles.Add("Ensemble");
         if (artist.Roles.HasFlag(ArtistRoles.Performer)) roles.Add("Performer");
         if (artist.Roles.HasFlag(ArtistRoles.Soloist)) roles.Add("Soloist");
-        row.Subtitle = roles.Humanize();
+        row.Subtitle = string.Join(", ", roles);
         return row;
     }    
 }
