@@ -1,15 +1,15 @@
+using Aria.Infrastructure;
+
 namespace Aria.Core.Queue;
 
 public readonly record struct RepeatSettings
 {
-    public required bool Enabled { get; init; } 
-    public required bool Single { get; init; } 
+    public required RepeatMode Mode { get; init; } 
     public required bool Supported { get; init; }
     
-    public static RepeatSettings Default => new RepeatSettings
+    public static RepeatSettings Default => new()
     {
-        Enabled = false,
-        Single = false,
+        Mode = RepeatMode.Disabled,
         Supported = false
     };
 }

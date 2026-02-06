@@ -7,6 +7,7 @@ using Aria.Features.Player.Queue;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
+using GLib;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
 using TimeSpan = System.TimeSpan;
@@ -107,6 +108,30 @@ public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerSta
 
     private void Refresh(QueueStateChangedFlags flags)
     {
+        // Some changes implicitly effect playback order.
+        var refreshPlaybackOrder = false;
+        
+        if (flags.HasFlag(QueueStateChangedFlags.Shuffle))
+        {
+            _ariaQueueShuffleAction.Enabled = _aria.Queue.Shuffle.Supported;
+            _ariaQueueShuffleAction.SetState(Variant.NewBoolean(_aria.Queue.Shuffle.Enabled));
+            refreshPlaybackOrder = true;
+        }
+
+        if (flags.HasFlag(QueueStateChangedFlags.Repeat))
+        {
+            _ariaQueueRepeatAction.Enabled = _aria.Queue.Repeat.Supported;
+            _ariaQueueRepeatAction.SetState(Variant.NewString(_aria.Queue.Repeat.Mode.ToString()));
+            refreshPlaybackOrder = true;
+        }
+        
+        if (flags.HasFlag(QueueStateChangedFlags.Consume))
+        {
+            _ariaQueueConsumeAction.Enabled = _aria.Queue.Consume.Supported;
+            _ariaQueueConsumeAction.SetState(Variant.NewBoolean(_aria.Queue.Consume.Enabled));
+            refreshPlaybackOrder = true;
+        }
+        
         if (flags.HasFlag(QueueStateChangedFlags.Id) || flags.HasFlag(QueueStateChangedFlags.PlaybackOrder))
         {
             GLib.Functions.IdleAdd(0, () =>
@@ -116,15 +141,16 @@ public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerSta
             });            
         }
         
-        if (!flags.HasFlag(QueueStateChangedFlags.PlaybackOrder)) return;
-
-        GLib.Functions.IdleAdd(0, () =>
+        if (refreshPlaybackOrder || flags.HasFlag(QueueStateChangedFlags.PlaybackOrder))
         {
-            _ariaPlayerPreviousTrackAction.SetEnabled(_aria.Queue.Order.CurrentIndex > 0);
-            _ariaPlayerNextTrackAction.SetEnabled(_aria.Queue.Order.HasNext);
-            _ariaPlayerPlayPauseAction.SetEnabled(_aria.Queue.Length > 0);
-            return false;
-        });                
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                _ariaPlayerPreviousTrackAction.SetEnabled(_aria.Queue.Order.CurrentIndex > 0);
+                _ariaPlayerNextTrackAction.SetEnabled(_aria.Queue.Order.HasNext);
+                _ariaPlayerPlayPauseAction.SetEnabled(_aria.Queue.Length > 0);
+                return false;
+            });
+        }
         
         _ = RefreshCover();
     }

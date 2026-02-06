@@ -5,6 +5,13 @@ using Aria.Core.Queue;
 
 namespace Aria.Infrastructure;
 
+public enum RepeatMode
+{
+    Disabled,
+    Single,
+    All
+}
+
 /// <summary>
 /// Simple decorator for actual backend instances, providing a fallback when no backend is loaded.
 /// </summary>
@@ -23,7 +30,7 @@ public class QueueProxy : IQueueSource
     public ConsumeSettings Consume => _innerQueue?.Consume ?? ConsumeSettings.Default;
 
     public Task SetShuffleAsync(bool enabled) => _innerQueue?.SetShuffleAsync(enabled) ?? Task.CompletedTask;
-    public Task SetRepeatAsync(bool enabled) => _innerQueue?.SetRepeatAsync(enabled) ?? Task.CompletedTask;
+    public Task SetRepeatAsync(RepeatMode repeatMode) => _innerQueue?.SetRepeatAsync(repeatMode) ?? Task.CompletedTask;
     public Task SetConsumeAsync(bool enabled) => _innerQueue?.SetConsumeAsync(enabled) ?? Task.CompletedTask;
     public Task<IEnumerable<QueueTrackInfo>> GetTracksAsync() => _innerQueue?.GetTracksAsync() ?? Task.FromResult(Enumerable.Empty<QueueTrackInfo>());
 

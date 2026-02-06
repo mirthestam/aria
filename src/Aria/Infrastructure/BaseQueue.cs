@@ -24,7 +24,7 @@ public abstract class BaseQueue : IQueueSource
 
     public virtual Task SetShuffleAsync(bool enabled) => Task.CompletedTask;
 
-    public virtual Task SetRepeatAsync(bool enabled) => Task.CompletedTask;
+    public virtual Task SetRepeatAsync(RepeatMode repeatMode) => Task.CompletedTask;
 
     public virtual Task SetConsumeAsync(bool enabled) => Task.CompletedTask;
 

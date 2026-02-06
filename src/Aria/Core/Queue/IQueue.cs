@@ -1,5 +1,6 @@
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Infrastructure;
 
 namespace Aria.Core.Queue;
 
@@ -20,7 +21,7 @@ public interface IQueue
     ConsumeSettings Consume { get; }
 
     Task SetShuffleAsync(bool enabled);
-    Task SetRepeatAsync(bool enabled);
+    Task SetRepeatAsync(RepeatMode repeatMode);
     Task SetConsumeAsync(bool enabled);
     
     /// <summary>

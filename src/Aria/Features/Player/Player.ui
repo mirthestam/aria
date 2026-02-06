@@ -2,6 +2,7 @@
 <!-- Created with Cambalache 0.99.9 -->
 <interface>
   <!-- interface-name PlaylistBox.ui -->
+  <requires lib="gio" version="2.0"/>
   <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.4"/>
   <template class="AriaFeaturesPlayerPlayer" parent="GtkBox">
@@ -87,9 +88,9 @@
               </object>
             </child>
             <child type="end">
-              <object class="GtkButton" id="menu-button">
+              <object class="GtkMenuButton">
                 <property name="icon-name">view-more-symbolic</property>
-                <property name="visible">False</property>
+                <property name="menu-model">queue-menu</property>
               </object>
             </child>
           </object>
@@ -100,4 +101,31 @@
       </object>
     </child>
   </template>
+  <menu id="queue-menu">
+    <item>
+      <attribute name="action">aria-queue.shuffle</attribute>
+      <attribute name="label">Shuffle Tracks</attribute>
+    </item>
+    <item>
+      <attribute name="action">aria-queue.consume</attribute>
+      <attribute name="label">Remove track after playback</attribute>
+    </item>
+    <section>
+      <item>
+        <attribute name="action">aria-queue.repeat</attribute>
+        <attribute name="label">Repeat Disabled</attribute>
+        <attribute name="target">Disabled</attribute>
+      </item>
+      <item>
+        <attribute name="action">aria-queue.repeat</attribute>
+        <attribute name="label">Repeat All</attribute>
+        <attribute name="target">All</attribute>
+      </item>
+      <item>
+        <attribute name="action">aria-queue.repeat</attribute>
+        <attribute name="label">Repeat Track</attribute>
+        <attribute name="target">Single</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>

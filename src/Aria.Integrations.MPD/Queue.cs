@@ -118,7 +118,71 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
             logger.LogError(e, "Failed to remove track");
         }
     }
-    
+
+    public override async Task SetShuffleAsync(bool enabled)
+    {
+        try
+        {
+            var command = new RandomCommand(enabled);
+            await client.SendCommandAsync(command).ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to set shuffle");
+        }
+    }
+
+    public override async Task SetRepeatAsync(RepeatMode repeatMode)
+    {
+        try
+        {
+            bool repeat;
+            bool single;
+
+            switch (repeatMode)
+            {
+                case RepeatMode.Disabled:
+                    repeat = false;
+                    single = false;
+                    break;
+                
+                case RepeatMode.All:
+                    repeat = true;
+                    single = false;
+                    break;
+                
+                case RepeatMode.Single:
+                    repeat = true;
+                    single = true;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(repeatMode), repeatMode, null);
+            }
+
+            using var scope = await client.CreateConnectionScopeAsync();
+            
+            await scope.SendCommandAsync(new RepeatCommand(repeat)).ConfigureAwait(false);
+            await scope.SendCommandAsync(new SingleCommand(single)).ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to set repeat");
+        }
+    }
+
+    public override async Task SetConsumeAsync(bool enabled)
+    {
+        try
+        {
+            var command = new ConsumeCommand(enabled);
+            await client.SendCommandAsync(command).ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to set consume");
+        }
+    }
+
     private async Task EnqueueAsync(IEnumerable<TrackInfo> tracks, int index)
     {
         try
@@ -210,12 +274,20 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         }
 
         // Repeat
-        if (Repeat.Enabled != e.Repeat || Repeat.Single != e.Single || !Repeat.Supported)
+        var newRepeatMode = RepeatMode.Disabled;
+        if (e is { Repeat: true, Single: true }) newRepeatMode = RepeatMode.Single;
+        newRepeatMode = e.Repeat switch
+        {
+            true when !e.Single => RepeatMode.All,
+            false => RepeatMode.Disabled,
+            _ => newRepeatMode
+        };
+
+        if (newRepeatMode != Repeat.Mode || !Repeat.Supported)
         {
             Repeat = new RepeatSettings
             {
-                Enabled = e.Repeat,
-                Single = e.Single,
+                Mode = newRepeatMode,
                 Supported = true
             };
             flags |= QueueStateChangedFlags.Repeat;

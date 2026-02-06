@@ -4,6 +4,7 @@ using Aria.Core.Library;
 using Aria.Core.Player;
 using Aria.Core.Queue;
 using Aria.Features.Shell;
+using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
 using Gio;
 using GLib;
@@ -27,6 +28,10 @@ public partial class PlayerPresenter
     private SimpleAction _ariaQueueClearAction;
     private SimpleAction _ariaQueueRemoveTrackAction;
 
+    private SimpleAction _ariaQueueShuffleAction;
+    private SimpleAction _ariaQueueRepeatAction;
+    private SimpleAction _ariaQueueConsumeAction;
+
     private void InitializeActions(AttachContext context)
     {
         var playerActionGroup = SimpleActionGroup.New();
@@ -48,8 +53,15 @@ public partial class PlayerPresenter
         queueActionGroup.AddAction(_ariaQueueEnqueueNextAction = SimpleAction.New(AppActions.Queue.EnqueueNext.Action, VariantType.NewArray(VariantType.String)));
         queueActionGroup.AddAction(_ariaQueueEnqueueEndAction = SimpleAction.New(AppActions.Queue.EnqueueEnd.Action, VariantType.NewArray(VariantType.String)));
         queueActionGroup.AddAction(_ariaQueueRemoveTrackAction = SimpleAction.New(AppActions.Queue.RemoveTrack.Action, VariantType.String));
+        queueActionGroup.AddAction(_ariaQueueShuffleAction = SimpleAction.NewStateful(AppActions.Queue.Shuffle.Action, null, Variant.NewBoolean(false)));
+        _ariaQueueRepeatAction = SimpleAction.NewStateful(AppActions.Queue.Repeat.Action, VariantType.String, Variant.NewString(nameof(RepeatMode.Disabled)));
+        queueActionGroup.AddAction(_ariaQueueRepeatAction);
+        queueActionGroup.AddAction(_ariaQueueConsumeAction = SimpleAction.NewStateful(AppActions.Queue.Consume.Action, null, Variant.NewBoolean(false)));
         context.InsertAppActionGroup(AppActions.Queue.Key, queueActionGroup);
-        context.SetAccelsForAction($"{AppActions.Queue.Key}.{AppActions.Queue.Clear.Action}", [AppActions.Queue.Clear.Accelerator]);        
+        
+        context.SetAccelsForAction($"{AppActions.Queue.Key}.{AppActions.Queue.Clear.Action}", [AppActions.Queue.Clear.Accelerator]);
+        context.SetAccelsForAction($"{AppActions.Queue.Key}.{AppActions.Queue.Shuffle.Action}", [AppActions.Queue.Shuffle.Accelerator]);
+        context.SetAccelsForAction($"{AppActions.Queue.Key}.{AppActions.Queue.Consume.Action}", [AppActions.Queue.Consume.Accelerator]);
         
         _ariaPlayerNextTrackAction.OnActivate += AriaPlayerNextTrackActionOnOnActivate;
         _ariaPlayerPreviousTrackAction.OnActivate += AriaPlayerPreviousTrackActionOnOnActivate;        
@@ -63,8 +75,78 @@ public partial class PlayerPresenter
         _ariaQueueEnqueueNextAction.OnActivate += AriaQueueEnqueueNextActionOnOnActivate;
         _ariaQueueEnqueueReplaceAction.OnActivate += PlayActionOnOnActivate;        
         _ariaQueueRemoveTrackAction.OnActivate += AriaQueueRemoveTrackActionOnOnActivate;
-    }    
-    
+        
+        _ariaQueueShuffleAction.OnActivate += AriaQueueShuffleActionOnOnActivate;
+        _ariaQueueRepeatAction.OnChangeState += AriaQueueRepeatActionOnOnChangeState;
+        _ariaQueueConsumeAction.OnActivate += AriaQueueConsumeActionOnOnActivate;
+    }
+
+    private async void AriaQueueRepeatActionOnOnChangeState(SimpleAction sender, SimpleAction.ChangeStateSignalArgs args)
+    {
+        try
+        {
+            var value = args.Value.GetString(out _);
+            var mode = Enum.Parse<RepeatMode>(value);
+            await _aria.Queue.SetRepeatAsync(mode);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(e, "Failed to set repeat");
+            _messenger.Send(new ShowToastMessage("Failed to set repeat"));
+        
+            // Revert UI state to actual current value if call fails
+            sender.SetState(Variant.NewString(_aria.Queue.Repeat.Mode.ToString()));
+        }
+    }
+
+    private async void AriaQueueConsumeActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            await _aria.Queue.SetConsumeAsync(!_aria.Queue.Consume.Enabled);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(e, "Failed to set consume");
+            _messenger.Send(new ShowToastMessage("Failed to set consume"));
+
+            // Revert UI state to actual current value if call fails
+            sender.SetState(Variant.NewBoolean(_aria.Queue.Consume.Enabled));
+        }
+    }
+
+    // private async void AriaQueueRepeatActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    // {
+    //     try
+    //     {
+    //         // await _aria.Queue.SetRepeatAsync(!_aria.Queue.Repeat.Enabled, _aria.Queue.Repeat.Single);
+    //     }
+    //     catch (Exception e)
+    //     {
+    //         _logger.LogWarning(e, "Failed to set repeat");
+    //         _messenger.Send(new ShowToastMessage("Failed to set repeat"));
+    //
+    //         // Revert UI state to actual current value if call fails
+    //         sender.SetState(Variant.NewBoolean(_aria.Queue.Repeat.Enabled));
+    //     }
+    // }
+
+    private async void AriaQueueShuffleActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            await _aria.Queue.SetShuffleAsync(!_aria.Queue.Shuffle.Enabled);
+        }
+        catch (Exception e)
+        {
+            _logger.LogWarning(e, "Failed to set shuffle");
+            _messenger.Send(new ShowToastMessage("Failed to set shuffle"));
+
+            // Revert UI state to actual current value if call fails
+            sender.SetState(Variant.NewBoolean(_aria.Queue.Shuffle.Enabled));
+        }
+    }
+
     private async void AriaQueueRemoveTrackActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         try

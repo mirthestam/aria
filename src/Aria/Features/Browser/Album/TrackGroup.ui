@@ -50,15 +50,15 @@
         <property name="halign">start</property>
         <property name="has-arrow">false</property>
       </object>
-    </child>    
+    </child>
     <child>
       <object class="GtkListBox" id="tracks-listbox">
+        <property name="css-classes">boxed-list</property>
         <child>
           <object class="GtkGestureClick" id="track-gesture-click">
             <property name="button">3</property>
           </object>
         </child>
-        <property name="css-classes">boxed-list</property>
       </object>
     </child>
   </template>
