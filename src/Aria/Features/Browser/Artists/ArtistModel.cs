@@ -7,12 +7,14 @@ namespace Aria.Features.Browser.Artists;
 [Subclass<Object>]
 public partial class ArtistModel
 {
-    public ArtistModel(ArtistInfo artist, ArtistNameDisplay nameDisplay) : this()
+    public static ArtistModel NewForArtistInfo(ArtistInfo artist, ArtistNameDisplay nameDisplay)
     {
-        Artist = artist;
-        NameDisplay = nameDisplay;
+        var model = NewWithProperties([]);
+        model.Artist = artist;
+        model.NameDisplay = nameDisplay;
+        return model;
     }
 
-    public ArtistInfo Artist { get; }
-    public ArtistNameDisplay NameDisplay { get; }
+    public ArtistInfo Artist { get; private set; }
+    public ArtistNameDisplay NameDisplay { get; private set; }
 }

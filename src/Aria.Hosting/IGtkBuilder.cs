@@ -10,6 +10,7 @@ public interface IGtkBuilder
     ApplicationFlags ApplicationFlags { get; set; }
     GtkApplicationType GtkApplicationType { get; set; }
     Type WindowType { get; set; }
+    Func<IServiceProvider, Gtk.ApplicationWindow>? WindowFactory { get; set; }    
     void WithGType<T>() where T : GTypeProvider;
     void WithResource(string resourcePath);
 }

@@ -70,7 +70,14 @@ public class Program
                 x.AddTransient<ITagParser, PicardTagParser>();
                 
                 // Main
-                x.AddSingleton<MainWindow>();
+                x.AddSingleton<MainWindow>(sp =>
+                {
+                    var presenter = sp.GetRequiredService<MainWindowPresenter>();
+                    var logger = sp.GetRequiredService<ILogger<MainWindow>>();
+                    var window = MainWindow.New(presenter, logger);
+                    return window;
+                });
+                
                 x.AddSingleton<MainWindowPresenter>();
                 x.AddSingleton<MainPagePresenter>();
                 x.AddSingleton<WelcomePagePresenter>();
@@ -111,7 +118,12 @@ public class Program
                 a.ApplicationId = "nl.mirthestam.aria";
                 a.ApplicationFlags = ApplicationFlags.FlagsNone;
 
-                a.UseWindow<MainWindow>();
+                a.UseWindow<MainWindow>(provider =>
+                {
+                    var presenter = provider.GetRequiredService<MainWindowPresenter>();
+                    var logger = provider.GetRequiredService<ILogger<MainWindow>>();
+                    return MainWindow.New(presenter, logger);
+                });
 
                 a.WithResource("nl.mirthestam.aria.gresource");
 

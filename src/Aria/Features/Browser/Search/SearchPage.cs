@@ -95,7 +95,7 @@ public partial class SearchPage
     private SearchTrackActionRow CreateTrackRow(TrackInfo track)
     {
         // Appearance
-        var row = new SearchTrackActionRow(track.Id!);
+        var row = SearchTrackActionRow.NewFor(track.Id!);
         row.Activatable = true;
         row.UseMarkup = false;
         row.Title = track.Title;
@@ -117,7 +117,7 @@ public partial class SearchPage
 
     private SearchAlbumActionRow CreateAlbumRow(AlbumInfo album)
     {
-        var row = new SearchAlbumActionRow(album.Id!);
+        var row = SearchAlbumActionRow.NewWith(album.Id!);
             
         // Appearance
         row.Activatable = true;

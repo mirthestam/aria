@@ -7,9 +7,13 @@ namespace Aria.Features.Browser.Album;
 [Subclass<ActionRow>]
 public partial class AlbumTrackRow
 {
-    public AlbumTrackRow(Id trackId) : this()
+
+    public Id TrackId { get; private set;  }
+
+    public static AlbumTrackRow NewForTrackId(Id trackId)
     {
-        TrackId = trackId;
+        var row = NewWithProperties([]);
+        row.TrackId = trackId;
+        return row;
     }
-    public Id TrackId { get; set;  }
 }

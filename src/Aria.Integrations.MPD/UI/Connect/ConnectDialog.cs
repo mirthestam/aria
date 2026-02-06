@@ -48,7 +48,7 @@ public partial class ConnectDialog
     public string? ConnectionName
     {
         get => _nameRow.Text_;
-        init => _nameRow.Text_ = value ?? string.Empty;
+        set => _nameRow.Text_ = value ?? string.Empty;
     }
 
     public bool AutoConnect

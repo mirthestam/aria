@@ -8,16 +8,18 @@ using Object = GObject.Object;
 namespace Aria.Features.Browser.Artist;
 
 [Subclass<Object>]
-public sealed partial class AlbumModel : INotifyPropertyChanged
+public partial class AlbumModel : INotifyPropertyChanged
 {
-    public AlbumModel(AlbumInfo album, ArtistInfo artist) : this()
+    public static AlbumModel NewFor(AlbumInfo album, ArtistInfo artist)
     {
-        Album = album;
-        Artist = artist;
+        var model = NewWithProperties([]);
+        model.Album = album;
+        model.Artist = artist;
+        return model;
     }
-
-    public AlbumInfo Album { get; }
-    public ArtistInfo Artist { get; }
+    
+    public AlbumInfo Album { get; private set; }
+    public ArtistInfo Artist { get; private set; }
 
     public Texture? CoverTexture
     {

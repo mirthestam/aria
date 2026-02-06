@@ -6,9 +6,12 @@ namespace Aria.Features.Player.Queue;
 [Subclass<GObject.Object>]
 public partial class GQueueTrackId
 {
-    public GQueueTrackId(Id id) : this()
+    public static GQueueTrackId NewWithId(Id id)
     {
-        Id = id;
+        var item = NewWithProperties([]);
+        item.Id = id;
+        return item;
     }
-    public Id Id { get; set; }
+
+    public Id Id { get; private set; }
 }

@@ -54,7 +54,7 @@ public partial class ArtistsPage
         _artistsListStore.RemoveAll();
         foreach (var artist in artists)
         {
-            var listViewItem = new ArtistModel(artist, nameDisplay);
+            var listViewItem = ArtistModel.NewForArtistInfo(artist, nameDisplay);
             _artistsListStore.Append(listViewItem);
         }
     }    
@@ -64,7 +64,7 @@ public partial class ArtistsPage
         _signalListItemFactory = new SignalListItemFactory();
         _signalListItemFactory.OnSetup += (_, args) =>
         {
-            ((ListItem)args.Object).SetChild(new ArtistListItem());
+            ((ListItem)args.Object).SetChild(ArtistListItem.NewWithProperties([]));
         };
         _signalListItemFactory.OnBind += (_, args) =>
         {

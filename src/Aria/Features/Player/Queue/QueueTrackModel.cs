@@ -11,7 +11,14 @@ namespace Aria.Features.Player.Queue;
 [Subclass<Object>]
 public partial class QueueTrackModel : INotifyPropertyChanged
 {
-    public QueueTrackModel(QueueTrackInfo queueTrack) : this()
+    public static QueueTrackModel NewFromQueueTrackInfo(QueueTrackInfo queueTrack)
+    {
+        var model = NewWithProperties([]);
+        model.Parse(queueTrack);
+        return model;
+    }
+
+    private void Parse(QueueTrackInfo queueTrack)
     {
         var track = queueTrack.Track;
         TitleText = track?.Title ?? "Unnamed track";
@@ -50,7 +57,7 @@ public partial class QueueTrackModel : INotifyPropertyChanged
         QueueTrackId = queueTrack.Id;
         AlbumId = queueTrack.Track.AlbumId;
         TrackId = queueTrack.Track.Id;
-        Position = queueTrack.Position;
+        Position = queueTrack.Position;    
     }
     
     public int Position { get; set; }

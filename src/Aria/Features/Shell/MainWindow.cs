@@ -20,7 +20,7 @@ public partial class MainWindow
         Connecting
     }
 
-    private readonly ILogger<MainWindow> _logger;
+    private ILogger<MainWindow> _logger;
 
     private const string MainPageName = "main-stack-page";
     private const string WelcomePageName = "welcome-stack-page";
@@ -40,19 +40,21 @@ public partial class MainWindow
         _toastOverlay.AddToast(toast);
     }
 
-    public MainWindow(MainWindowPresenter presenter, ILogger<MainWindow> logger) : this()
+    public static MainWindow New(MainWindowPresenter presenter, ILogger<MainWindow> logger)
     {
-        _logger = logger;
-        presenter.Attach(this);
+        var window = NewWithProperties([]);
         
-        DefaultHeight = 800;
-        DefaultWidth = 1000;
+        window._logger = logger;
+        presenter.Attach(window);
+        
+        window.DefaultHeight = 800;
+        window.DefaultWidth = 1000;
 
         // These values don't seem to work then from the .UI file.        
-        HeightRequest = 294;
-        WidthRequest = 360;
+        window.HeightRequest = 294;
+        window.WidthRequest = 360;
         
-        OnRealize += async (s, e) =>
+        window.OnRealize += async (s, e) =>
         {
             try
             {
@@ -60,11 +62,13 @@ public partial class MainWindow
             }
             catch (Exception ex)
             {
-                LogFailedToStartUp(ex);
+                window.LogFailedToStartUp(ex);
             }
         };
-    }
 
+        return window;
+    }
+    
     public WelcomePage WelcomePage => _welcomePage;
 
     public ConnectingPage ConnectingPage => _connectingPage;

@@ -7,9 +7,12 @@ namespace Aria.Features.Browser.Search;
 [Subclass<ActionRow>]
 public partial class SearchTrackActionRow
 {
-    public SearchTrackActionRow(Id id) : this()
+    public static SearchTrackActionRow NewFor(Id id)
     {
-        TrackId = id;
+        var row = NewWithProperties([]);
+        row.TrackId = id;
+        return row;
     }
-    public Id TrackId { get; }
+    
+    public Id TrackId { get; private set; }
 }

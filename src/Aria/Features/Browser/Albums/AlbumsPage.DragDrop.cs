@@ -13,7 +13,7 @@ public partial class AlbumsPage
     private void OnSignalListItemFactoryOnOnSetup(SignalListItemFactory factory, SignalListItemFactory.SetupSignalArgs args)
     {
         var item = (ListItem)args.Object;
-        var child = new AlbumsAlbumListItem();
+        var child = AlbumsAlbumListItem.NewWithProperties([]);
         var dragSource = DragSource.New();
         dragSource.Actions = DragAction.Copy;
         dragSource.OnDragBegin += AlbumOnOnDragBegin;
@@ -46,7 +46,7 @@ public partial class AlbumsPage
     private static ContentProvider AlbumOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
     {
         var widget = (AlbumsAlbumListItem)sender.GetWidget()!;
-        var wrapper = new GId(widget.Model!.Album.Id!);
+        var wrapper = GId.NewForId(widget.Model!.Album.Id!);
         var value = new Value(wrapper);
         return ContentProvider.NewForValue(value);
     }    

@@ -35,16 +35,14 @@ public sealed class ConnectDialogPresenter : IConnectDialogPresenter
         var tcs = new TaskCompletionSource<ConnectDialogResult?>(
             TaskCreationOptions.RunContinuationsAsynchronously);
 
-        var dialog = new ConnectDialog
-        {
-            ConnectionName = workingCopy.Name,
-            Host = workingCopy.Host,
-            Port = workingCopy.Port,
-            Password = workingCopy.Password,
-            AutoConnect = workingCopy.AutoConnect,
-            Forgettable = workingCopy.Flags.HasFlag(ConnectionFlags.Saved)
-        };
-
+        var dialog = ConnectDialog.NewWithProperties([]);
+        dialog.ConnectionName = workingCopy.Name;
+        dialog.Host = workingCopy.Host;
+        dialog.Port = workingCopy.Port;
+        dialog.Password = workingCopy.Password;
+        dialog.AutoConnect = workingCopy.AutoConnect;
+        dialog.Forgettable = workingCopy.Flags.HasFlag(ConnectionFlags.Saved);
+    
         CancellationTokenRegistration ctr = default;
 
         dialog.CancelAction.OnActivate += OnCancel;

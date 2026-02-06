@@ -168,7 +168,7 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
                 var queueTrackId = t.Id;
                 if (queueTrackId == null)
                 {
-                    newOrderedModels.Add(new QueueTrackModel(t));
+                    newOrderedModels.Add(QueueTrackModel.NewFromQueueTrackInfo(t));
                     continue;
                 }
 
@@ -176,7 +176,7 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
 
                 if (!_modelsByQueueTrackId.TryGetValue(queueTrackId, out var model))
                 {
-                    model = new QueueTrackModel(t);
+                    model = QueueTrackModel.NewFromQueueTrackInfo(t);
                     _modelsByQueueTrackId[queueTrackId] = model;
                 }
                 else

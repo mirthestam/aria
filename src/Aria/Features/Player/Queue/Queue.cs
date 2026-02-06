@@ -159,7 +159,7 @@ public partial class Queue
     private void OnSignalListItemFactoryOnOnSetup(SignalListItemFactory _, SignalListItemFactory.SetupSignalArgs args)
     {
         var item = (ListItem)args.Object;
-        var child = new TrackListItem();
+        var child = TrackListItem.NewWithProperties([]);
 
         // Drag source
         SetupDragDropForItem(child);

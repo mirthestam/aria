@@ -11,10 +11,12 @@ namespace Aria.Infrastructure;
 [Subclass<GObject.Object>]
 public partial class GId
 {
-    public GId(Id id) : this()
-    {
-        Id = id;
-    }
+    public Id Id { get; private set; }
 
-    public Id Id { get; }
+    public static GId NewForId(Id id)
+    {
+        var item = NewWithProperties([]);
+        item.Id = id;
+        return item;
+    }
 }

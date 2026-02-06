@@ -81,7 +81,7 @@ public partial class ArtistPagePresenter
             if (artist == null) throw new InvalidOperationException("Artist not found");
 
             var albums = (await _aria.Library.GetAlbumsAsync(artistId, ct)).ToList();
-            var albumModels = albums.Select(a => new AlbumModel(a, artist))
+            var albumModels = albums.Select(a => AlbumModel.NewFor(a, artist))
                 .OrderBy(a => a.Album.Title)
                 .ToList();
 

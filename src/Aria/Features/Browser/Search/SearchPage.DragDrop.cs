@@ -31,7 +31,7 @@ public partial class SearchPage
     private static ContentProvider AlbumDragOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
     {
         var widget = (SearchAlbumActionRow)sender.GetWidget()!;
-        var wrapper = new GId(widget.AlbumId);
+        var wrapper = GId.NewForId(widget.AlbumId);
         var value = new Value(wrapper);
         return ContentProvider.NewForValue(value);
     }    
@@ -39,7 +39,7 @@ public partial class SearchPage
     private static ContentProvider TrackOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
     {
         var widget = (SearchTrackActionRow)sender.GetWidget()!;
-        var wrapper = new GId(widget.TrackId);
+        var wrapper = GId.NewForId(widget.TrackId);
         var value = new Value(wrapper);
         return ContentProvider.NewForValue(value);
     }    

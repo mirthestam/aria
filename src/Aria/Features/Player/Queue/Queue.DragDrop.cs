@@ -54,7 +54,7 @@ public partial class Queue
     private static ContentProvider TrackOnDragPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
     {
         var widget = (TrackListItem)sender.GetWidget()!;
-        var data = new GQueueTrackId(widget.Model!.QueueTrackId);
+        var data = GQueueTrackId.NewWithId(widget.Model!.QueueTrackId);
         var value = new Value(data);
         return ContentProvider.NewForValue(value);
     }

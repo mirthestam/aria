@@ -115,7 +115,7 @@ public partial class AlbumPage
 
         List<AlbumTrackInfo> CreateTrackGroup(string? headerText, IReadOnlyList<TrackArtistInfo> sharedArtists)
         {
-            var trackGroup = new TrackGroup();
+            var trackGroup = TrackGroup.NewWithProperties([]);
             trackGroup.LoadTracks(currentGroupTracks, headerText, sharedArtists);
             _tracksBox.Append(trackGroup);
             currentGroupTracks = [];

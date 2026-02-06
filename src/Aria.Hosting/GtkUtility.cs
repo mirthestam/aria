@@ -74,17 +74,14 @@ public static class GtkUtility
             Gio.Functions.ResourcesRegister(Gio.Functions.ResourceLoad(fullResourcePath));
         }
 
-        serviceCollection.AddSingleton(builder.WindowType, servieProvider =>
+        serviceCollection.AddSingleton(builder.WindowType, serviceProvider =>
         {
-            var application = servieProvider.GetRequiredService<Application>();
-            //var window = (Gtk.ApplicationWindow)servieProvider.GetRequiredService(builder.WindowType);
-            var window = (ApplicationWindow)ActivatorUtilities.CreateInstance(servieProvider, builder.WindowType);
+            var application = serviceProvider.GetRequiredService<Application>();
+            var window = builder.WindowFactory(serviceProvider);
             window.SetApplication(application);
             return window;
         });
-
-        // If thisis also an applicationwindow, register it.
-        // This way we can automatically startit.
+        
         var applicationWindowType = typeof(ApplicationWindow);
         if (applicationWindowType.IsAssignableFrom(builder.WindowType))
             serviceCollection.AddSingleton(applicationWindowType,

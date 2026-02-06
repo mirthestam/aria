@@ -88,7 +88,7 @@ public partial class TrackGroup
                 _ => null
             };
 
-            var row = new AlbumTrackRow(track.Id!);
+            var row = AlbumTrackRow.NewForTrackId(track.Id!);
             
             var prefixLabel = Label.New(trackNumberText);
             prefixLabel.AddCssClass("numeric");

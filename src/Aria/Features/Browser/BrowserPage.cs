@@ -56,7 +56,7 @@ public partial class BrowserPage
 
     public AlbumPage PushAlbumPage()
     {
-        var page = new AlbumPage();
+        var page = AlbumPage.NewWithProperties([]);
         _browserNavigationView.Pop();        
         _libraryNavigationView.Push(page);
         _libraryNavigationSplitView.SetShowContent(true);

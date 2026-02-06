@@ -7,9 +7,12 @@ namespace Aria.Features.Browser.Search;
 [Subclass<ActionRow>]
 public partial class SearchAlbumActionRow
 {
-    public SearchAlbumActionRow(Id id) : this()
+    public static SearchAlbumActionRow NewWith(Id id)
     {
-        AlbumId = id;
+        var row = NewWithProperties([]);
+        row.AlbumId = id;
+        return row;
     }
-    public Id AlbumId { get; }
+    
+    public Id AlbumId { get; private set; }
 }
