@@ -48,6 +48,12 @@ public partial class SearchPage
 
     partial void Initialize()
     {
+        OnMap += (s, e) => GLib.Functions.IdleAdd(0, () =>
+        {
+            _searchEntry.GrabFocus();
+            return false;
+        });
+
         _searchEntry.OnSearchChanged += SearchEntryOnOnSearchChanged;
         _searchEntry.OnStopSearch += SearchEntryOnOnStopSearch;
         
