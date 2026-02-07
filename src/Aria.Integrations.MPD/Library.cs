@@ -34,26 +34,29 @@ public class Library(Client client, ITagParser tagParser, ILogger<Library> logge
     {
         return id switch
         {
-            TrackId track => await GetTrackAsync(track, cancellationToken).ConfigureAwait(false),
+            TrackId track => await GetAlbumTrackAsync(track, cancellationToken).ConfigureAwait(false),
             AlbumId album => await GetAlbumAsync(album, cancellationToken).ConfigureAwait(false),
             ArtistId artist => await GetArtistAsync(artist, cancellationToken).ConfigureAwait(false),
             _ => throw new NotSupportedException()
         };
     }
 
-    private async Task<Info?> GetTrackAsync(Id trackId, CancellationToken cancellationToken)
+    private async Task<AlbumTrackInfo?> GetAlbumTrackAsync(Id trackId, CancellationToken cancellationToken)
     {
         var fullId = (TrackId)trackId;
         
+        // Query the information
         using var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false);
         var command = new FindCommand(new FilterFile(fullId.Value, FilterOperator.Equal));
         var response = await scope.SendCommandAsync(command).ConfigureAwait(false);
         if (!response.IsSuccess) return null;
         var tags = response.Content!.Select(x => new Tag(x.Key, x.Value));
+        
+        // Parse the information
         var albums = _albumsParser.GetAlbums(tags.ToList()).ToList();
 
         if (albums.Count != 1) return null;
-        return albums[0].Tracks.Count != 1 ? null : albums[0].Tracks[0].Track;
+        return albums[0].Tracks.Count != 1 ? null : albums[0].Tracks.FirstOrDefault();
     }
 
     public override async Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default)

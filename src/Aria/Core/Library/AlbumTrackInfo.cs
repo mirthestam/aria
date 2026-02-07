@@ -1,3 +1,5 @@
+using Aria.Core.Extraction;
+
 namespace Aria.Core.Library;
 
 public record TrackGroup
@@ -13,7 +15,7 @@ public record TrackGroup
     public required string Key { get; init; }
 }
 
-public record AlbumTrackInfo
+public record AlbumTrackInfo  : Info
 {
     /// <summary>
     /// Represents a track within an album, containing metadata and associated details.

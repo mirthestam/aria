@@ -120,8 +120,11 @@ public partial class SearchPage
         row.Activatable = true;
         row.UseMarkup = false;
         row.Title = album.Title;
-        row.Subtitle = string.Join(", ", album.CreditsInfo.AlbumArtists.Select(a => a.Name));        
-            
+        row.Subtitle = string.Join(", ", album.CreditsInfo.AlbumArtists.Select(a => a.Name));
+        
+        var image = Image.NewFromIconName("go-next-symbolic");
+        row.AddSuffix(image);
+        
         // Drag & Drop support
         var dragSource = DragSource.New();
         dragSource.Actions = DragAction.Copy;
@@ -155,19 +158,15 @@ public partial class SearchPage
         row.Activatable = true;
         row.UseMarkup = false;
         row.Title = artist.Name;
+        
+        var image = Image.NewFromIconName("go-next-symbolic");
+        row.AddSuffix(image);
             
         row.ActionName = $"{AppActions.Browser.Key}.{AppActions.Browser.ShowArtist.Action}";
         var param = Variant.NewString(artist.Id!.ToString());
         row.SetActionTargetValue(param);
-
-        var roles = new List<string>();
-        if (artist.Roles.HasFlag(ArtistRoles.Composer)) roles.Add("Composer");
-        if (artist.Roles.HasFlag(ArtistRoles.Arranger)) roles.Add("Arranger");
-        if (artist.Roles.HasFlag(ArtistRoles.Conductor)) roles.Add("Conductor");
-        if (artist.Roles.HasFlag(ArtistRoles.Ensemble)) roles.Add("Ensemble");
-        if (artist.Roles.HasFlag(ArtistRoles.Performer)) roles.Add("Performer");
-        if (artist.Roles.HasFlag(ArtistRoles.Soloist)) roles.Add("Soloist");
-        row.Subtitle = string.Join(", ", roles);
+        row.Subtitle = RolesFormatting.Format(artist.Roles);
+        
         return row;
     }    
 }

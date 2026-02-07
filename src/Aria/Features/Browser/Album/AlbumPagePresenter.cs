@@ -16,19 +16,20 @@ public partial class AlbumPagePresenter(
     IMessenger messenger,
     IAria aria,
     IAriaControl ariaControl,
-    ResourceTextureLoader textureLoader)
+    ResourceTextureLoader textureLoader) : IPresenter<AlbumPage>
 {
     private AlbumInfo? _album;
-    private AlbumPage? _view;
     private CancellationTokenSource? _loadCts;
 
     public void Attach(AlbumPage view)
     {
-        _view = view;
-        _view.ShowFullAlbumAction.OnActivate += ShowFullAlbumActionOnOnActivate;
-        _view.EnqueueTrack.OnActivate += EnqueueTrackOnOnActivate;
+        View = view;
+        View.ShowFullAlbumAction.OnActivate += ShowFullAlbumActionOnOnActivate;
+        View.EnqueueTrack.OnActivate += EnqueueTrackOnOnActivate;
     }
 
+    public AlbumPage? View { get; private set; }
+    
     public void Reset()
     {
         LogResetting(logger);
@@ -91,12 +92,17 @@ public partial class AlbumPagePresenter(
     {
         // If this is invoked, the album was shown partially.
         // Reload the album, but without any filters
-        _view?.LoadAlbum(_album!);
+        if (_album == null)
+        {
+            logger.LogWarning("Album was not loaded.");
+            return;
+        }
+        View?.LoadAlbum(_album);
     }
     
     public async Task LoadAsync(AlbumInfo album, ArtistInfo? filteredArtist = null)
     {
-        LogLoadingAlbum(logger, album.Id ?? Id.Unknown);
+        LogLoadingAlbum(logger, album.Id);
         
         // Always assume the album is out of date, or only partial.
         album = await aria.Library.GetAlbumAsync(album.Id);
@@ -111,7 +117,7 @@ public partial class AlbumPagePresenter(
         {
             GLib.Functions.IdleAdd(0, () =>
             {
-                _view?.LoadAlbum(album, filteredArtist);
+                View?.LoadAlbum(album, filteredArtist);
                 return false;
             });                        
             
@@ -128,7 +134,7 @@ public partial class AlbumPagePresenter(
 
             GLib.Functions.IdleAdd(0, () =>
             {
-                _view?.SetCover(texture);
+                View?.SetCover(texture);
                 return false;
             });                        
         }

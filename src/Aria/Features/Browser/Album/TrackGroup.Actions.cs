@@ -68,10 +68,10 @@ public partial class TrackGroup
         _trackEnqueueReplaceAction.OnActivate += TrackEnqueueReplaceActionOnOnActivate;
         _trackShowInformationAction.OnActivate += TrackShowInformationActionOnOnActivate;
 
-        var trackRowMenu = new Menu();
-        // trackRowMenu.AppendItem(MenuItem.New("Show Information", $"{track}.{trackShowInformation}"));
+        var trackRowMenu = Menu.New();
+        trackRowMenu.AppendItem(MenuItem.New("Show Details", $"{track}.{trackShowInformation}"));
 
-        var trackRowEnqueueMenu = new Menu();
+        var trackRowEnqueueMenu = Menu.New();
 
         var replaceQueueItem = MenuItem.New("Play now (Replace queue)", $"{track}.{trackEnqueueReplace}");
         trackRowEnqueueMenu.AppendItem(replaceQueueItem);
@@ -87,7 +87,7 @@ public partial class TrackGroup
         _trackPopoverMenu.SetMenuModel(trackRowMenu);
 
 
-        var groupController = new ShortcutController();
+        var groupController = ShortcutController.New();
 
         // Group
         groupController.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("<Control>Return"),
@@ -95,7 +95,7 @@ public partial class TrackGroup
 
         AddController(groupController);
 
-        var trackController = new ShortcutController();
+        var trackController = ShortcutController.New();
 
         // Track
         trackController.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("Return"),
@@ -108,7 +108,8 @@ public partial class TrackGroup
     
     private void TrackShowInformationActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        // throw new NotImplementedException();
+        var parameter = Variant.NewString(_contextMenuRow.TrackId.ToString());
+        ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowTrack.Action}", parameter);
     }
 
     private void TrackEnqueueReplaceActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)

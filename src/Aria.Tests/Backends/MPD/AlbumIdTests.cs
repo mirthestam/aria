@@ -24,11 +24,12 @@ public class AlbumIdTests
                     {
                         new()
                         {
-                            Id = expectedArtistId, 
+                            Id = expectedArtistId,
                             Name = "Chopin"
                         }
                     }
-                }
+                },
+                Id = Id.Undetermined
             }
         };
         var albumId = AlbumId.FromContext(context);

@@ -17,12 +17,12 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Aria.Features.Browser;
 
-public partial class BrowserPagePresenter : IPresenter<BrowserPage>
+public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
 {
     private readonly IAria _aria;
     private readonly IAriaControl _ariaControl;
     private readonly IMessenger _messenger;
-    private readonly IAlbumPagePresenterFactory _albumPagePresenterFactory;
+    private readonly IPresenterFactory _presenterFactory;
     private readonly AlbumsPagePresenter _albumsPagePresenter;
 
     private readonly ArtistPagePresenter _artistPagePresenter;
@@ -42,7 +42,7 @@ public partial class BrowserPagePresenter : IPresenter<BrowserPage>
         AlbumsPagePresenter albumsPagePresenter,
         ArtistPagePresenter artistPagePresenter,
         ArtistsPagePresenter artistsPagePresenter,
-        IAlbumPagePresenterFactory albumPagePresenterFactory,
+        IPresenterFactory presenterFactory,
         SearchPagePresenter searchPagePresenter)
     {
         _logger = logger;
@@ -54,7 +54,7 @@ public partial class BrowserPagePresenter : IPresenter<BrowserPage>
         _searchPagePresenter = searchPagePresenter;
         _albumsPagePresenter = albumsPagePresenter;
         _browserNavigationState = browserNavigationState;
-        _albumPagePresenterFactory = albumPagePresenterFactory;
+        _presenterFactory = presenterFactory;
     }
 
     public BrowserPage? View { get; private set; }

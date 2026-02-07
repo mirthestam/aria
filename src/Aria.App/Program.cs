@@ -11,6 +11,7 @@ using Aria.Features.Browser.Albums;
 using Aria.Features.Browser.Artist;
 using Aria.Features.Browser.Artists;
 using Aria.Features.Browser.Search;
+using Aria.Features.Details;
 using Aria.Features.Player;
 using Aria.Features.Player.Queue;
 using Aria.Features.PlayerBar;
@@ -68,6 +69,7 @@ public class Program
                 x.AddSingleton<IConnectionProfileProvider, ConnectionProfileProvider>();
                 x.AddSingleton<ResourceTextureLoader>();
                 x.AddTransient<ITagParser, PicardTagParser>();
+                x.AddSingleton<IPresenterFactory, PresenterFactory>();                
                 
                 // Main
                 x.AddSingleton<MainWindow>(sp =>
@@ -83,7 +85,6 @@ public class Program
                 x.AddSingleton<WelcomePagePresenter>();
 
                 // Features - Browser
-                x.AddSingleton<IAlbumPagePresenterFactory, PresenterFactory>();
                 x.AddSingleton<AlbumPagePresenter>();
                 x.AddSingleton<AlbumsPagePresenter>();                
                 x.AddSingleton<ArtistPagePresenter>();
@@ -93,6 +94,9 @@ public class Program
                 x.AddSingleton<BrowserPagePresenter>();
                 x.AddSingleton<SearchPagePresenter>();
 
+                // Features - Details
+                x.AddSingleton<TrackDetailsDialogPresenter>();
+                
                 // Features - Player
                 x.AddSingleton<PlayerPresenter>();
                 x.AddSingleton<QueuePresenter>();
@@ -134,6 +138,7 @@ public class Program
                 a.WithPlayerBarGTypes();
                 a.WithSharedGTypes();
                 a.WithMPDGTypes();
+                a.WithDetailsGTypes();
             });
     }
 }

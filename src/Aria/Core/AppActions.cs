@@ -21,6 +21,7 @@ public static class AppActions
         public static readonly AppAction ShowAlbum = new("show-album");
         public static readonly AppAction ShowAlbumForArtist = new("show-album-for-artist");
         public static readonly AppAction ShowArtist = new("show-artist");        
+        public static readonly AppAction ShowTrack = new("show-track");
     }
 
     public static class Queue

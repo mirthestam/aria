@@ -15,7 +15,7 @@ public partial class WelcomePagePresenter(
     IConnectionProfileFactory connectionProfileFactory,
     IAriaControl ariaControl,
     IMessenger messenger,
-    ILogger<WelcomePagePresenter> logger) : IPresenter<WelcomePage>
+    ILogger<WelcomePagePresenter> logger) : IRootPresenter<WelcomePage>
 {
     private CancellationTokenSource? _refreshCancellationTokenSource;
     private CancellationTokenSource? _discoveryCancellationTokenSource;

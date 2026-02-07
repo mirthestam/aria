@@ -11,6 +11,7 @@ public partial class Queue
     // Actions
     private SimpleAction? _queueDeleteSelectionAction;
     private SimpleAction? _queueShowAlbumAction;
+    private SimpleAction? _queueShowTrackAction;
 
     private new void InsertActionGroup(string name, ActionGroup? actionGroup)
     {
@@ -23,19 +24,34 @@ public partial class Queue
         const string group = "queue";
         const string deleteSelection = "delete-selection";
         const string showAlbum = "show-album";
+        const string showTrack = "show-track";
         var queueActionGroup = SimpleActionGroup.New();
         queueActionGroup.AddAction(_queueDeleteSelectionAction = SimpleAction.New(deleteSelection, null));
         queueActionGroup.AddAction(_queueShowAlbumAction = SimpleAction.New(showAlbum, null));
+        queueActionGroup.AddAction(_queueShowTrackAction = SimpleAction.New(showTrack, null));       
         _queueDeleteSelectionAction.OnActivate += QueueDeleteSelectionActionOnOnActivate;
         _queueShowAlbumAction.OnActivate += QueueShowAlbumActionOnOnActivate;
+        _queueShowTrackAction.OnActivate += QueueShowTrackActionOnOnActivate;
         InsertActionGroup(group, queueActionGroup);
-        
-        var controller = new ShortcutController();
+
+        var controller = ShortcutController.New();
         controller.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("Delete"), NamedAction.New($"{group}.{deleteSelection}")));
+        controller.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("<Alt>Return"), NamedAction.New($"{group}.{showTrack}")));        
         controller.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("<Control>Return"), NamedAction.New($"{group}.{showAlbum}")));
         AddController(controller);
-    }    
-    
+    }
+
+    private void QueueShowTrackActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        var selected = _tracksSelection.GetSelected();
+        if (selected == GtkConstants.GtkInvalidListPosition) return;
+        var item = (QueueTrackModel) _tracksListStore.GetObject(selected)!;
+
+        // Just invoke the global action as we have one.
+        // There is no need for our queue presenter to handle this
+        ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowTrack.Action}", Variant.NewString(item.TrackId.ToString()));
+    }
+
     private void QueueShowAlbumActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         var selected = _tracksSelection.GetSelected();

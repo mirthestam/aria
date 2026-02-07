@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Aria.Features.Browser;
 
-public partial class BrowserHostPresenter : IPresenter<BrowserHost>, IRecipient<LibraryUpdatedMessage>
+public partial class BrowserHostPresenter : IRootPresenter<BrowserHost>, IRecipient<LibraryUpdatedMessage>
 {
     private readonly BrowserPagePresenter _browserPresenter;
     private readonly ILogger<BrowserHostPresenter> _logger;

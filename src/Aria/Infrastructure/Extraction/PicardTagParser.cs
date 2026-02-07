@@ -89,7 +89,8 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
             Title = parsed.Title,
             Duration = parsed.Duration,
             ReleaseDate = DateTagParser.ParseDate(parsed.Date),
-            AlbumId = Id.Unknown
+            AlbumId = Id.Undetermined,
+            Id = Id.Undetermined
         };
 
         var trackId = idProvider.CreateTrackId(new TrackIdentificationContext { Track = trackInfo });
@@ -133,13 +134,14 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
                 Key = parsed.Heading
             };
         }
-
+        
         return new AlbumTrackInfo
         {
             TrackNumber = trackNumber,
             VolumeName = parsed.Disc,
             Track = trackInfo,
-            Group = group
+            Group = group,
+            Id = trackInfo.Id
         };
     }
 
@@ -163,7 +165,8 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
             Title = parsed.Title,
             Duration = parsed.Duration,
             ReleaseDate = DateTagParser.ParseDate(parsed.Date),
-            AlbumId = Id.Unknown
+            AlbumId = Id.Undetermined,
+            Id = Id.Undetermined
         };
 
         var albumInfo = new AlbumInfo
@@ -174,7 +177,8 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
                 Artists = trackInfoForAlbumCredits.CreditsInfo.Artists,
                 AlbumArtists = trackInfoForAlbumCredits.CreditsInfo.AlbumArtists
             },
-            ReleaseDate = trackInfoForAlbumCredits.ReleaseDate
+            ReleaseDate = trackInfoForAlbumCredits.ReleaseDate,
+            Id = Id.Undetermined
         };
 
         var id = idProvider.CreateAlbumId(new AlbumIdentificationContext { Album = albumInfo });
@@ -190,7 +194,8 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
         {
             Name = artistNameParts?.Name ?? artistName,
             NameSort = artistNameSortParts?.Extra ?? artistNameSort,
-            Roles = roles
+            Roles = roles,
+            Id = Id.Undetermined
         };
     }
     
@@ -370,7 +375,11 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
             var artistInfo = new TrackArtistInfo
             {
                 Roles = roles,
-                Artist = new ArtistInfo { Name = parts.Name },
+                Artist = new ArtistInfo
+                {
+                    Name = parts.Name,
+                    Id = Id.Empty
+                },
                 AdditionalInformation = parts.Extra
             };
 
@@ -388,7 +397,8 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
             var artistInfo = new ArtistInfo
             {
                 Name = artistName,
-                Roles = ArtistRoles.None
+                Roles = ArtistRoles.None,
+                Id = Id.Undetermined
             };
 
             var artistId = idProvider.CreateArtistId(new ArtistIdentificationContext { Artist = artistInfo });
@@ -406,7 +416,8 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
                 Artists = trackInfo.CreditsInfo.Artists,
                 AlbumArtists = trackInfo.CreditsInfo.AlbumArtists
             },
-            ReleaseDate = trackInfo.ReleaseDate
+            ReleaseDate = trackInfo.ReleaseDate,
+            Id = Id.Undetermined
         };
 
         var albumId = idProvider.CreateAlbumId(new AlbumIdentificationContext { Album = albumInfo });
@@ -433,7 +444,8 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
             Title = parsed.Title,
             Duration = parsed.Duration,
             ReleaseDate = DateTagParser.ParseDate(parsed.Date),
-            AlbumId = Id.Unknown
+            AlbumId = Id.Undetermined,
+            Id = Id.Undetermined
         };
 
         var trackId = idProvider.CreateTrackId(new TrackIdentificationContext { Track = trackInfo });

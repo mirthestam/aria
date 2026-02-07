@@ -14,7 +14,7 @@ using TimeSpan = System.TimeSpan;
 
 namespace Aria.Features.Player;
 
-public partial class PlayerPresenter : IPresenter<Player>,  IRecipient<PlayerStateChangedMessage>, IRecipient<QueueStateChangedMessage>
+public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<PlayerStateChangedMessage>, IRecipient<QueueStateChangedMessage>
 {
     private readonly IAria _aria;
     private readonly IAriaControl _ariaControl;

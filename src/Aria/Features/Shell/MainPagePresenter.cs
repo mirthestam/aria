@@ -10,7 +10,7 @@ using Task = System.Threading.Tasks.Task;
 
 namespace Aria.Features.Shell;
 
-public partial class MainPagePresenter : IPresenter<MainPage>
+public partial class MainPagePresenter : IRootPresenter<MainPage>
 {
     private readonly ILogger<MainPagePresenter> _logger;
     private readonly IAriaControl _ariaControl;

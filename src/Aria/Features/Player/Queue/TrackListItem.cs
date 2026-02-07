@@ -66,6 +66,7 @@ public partial class TrackListItem
     {
         var menu = new Menu();
         menu.AppendItem(MenuItem.New("Remove", $"queue.delete-selection"));
+        menu.AppendItem(MenuItem.New("Track Details", $"queue.show-track"));        
         menu.AppendItem(MenuItem.New("Show Album", $"queue.show-album"));        
         
         var playlistSection = new Menu();

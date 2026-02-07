@@ -92,7 +92,7 @@ public partial class CreditBox
 
         // Configure the action
         button.SetActionName($"{AppActions.Browser.Key}.{AppActions.Browser.ShowArtist.Action}");
-        var value = Variant.NewString(artist.Id?.ToString() ?? Id.Unknown.ToString());
+        var value = Variant.NewString(artist.Id?.ToString() ?? Id.Undetermined.ToString());
         button.SetActionTargetValue(value);
 
         return button;

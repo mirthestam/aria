@@ -29,6 +29,7 @@
         <EmbeddedResource Include="Features\Browser\BrowserEmptyPage.ui" />
         <EmbeddedResource Include="Features\Browser\BrowserPage.ui" />
         <EmbeddedResource Include="Features\Browser\Search\SearchPage.ui" />
+        <EmbeddedResource Include="Features\Details\TrackDetailsDialog.ui" />
         <EmbeddedResource Include="Features\PlayerBar\PlayerBar.ui"/>
         <EmbeddedResource Include="Features\Player\PlaybackControls.ui"/>
         <EmbeddedResource Include="Features\Player\Player.ui"/>

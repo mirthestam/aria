@@ -10,7 +10,7 @@ public abstract class Id(string key = "UNKNOWN")
 
     public static Id Empty => new EmptyId();
 
-    public static Id Unknown => new UnknownId();
+    public static Id Undetermined => new UndeterminedId();
     
     protected abstract string GetId();
 
@@ -54,5 +54,5 @@ public abstract class Id(string key = "UNKNOWN")
     }
 
     private class EmptyId() : TypedId<string>("", "NIL");
-    private class UnknownId() : TypedId<string>("", "NIL");
+    private class UndeterminedId() : TypedId<string>("", "NIL");
 }
