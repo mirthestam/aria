@@ -41,6 +41,10 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         {
             switch (info)
             {
+                case AlbumTrackInfo albumTrack:
+                    tracks.Add(albumTrack.Track);
+                    break;
+                
                 case TrackInfo track:
                     tracks.Add(track);
                     break;
