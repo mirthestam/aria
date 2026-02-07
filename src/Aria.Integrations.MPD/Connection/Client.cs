@@ -19,10 +19,15 @@ namespace Aria.Backends.MPD.Connection;
 /// </summary>
 public sealed class Client(ILogger<Client> logger, ILoggerFactory loggerFactory)
 {
+    public static  string Escape(string command)
+    {
+        return command.Replace("'", "\\'").Replace("\"", "\\\"");
+    }
+    
     private const int ConnectionPoolSize = 5;
     
     private CancellationTokenSource _cancelIdle = new();
-
+    
     /// <summary>
     ///     A pool of connections available for the application to send commands to MPD.
     ///     Using a pool prevents blocking on the status and idle connections and allows concurrent command execution.

@@ -218,7 +218,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
                     commandList.Add(new ClearCommand());
                     foreach (var track in tracks)
                     {
-                        commandList.Add(new AddCommand(track.FileName));
+                        commandList.Add(new AddCommand(Client.Escape(track.FileName!)));
                     }
 
                     commandList.Add(new PlayCommand(0));
@@ -226,7 +226,9 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
                 case EnqueueAction.EnqueueNext:
                     foreach (var track in tracks.Reverse())
                     {
-                        commandList.Add(new AddCommand(track.FileName, Order.CurrentIndex + 1 ?? 0));
+                        // Need to escape filenames here.
+                        // I should modify the command library to automatically escape all commands
+                        commandList.Add(new AddCommand(Client.Escape(track.FileName!), Order.CurrentIndex + 1 ?? 0));
                     }
 
                     break;
@@ -234,7 +236,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
                 case EnqueueAction.EnqueueEnd:
                     foreach (var track in tracks)
                     {
-                        commandList.Add(new AddCommand(track.FileName));
+                        commandList.Add(new AddCommand(Client.Escape(track.FileName!)));
                     }
 
                     break;
