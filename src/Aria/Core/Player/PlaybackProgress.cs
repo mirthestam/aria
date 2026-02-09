@@ -13,7 +13,7 @@ public class PlaybackProgress
     public TimeSpan Remaining => Duration - Elapsed;
 
     /// <summary>
-    ///     i.e.  16, 24 (-bit)
+    ///     i.e.,  16, 24 (-bit)
     /// </summary>
     public int AudioBits { get; set; }
 

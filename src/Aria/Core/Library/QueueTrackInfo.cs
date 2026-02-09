@@ -7,7 +7,7 @@ public record QueueTrackInfo
     /// <summary>
     /// The identity of the entry in the queue.
     /// </summary>
-    public Id? Id { get; init; }
+    public required Id Id { get; init; }
     
     /// <summary>
     /// The position of the track in the queue.

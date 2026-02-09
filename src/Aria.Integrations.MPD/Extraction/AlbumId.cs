@@ -28,7 +28,7 @@ public class AlbumId : Id.TypedId<string>
     /// <summary>
     /// Creates a new AlbumId based upon information found in a context
     /// </summary>
-    public static AlbumId FromContext(AlbumIdentificationContext context)
+    public static AlbumId FromContext(AlbumBaseIdentificationContext context)
     {
         var title = (context.Album.Title).Trim();
         

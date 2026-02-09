@@ -1,6 +1,6 @@
 using Aria.Core.Library;
 
-namespace Aria.Features.Browser.Search;
+namespace Aria.Infrastructure;
 
 public static class RolesFormatting
 {

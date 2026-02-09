@@ -10,16 +10,14 @@ namespace Aria.Features.Browser.Artist;
 [Subclass<Object>]
 public partial class AlbumModel : INotifyPropertyChanged
 {
-    public static AlbumModel NewFor(AlbumInfo album, ArtistInfo artist)
+    public static AlbumModel NewFor(AlbumInfo album)
     {
         var model = NewWithProperties([]);
         model.Album = album;
-        model.Artist = artist;
         return model;
     }
     
     public AlbumInfo Album { get; private set; }
-    public ArtistInfo Artist { get; private set; }
 
     public Texture? CoverTexture
     {

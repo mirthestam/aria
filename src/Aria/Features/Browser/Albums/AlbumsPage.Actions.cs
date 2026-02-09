@@ -1,5 +1,6 @@
 using Aria.Core;
 using Aria.Core.Queue;
+using Aria.Infrastructure;
 using Gio;
 using GLib;
 using Gtk;
@@ -43,15 +44,15 @@ public partial class AlbumsPage
 
         // This is going to be a problem the moment the user is able to change his default,
         // as in that case we to set another item as default.
-        var controller = new ShortcutController();
+        var controller = ShortcutController.NewWithProperties([]);
         controller.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("Return"), NamedAction.New($"{group}.{showAlbum}")));
         controller.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("<Control>Return"), NamedAction.New($"{group}.{defaultAction}")));
         AddController(controller);
         
-        var menu = new Menu();
+        var menu = Menu.NewWithProperties([]);
         menu.AppendItem(MenuItem.New("Show Album", $"{group}.{showAlbum}"));
         
-        var enqueueMenu = new Menu();
+        var enqueueMenu = Menu.NewWithProperties([]);
         
         var replaceQueueItem = MenuItem.New("Play now (Replace queue)", $"{group}.{enqueueReplace}");
         enqueueMenu.AppendItem(replaceQueueItem);
@@ -69,27 +70,27 @@ public partial class AlbumsPage
     
     private void EnqueueEndActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argument = Variant.NewString(_contextMenuItem!.Album.Id!.ToString()); 
+        var argument = Variant.NewString(_contextMenuItem!.Album.Id.ToString()); 
         var argumentArray = Variant.NewArray(VariantType.String, [argument]);
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueEnd.Action}", argumentArray);
     }
 
     private void EnqueueNextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argument = Variant.NewString(_contextMenuItem!.Album.Id!.ToString()); 
+        var argument = Variant.NewString(_contextMenuItem!.Album.Id.ToString()); 
         var argumentArray = Variant.NewArray(VariantType.String, [argument]);
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueNext.Action}", argumentArray);
     }
 
     private void EnqueueReplaceActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argument = Variant.NewString(_contextMenuItem!.Album.Id!.ToString()); 
+        var argument = Variant.NewString(_contextMenuItem!.Album.Id.ToString()); 
         var argumentArray = Variant.NewArray(VariantType.String, [argument]);
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueReplace.Action}", argumentArray);
     }
 
     private void AlbumShowActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", Variant.NewString(_contextMenuItem!.Album.Id!.ToString()));        
+        ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", Variant.NewString(_contextMenuItem!.Album.Id.ToString()));        
     }
 }

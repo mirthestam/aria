@@ -34,7 +34,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
 
     public override async Task EnqueueAsync(IEnumerable<Info> items, EnqueueAction action)
     {
-        // in MPD, we enqueue per track. Therefore, lets's expand our items.
+        // in MPD, we enqueue per track. Therefore, let's expand our items.
 
         var tracks = new List<TrackInfo>();
         foreach (var info in items)

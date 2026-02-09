@@ -1,11 +1,6 @@
 namespace Aria.Core.Player;
 
-public class PlayerStateChangedEventArgs : EventArgs
+public class PlayerStateChangedEventArgs(PlayerStateChangedFlags flags) : EventArgs
 {
-    public PlayerStateChangedFlags Flags { get; }
-
-    public PlayerStateChangedEventArgs(PlayerStateChangedFlags flags)
-    {
-        Flags = flags;
-    }
+    public PlayerStateChangedFlags Flags { get; } = flags;
 }

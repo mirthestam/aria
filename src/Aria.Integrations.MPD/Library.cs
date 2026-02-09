@@ -47,7 +47,7 @@ public partial class Library(Client client, ITagParser tagParser, ILogger<Librar
         async Task<SearchResults> AppendFindAsync(ITag tag, ConnectionScope innerScope, SearchResults existingResults)
         {
             var filter = new List<IFilter> { new FilterTag(tag, query, FilterOperator.Contains) };
-            var command = new MPD.Connection.Commands.FindCommand(filter);
+            var command = new Connection.Commands.FindCommand(filter);
             var response = await innerScope.SendCommandAsync(command).ConfigureAwait(false);
             return AppendResults(response, ref existingResults);
         }

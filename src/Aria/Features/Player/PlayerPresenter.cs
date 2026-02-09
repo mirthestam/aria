@@ -25,7 +25,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
     
     private CancellationTokenSource? _coverArtCancellationTokenSource;
     
-    public Player? View { get; set; }
+    public Player? View { get; private set; }
     
     public PlayerPresenter(ILogger<PlayerPresenter> logger, IMessenger messenger, IAria aria,
         ResourceTextureLoader resourceTextureLoader, QueuePresenter queuePresenter, IAriaControl ariaControl)
@@ -58,9 +58,9 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
         {
             await _aria.Player.SetVolumeAsync(e);
         }
-        catch (Exception exception)
+        catch
         {
-        
+            // OK
         }
     }
 
@@ -83,7 +83,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
         _queuePresenter.Reset();
         AbortRefreshCover();
         
-        GLib.Functions.IdleAdd(0, () =>
+        Functions.IdleAdd(0, () =>
         {
             View?.ClearCover();
             return false;
@@ -104,7 +104,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
     {
         if (flags.HasFlag(PlayerStateChangedFlags.PlaybackState))
         {
-            GLib.Functions.IdleAdd(0, () =>
+            Functions.IdleAdd(0, () =>
             {
                 View?.SetPlaybackState(_aria.Player.State);
                 return false;
@@ -112,7 +112,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
         }
         if (flags.HasFlag(PlayerStateChangedFlags.Progress))
         {
-            GLib.Functions.IdleAdd(0, () =>
+            Functions.IdleAdd(0, () =>
             {
                 View?.SetProgress(_aria.Player.Progress);
                 return false;
@@ -121,7 +121,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
 
         if (flags.HasFlag(PlayerStateChangedFlags.Volume))
         {
-            GLib.Functions.IdleAdd(0, () =>
+            Functions.IdleAdd(0, () =>
             {
                 View?.SetVolume(_aria.Player.Volume);
                 return false;
@@ -157,7 +157,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
         
         if (flags.HasFlag(QueueStateChangedFlags.Id) || flags.HasFlag(QueueStateChangedFlags.PlaybackOrder))
         {
-            GLib.Functions.IdleAdd(0, () =>
+            Functions.IdleAdd(0, () =>
             {
                 View?.SetPlaylistInfo(_aria.Queue.Order.CurrentIndex, _aria.Queue.Length);
                 return false;
@@ -166,7 +166,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
         
         if (refreshPlaybackOrder || flags.HasFlag(QueueStateChangedFlags.PlaybackOrder))
         {
-            GLib.Functions.IdleAdd(0, () =>
+            Functions.IdleAdd(0, () =>
             {
                 _ariaPlayerPreviousTrackAction.SetEnabled(_aria.Queue.Order.CurrentIndex > 0);
                 _ariaPlayerNextTrackAction.SetEnabled(_aria.Queue.Order.HasNext);
@@ -204,14 +204,14 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
             var track = _aria.Queue.CurrentTrack;
             if (track == null)
             {
-                GLib.Functions.IdleAdd(0, () =>
+                Functions.IdleAdd(0, () =>
                 {
                     View?.ClearCover();
                     return false;
                 });
                 return;
-            };
-
+            }
+            
             var coverInfo = track.Track.Assets.FrontCover;
             //var texture = await _resourceTextureLoader.LoadFromAlbumResourceAsync(coverInfo?.Id ?? Id.Empty, cancellationToken).ConfigureAwait(false);
             var texture = await Task.Run(
@@ -220,7 +220,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
             if (cancellationToken.IsCancellationRequested) return;
             if (texture == null) return;
             
-            GLib.Functions.IdleAdd(0, () =>
+            Functions.IdleAdd(0, () =>
             {
                 View?.LoadCover(texture);
                 return false;

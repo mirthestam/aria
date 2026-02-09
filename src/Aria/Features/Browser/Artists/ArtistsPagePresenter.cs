@@ -1,6 +1,5 @@
 using Aria.Core;
 using Aria.Core.Library;
-using Aria.Features.Player.Queue;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
@@ -62,7 +61,7 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
         _view = view;
         _view.ArtistSelected += artistInfo =>
         {
-            var parameter = Variant.NewString(artistInfo.Id!.ToString());
+            var parameter = Variant.NewString(artistInfo.Id.ToString());
             _view.ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowArtist.Action}", parameter);
         };
         _view.SetActiveFilter(_activeFilter);

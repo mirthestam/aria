@@ -10,7 +10,7 @@ public enum ConnectionFlags
     Discovered = 1 << 0,
     
     /// <summary>
-    /// Indicates that this connection has been saved by the user
+    /// Indicates that the user has saved this connection
     /// </summary>
-    Saved = 1 << 1,
+    Saved = 1 << 1
 }

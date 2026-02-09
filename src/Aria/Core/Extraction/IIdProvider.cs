@@ -2,13 +2,13 @@ namespace Aria.Core.Extraction;
 
 public interface IIdProvider
 {
-    Id CreateQueueTrackId(QueueTrackIdentificationContext context);
-    Id CreateTrackId(TrackIdentificationContext context);
-    Id CreateArtistId(ArtistIdentificationContext context);
-    Id CreateAlbumId(AlbumIdentificationContext context);
+    Id CreateQueueTrackId(QueueTrackBaseIdentificationContext context);
+    Id CreateTrackId(TrackBaseIdentificationContext context);
+    Id CreateArtistId(ArtistBaseIdentificationContext context);
+    Id CreateAlbumId(AlbumBaseIdentificationContext context);
 
     /// <summary>
-    ///     Parses a string representation of an ID back into its strongly-typed ID object.
+    ///     Parses a string representation of an ID back into its strongly typed ID object.
     /// </summary>
     /// <param name="id">The string ID in the format "KEY::value" where KEY identifies the ID type.</param>
     /// <remarks>

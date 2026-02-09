@@ -1,5 +1,4 @@
 using Adw;
-using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Infrastructure;
 using Gdk;
@@ -57,7 +56,7 @@ public partial class AlbumPage
 
         SetTitle(album.Title);
         
-        // Always update header first. It needs updated shared artists from the header.
+        // Always update the header first. It needs updated shared artists from the header.
         UpdateHeader();
         UpdateTracks();
     }
@@ -85,7 +84,7 @@ public partial class AlbumPage
             // If the group key changes, create a TrackGroup for the previous group
             if (currentGroupKey != trackGroupKey && currentGroupTracks.Count > 0)
             {
-                var headerText = currentGroupKey;
+                var headerText = track.Group?.Title;
                 currentGroupTracks = CreateTrackGroup(headerText, _sharedArtists);
             }
 
@@ -131,23 +130,6 @@ public partial class AlbumPage
 
     private void UpdateHeader()
     {
-        // if (_album.ReleaseDate.HasValue)
-        // {
-        //     var date = _album.ReleaseDate.Value;
-        //     // Check if it's the first day of the year (01-01)
-        //     var yearLine = date is { Month: 1, Day: 1 }
-        //         ? $"{date.Year}"
-        //         : $"{date:d}";
-        //     _subtitleLabel.SetLabel(yearLine);
-        // }
-
-        // var duration = TimeSpan.FromTicks(_album.Tracks.Sum(t => t.Track.Duration.Ticks));
-        // var durationText = duration.TotalHours >= 1
-        //     ? duration.ToString(@"h\:mm\:ss")
-        //     : duration.ToString(@"mm\:ss");
-        //
-        // _durationLabel.SetLabel(durationText);
-        
         var artists = _album.CreditsInfo.AlbumArtists.ToList();
         _creditBox.UpdateAlbumCredits(artists);
         

@@ -17,7 +17,7 @@ namespace Aria.Backends.MPD.Connection;
 ///     This architecture ensures status updates don't block command execution and provides both
 ///     polling-based and event-driven status updates for optimal responsiveness.
 /// </summary>
-public sealed class Client(ILogger<Client> logger, ILoggerFactory loggerFactory)
+public sealed class Client(ILoggerFactory loggerFactory)
 {
     public static  string Escape(string command)
     {
@@ -77,7 +77,7 @@ public sealed class Client(ILogger<Client> logger, ILoggerFactory loggerFactory)
             ConnectionChanged?.Invoke(this, EventArgs.Empty);
             await Connect(cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception e)
+        catch
         {
             IsConnecting = false;
             ConnectionChanged?.Invoke(this, EventArgs.Empty);
@@ -138,7 +138,7 @@ public sealed class Client(ILogger<Client> logger, ILoggerFactory loggerFactory)
             else
                 throw new InvalidOperationException("Invalid response");
         }
-        catch (Exception e)
+        catch
         {
             // Something went wrong. Let's reconnect
             // TODO: This layer needs proper connection recovery 
@@ -256,7 +256,7 @@ public sealed class Client(ILogger<Client> logger, ILoggerFactory loggerFactory)
                     else
                         throw new Exception(message.Response?.Content);
                 }
-                catch (Exception e)
+                catch
                 {
                     if (cancellationToken.IsCancellationRequested) break;
                     IsConnected = false;

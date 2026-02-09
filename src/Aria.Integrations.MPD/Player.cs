@@ -1,8 +1,6 @@
 using Aria.Backends.MPD.Connection;
-using Aria.Core.Extraction;
 using Aria.Core.Player;
 using Aria.Infrastructure;
-using CommunityToolkit.Mvvm.Messaging;
 using MpcNET;
 using MpcNET.Commands.Playback;
 

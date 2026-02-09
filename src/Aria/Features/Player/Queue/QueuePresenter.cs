@@ -6,8 +6,6 @@ using Aria.Core.Queue;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
-using Gio;
-using Gtk;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
 

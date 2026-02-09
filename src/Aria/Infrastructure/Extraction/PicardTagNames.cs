@@ -2,7 +2,7 @@ namespace Aria.Infrastructure.Extraction;
 
 
 /// <summary>
-/// Constants for names of tags as used by the the Picare tagger
+/// Constants for names of tags as used by the Picare tagger
 /// https://picard-docs.musicbrainz.org/en/index.html
 /// </summary>
 public static class PicardTagNames

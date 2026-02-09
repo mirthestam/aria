@@ -38,7 +38,7 @@ public partial class Queue
 
         TogglePage(QueuePages.Empty);
 
-        _signalListItemFactory = new SignalListItemFactory();
+        _signalListItemFactory = SignalListItemFactory.NewWithProperties([]);
         _signalListItemFactory.OnSetup += OnSignalListItemFactoryOnOnSetup;
         _signalListItemFactory.OnBind += OnSignalListItemFactoryOnOnBind;
 

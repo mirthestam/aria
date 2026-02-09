@@ -1,4 +1,3 @@
-using Aria.Core.Connection;
 using Aria.Core.Extraction;
 using Aria.Infrastructure;
 
@@ -15,6 +14,4 @@ public interface IAriaControl
     public Id Parse(string id);    
     
     event EventHandler<EngineStateChangedEventArgs>? StateChanged;
-    
-    public EngineState State { get; }
 }

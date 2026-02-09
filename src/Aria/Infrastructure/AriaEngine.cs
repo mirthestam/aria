@@ -7,7 +7,6 @@ using Aria.Core.Queue;
 using Aria.Infrastructure.Caching;
 using Aria.Infrastructure.Connection;
 using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.Extensions.Logging;
 
 namespace Aria.Infrastructure;
 
@@ -98,7 +97,7 @@ public class AriaEngine(
             _queueProxy.Attach(backend.Queue);
 
             // Wrap the backend library with its caches
-            _resourceCache = new Caching.ResourceCacheLibrarySource(backend.Library, connectionProfile.Id.ToString(),
+            _resourceCache = new ResourceCacheLibrarySource(backend.Library, connectionProfile.Id.ToString(),
                 TimeSpan.FromDays(30));
             _infoCache = new QueryCacheLibrarySource(_resourceCache, TimeSpan.FromDays(5));
 

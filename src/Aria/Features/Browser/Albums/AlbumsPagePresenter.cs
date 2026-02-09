@@ -1,8 +1,6 @@
 using Aria.Core;
-using Aria.Core.Connection;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
-using Aria.Features.Player.Queue;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
 using GLib;
@@ -14,7 +12,6 @@ namespace Aria.Features.Browser.Albums;
 public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
 {
     private readonly ILogger<AlbumsPagePresenter> _logger;
-    private readonly IMessenger _messenger;
     private readonly IAria _aria;
     private readonly ResourceTextureLoader _textureLoader;
 
@@ -24,11 +21,10 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
         ResourceTextureLoader textureLoader)
     {
         _aria = aria;
-        _messenger = messenger;
         _logger = logger;
         _textureLoader = textureLoader;
 
-        _messenger.RegisterAll(this);
+        messenger.RegisterAll(this);
     }
 
     private AlbumsPage? _view;
@@ -38,7 +34,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
         _view = view;
         _view.AlbumSelected += (albumInfo, _) =>
         {
-            var parameter = Variant.NewString(albumInfo.Id!.ToString()); 
+            var parameter = Variant.NewString(albumInfo.Id.ToString()); 
             _view.ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", parameter);
         };
     }

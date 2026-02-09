@@ -1,9 +1,5 @@
 using Aria.Core.Connection;
 using Aria.Core.Extraction;
-using Aria.Core.Library;
-using Aria.Core.Player;
-using Aria.Core.Queue;
-using CommunityToolkit.Mvvm.Messaging;
 
 namespace Aria.Infrastructure.Connection;
 
@@ -13,11 +9,8 @@ public abstract class BaseBackendConnection(
     ILibrarySource library,
     IIdProvider idProvider) : IBackendConnection
 {
-    public virtual event Action<BackendConnectionState>? ConnectionStateChanged;    
+    public event Action<BackendConnectionState>? ConnectionStateChanged;    
     
-    public virtual bool IsConnected => false;
-    public ITagParser TagParser { get; protected set; } = null!;
-
     public IPlayerSource Player => player;
     public IQueueSource Queue => queue;
     public ILibrarySource Library => library;
@@ -42,24 +35,9 @@ public abstract class BaseBackendConnection(
     {
         GC.SuppressFinalize(this);
     }
-
-    /// <summary>
-    /// Sets the tag parser for the backend connection. This parser is used to extract
-    /// metadata information from track tags.
-    /// </summary>
-    public void SetTagParser(ITagParser tagParser)
-    {
-        ArgumentNullException.ThrowIfNull(tagParser);
-        TagParser = tagParser;
-    }
     
     protected void OnConnectionStateChanged(BackendConnectionState flags)
     {
         ConnectionStateChanged?.Invoke(flags);
     }        
-
-    ~BaseBackendConnection()
-    {
-        Console.WriteLine("BackendConnection is FINALIZED");
-    }
 }

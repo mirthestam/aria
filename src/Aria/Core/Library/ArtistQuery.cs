@@ -9,6 +9,4 @@ public sealed record ArtistQuery
     public ArtistRoles? RequiredRoles { get; init; }
 
     public ArtistSort Sort { get; init; } = ArtistSort.ByName;
-
-    public static ArtistQuery All { get; } = new();
 }

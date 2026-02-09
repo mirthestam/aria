@@ -1,11 +1,9 @@
-using Aria.Core;
 using Aria.Core.Extraction;
 using Aria.Core.Player;
 using Aria.Infrastructure;
 using Gdk;
 using GObject;
 using Gtk;
-using Object = GObject.Object;
 
 namespace Aria.Features.Player;
 
@@ -42,7 +40,7 @@ public partial class Player
 
     private bool IdWrapperDropTargetOnOnDrop(DropTarget sender, DropTarget.DropSignalArgs args)
     {
-        // The user 'dropped' something onto player.
+        // The user 'dropped' something onto the player.
         var value = args.Value.GetObject();
         if (value is not GId gId) return false;
         

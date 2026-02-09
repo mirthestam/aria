@@ -1,8 +1,4 @@
 using System.ComponentModel;
-using Aria.Core;
-using Gdk;
-using Gio;
-using GLib;
 using GObject;
 using Gtk;
 

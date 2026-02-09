@@ -1,19 +1,4 @@
-using Aria.Core.Extraction;
-
 namespace Aria.Core.Library;
-
-public record TrackGroup
-{
-    /// <summary>
-    /// The title of the track group to show to the user
-    /// </summary>
-    public required string Title { get; init; }
-    
-    /// <summary>
-    /// They key of the track group.
-    /// </summary>
-    public required string Key { get; init; }
-}
 
 public record AlbumTrackInfo  : Info
 {

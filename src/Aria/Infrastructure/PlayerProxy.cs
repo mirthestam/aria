@@ -1,6 +1,5 @@
 using Aria.Core.Extraction;
 using Aria.Core.Player;
-using CommunityToolkit.Mvvm.Messaging;
 
 namespace Aria.Infrastructure;
 

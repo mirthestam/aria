@@ -22,7 +22,7 @@ public partial class ArtistPage
     private const string ArtistPageName = "artist-stack-page";
 
 
-    [Connect("albums-grid-view")] private GridView _albumsGridView;
+    [Connect("albums-grid-view")] private GridView _gridView;
     [Connect("artist-stack")] private Stack _artistStack;
 
     [Connect("gesture-click")] private GestureClick _gestureClick;
@@ -30,8 +30,8 @@ public partial class ArtistPage
 
     private ArtistInfo _artist;
 
-    private ListStore _albumsListStore;
-    private SingleSelection _albumsSelection;
+    private ListStore _listStore;
+    private SingleSelection _singleSelection;
     private SignalListItemFactory _signalListItemFactory;
     
     private AlbumModel? _contextMenuItem;
@@ -63,23 +63,23 @@ public partial class ArtistPage
         _artist = artistInfo;
         SetTitle(artistInfo.Name);
 
-        foreach (var album in albumModels) _albumsListStore.Append(album);
+        foreach (var album in albumModels) _listStore.Append(album);
     }
 
     private void InitializeGridView()
     {
-        _signalListItemFactory = new SignalListItemFactory();
+        _signalListItemFactory = SignalListItemFactory.NewWithProperties([]);
 
-        _albumsListStore = ListStore.New(AlbumModel.GetGType());
-        _albumsSelection = SingleSelection.New(_albumsListStore);
-        _albumsGridView.SetFactory(_signalListItemFactory);
-        _albumsGridView.SetModel(_albumsSelection);
+        _listStore = ListStore.New(AlbumModel.GetGType());
+        _singleSelection = SingleSelection.New(_listStore);
+        _gridView.SetFactory(_signalListItemFactory);
+        _gridView.SetModel(_singleSelection);
 
         _signalListItemFactory.OnSetup += OnSignalListItemFactoryOnOnSetup;
         _signalListItemFactory.OnBind += OnSignalListItemFactoryOnOnBind;
 
-        _albumsGridView.SingleClickActivate = true; // TODO: Move to .UI
-        _albumsGridView.OnActivate += AlbumsGridViewOnOnActivate;
+        _gridView.SingleClickActivate = true; // TODO: Move to .UI
+        _gridView.OnActivate += GridViewOnOnActivate;
         _gestureClick.OnPressed += GestureClickOnOnPressed;
     }
     
@@ -93,7 +93,7 @@ public partial class ArtistPage
 
         _albumDragSources.Clear();
 
-        _albumsListStore.RemoveAll();
+        _listStore.RemoveAll();
     }
     
     private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
@@ -106,11 +106,11 @@ public partial class ArtistPage
         // To be honest, this is probably not the 'correct' approach
         // as right-clicking outside an item also invokes this logic.
 
-        // But it works and I have been unable to find out the correct way.
+        // But it works, and I have been unable to find out the correct way.
 
-        var selected = _albumsSelection.GetSelected();
+        var selected = _singleSelection.GetSelected();
         if (selected == GtkConstants.GtkInvalidListPosition) return;
-        _contextMenuItem = (AlbumModel)_albumsListStore.GetObject(selected)!;
+        _contextMenuItem = (AlbumModel)_listStore.GetObject(selected)!;
 
         var rect = new Rectangle
         {

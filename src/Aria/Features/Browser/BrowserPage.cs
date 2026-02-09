@@ -5,8 +5,6 @@ using Aria.Features.Browser.Artist;
 using Aria.Features.Browser.Artists;
 using Aria.Features.Browser.Playlists;
 using Aria.Features.Browser.Search;
-using Gio;
-using GLib;
 using GObject;
 using Gtk;
 

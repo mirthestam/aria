@@ -24,8 +24,7 @@ public class PlaylistParser(ITagParser tagParser)
 
             currentTrackTags.Add(tag);
         }
-
-        // Don't forget the very last track in the stream
+        
         if (currentTrackTags.Count > 0)
         {
             parsedResults.Add(ParseAlbumInformation(currentTrackTags));
@@ -51,7 +50,7 @@ public class PlaylistParser(ITagParser tagParser)
                     [
                         new AssetInfo
                         {
-                            Id = new AssetId(albumTrackInfo.Track.FileName),
+                            Id = new AssetId(track.FileName),
                             Type = AssetType.FrontCover
                         }
                     ]

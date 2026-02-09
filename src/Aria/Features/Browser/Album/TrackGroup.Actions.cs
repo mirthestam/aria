@@ -1,5 +1,6 @@
 using Aria.Core;
 using Aria.Core.Queue;
+using Aria.Infrastructure;
 using Gdk;
 using Gio;
 using GLib;
@@ -176,7 +177,7 @@ public partial class TrackGroup
 
     private void Enqueue(EnqueueAction? enqueueAction = IQueue.DefaultEnqueueAction)
     {
-        var trackList = _tracks.Select(t => t.Track.Id!.ToString()).ToArray();
+        var trackList = _tracks.Select(t => t.Track.Id.ToString()).ToArray();
 
         switch (enqueueAction)
         {

@@ -1,9 +1,8 @@
 using System.ComponentModel;
 using Aria.Core;
-using Aria.Core.Library;
+using Aria.Infrastructure;
 using Gdk;
 using Gio;
-using GLib;
 using GObject;
 using Gtk;
 
@@ -64,12 +63,12 @@ public partial class TrackListItem
     
     private void ConfigureContextMenu()
     {
-        var menu = new Menu();
+        var menu = Menu.NewWithProperties([]);
         menu.AppendItem(MenuItem.New("Remove", $"queue.delete-selection"));
         menu.AppendItem(MenuItem.New("Track Details", $"queue.show-track"));        
         menu.AppendItem(MenuItem.New("Show Album", $"queue.show-album"));        
         
-        var playlistSection = new Menu();
+        var playlistSection = Menu.NewWithProperties([]);
         playlistSection.AppendItem(MenuItem.New("Clear", $"{AppActions.Queue.Key}.{AppActions.Queue.Clear.Action}"));
         
         menu.AppendSection(null, playlistSection);

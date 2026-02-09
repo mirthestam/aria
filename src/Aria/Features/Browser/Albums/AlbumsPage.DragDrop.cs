@@ -46,7 +46,7 @@ public partial class AlbumsPage
     private static ContentProvider AlbumOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
     {
         var widget = (AlbumsAlbumListItem)sender.GetWidget()!;
-        var wrapper = GId.NewForId(widget.Model!.Album.Id!);
+        var wrapper = GId.NewForId(widget.Model!.Album.Id);
         var value = new Value(wrapper);
         return ContentProvider.NewForValue(value);
     }    

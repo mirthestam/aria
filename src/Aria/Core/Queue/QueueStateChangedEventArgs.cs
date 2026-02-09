@@ -1,11 +1,6 @@
 namespace Aria.Core.Queue;
 
-public class QueueStateChangedEventArgs : EventArgs
+public class QueueStateChangedEventArgs(QueueStateChangedFlags flags) : EventArgs
 {
-    public QueueStateChangedFlags Flags { get; }
-
-    public QueueStateChangedEventArgs(QueueStateChangedFlags flags)
-    {
-        Flags = flags;
-    }
+    public QueueStateChangedFlags Flags { get; } = flags;
 }

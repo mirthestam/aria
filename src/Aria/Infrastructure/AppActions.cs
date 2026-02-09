@@ -1,4 +1,4 @@
-namespace Aria.Core;
+namespace Aria.Infrastructure;
 
 public record AppAction(string Action, string Accelerator = "");
 
@@ -39,7 +39,7 @@ public static class AppActions
         public static readonly AppAction RemoveTrack = new("remove-track", "delete");
         
         public static readonly AppAction Shuffle = new("shuffle", "<Control>s");
-        public static readonly AppAction Repeat = new("repeat", "");
+        public static readonly AppAction Repeat = new("repeat");
         public static readonly AppAction Consume = new("consume", "<Control>r");
     }
 

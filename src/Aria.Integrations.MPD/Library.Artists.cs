@@ -3,7 +3,6 @@ using Aria.Backends.MPD.Connection;
 using Aria.Backends.MPD.Extraction;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
-using Microsoft.Extensions.Logging;
 using MpcNET;
 using MpcNET.Commands.Database;
 using MpcNET.Tags;
@@ -13,7 +12,7 @@ namespace Aria.Backends.MPD;
 public partial class Library
 {
     // Artists can appear with multiple notations in our backend.
-    // This means, we 'deduplicated' them using our tag parser.
+    // This means we 'deduplicated' them using our tag parser.
     // However, for a lookup, we need to use those aliases to make sure
     // we are leaving nothing out.
     private readonly ConcurrentDictionary<Id, ConcurrentDictionary<string, byte>> _artistAliases = new();
@@ -72,41 +71,7 @@ public partial class Library
                     AddOrUpdate(backendArtistName: name, artistNameSort: null, roles: role);
             }
         }
-
-        async Task FetchAndAddDoubles(IMpcCommand<IEnumerable<string>> command, ArtistRoles role,
-            ConnectionScope connectionScope)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-            var (isSuccess, result) = await connectionScope.SendCommandAsync(command).ConfigureAwait(false);
-            if (isSuccess && result != null)
-            {
-                using var enumerator = result.GetEnumerator();
-                string? lastArtistName = null;
-
-                while (enumerator.MoveNext())
-                {
-                    var current = enumerator.Current;
-                    if (string.IsNullOrWhiteSpace(current)) continue;
-
-                    var isArtistName = artistMap.ContainsKey(new ArtistId(current));
-                    if (isArtistName)
-                    {
-                        lastArtistName = current;
-                        continue;
-                    }
-
-                    if (lastArtistName is null)
-                    {
-                        logger.LogWarning("Sort value '{SortValue}' encountered before any artist name.", current);
-                        continue;
-                    }
-
-                    AddOrUpdate(lastArtistName, current, role);
-                    lastArtistName = null;
-                }
-            }
-        }
-
+        
         void AddOrUpdate(string backendArtistName, string? artistNameSort, ArtistRoles roles)
         {
             if (string.IsNullOrWhiteSpace(backendArtistName)) return;

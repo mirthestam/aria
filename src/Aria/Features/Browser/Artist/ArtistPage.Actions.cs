@@ -1,5 +1,6 @@
 using Aria.Core;
 using Aria.Core.Queue;
+using Aria.Infrastructure;
 using Gio;
 using GLib;
 using Gtk;
@@ -47,19 +48,19 @@ public partial class ArtistPage
 
         // This is going to be a problem the moment the user is able to change his default,
         // as in that case we to set another item as default.
-        var controller = new ShortcutController();
+        var controller = ShortcutController.NewWithProperties([]);
         controller.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("Return"),
             NamedAction.New($"{group}.{showAlbumForArtist}")));
         controller.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("<Control>Return"),
             NamedAction.New($"{group}.{defaultAction}")));
         AddController(controller);
 
-        var menu = new Menu();
+        var menu = Menu.NewWithProperties([]);
 
         menu.AppendItem(MenuItem.New("Show Album for artist", $"{group}.{showAlbumForArtist}"));
         menu.AppendItem(MenuItem.New("Show Album", $"{group}.{showAlbum}"));
 
-        var enqueueMenu = new Menu();
+        var enqueueMenu = Menu.NewWithProperties([]);
 
         var replaceQueueItem = MenuItem.New("Play now (Replace queue)", $"{group}.{enqueueReplace}");
         enqueueMenu.AppendItem(replaceQueueItem);
@@ -77,44 +78,38 @@ public partial class ArtistPage
     
     private void EnqueueEndActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argument = Variant.NewString(_contextMenuItem!.Album.Id!.ToString());
-        var argumentArray = Variant.NewArray(VariantType.String, [argument]);
-        ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueEnd.Action}", argumentArray);
+        ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueEnd.Action}", _contextMenuItem!.Album.Id.ToVariantArray());
     }
 
     private void EnqueueNextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argument = Variant.NewString(_contextMenuItem!.Album.Id!.ToString());
-        var argumentArray = Variant.NewArray(VariantType.String, [argument]);
-        ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueNext.Action}", argumentArray);
+        ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueNext.Action}", _contextMenuItem!.Album.Id.ToVariantArray());
     }
 
     private void EnqueueReplaceActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argument = Variant.NewString(_contextMenuItem!.Album.Id!.ToString());
-        var argumentArray = Variant.NewArray(VariantType.String, [argument]);
-        ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueReplace.Action}", argumentArray);
+        ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueReplace.Action}", _contextMenuItem!.Album.Id.ToVariantArray());
     }
 
     private void AlbumShowActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}",
-            Variant.NewString(_contextMenuItem!.Album.Id!.ToString()));
+            _contextMenuItem!.Album.Id.ToVariant());
     }
 
     private void AlbumShowForArtistActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         var parameters = Variant.NewArray(VariantType.String, [
-            Variant.NewString(_contextMenuItem!.Album.Id!.ToString()),
-            Variant.NewString(_artist.Id!.ToString())
+            _contextMenuItem!.Album.Id.ToVariant(),
+            _artist.Id.ToVariant()
         ]);
 
         ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbumForArtist.Action}", parameters);
     }
 
-    private void AlbumsGridViewOnOnActivate(GridView sender, GridView.ActivateSignalArgs args)
+    private void GridViewOnOnActivate(GridView sender, GridView.ActivateSignalArgs args)
     {
-        if (_albumsSelection.SelectedItem is not AlbumModel selectedModel) return;
+        if (_singleSelection.SelectedItem is not AlbumModel selectedModel) return;
 
         AlbumSelected?.Invoke(selectedModel.Album, _artist);
     }

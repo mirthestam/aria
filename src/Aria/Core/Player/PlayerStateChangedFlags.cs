@@ -19,5 +19,6 @@ public enum PlayerStateChangedFlags
     Progress = 1 << 2,
     
     XFade = 1 << 3,
+    
     All = ~0
 }

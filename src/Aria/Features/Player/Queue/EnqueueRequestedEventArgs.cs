@@ -2,14 +2,8 @@ using Aria.Core.Extraction;
 
 namespace Aria.Features.Player.Queue;
 
-public class EnqueueRequestedEventArgs : EventArgs
+public class EnqueueRequestedEventArgs(Id id, int index) : EventArgs
 {
-    public Id Id { get; }
-    public int Index { get; }
-
-    public EnqueueRequestedEventArgs(Id id, int index)
-    {
-        Id = id;
-        Index = index;
-    }
+    public Id Id { get; } = id;
+    public int Index { get; } = index;
 }

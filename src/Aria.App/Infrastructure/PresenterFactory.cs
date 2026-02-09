@@ -1,5 +1,6 @@
 using Aria.Features.Browser.Album;
 using Aria.Features.Shell;
+using Aria.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Aria.App.Infrastructure;

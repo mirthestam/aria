@@ -40,7 +40,7 @@ public partial class ConnectDialog
         _hostRow.OnChanged += OnAnyInputChanged;
 
         // SpinRow is not Editable; update enabled state when value changes.
-        _portRow.OnNotify += (_, __) => UpdateConnectEnabled();
+        _portRow.OnNotify += (_, _) => UpdateConnectEnabled();
 
         UpdateConnectEnabled();
     }

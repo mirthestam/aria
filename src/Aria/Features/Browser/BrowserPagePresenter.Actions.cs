@@ -40,11 +40,11 @@ public partial class BrowserPagePresenter
         browserActionGroup.AddAction(_showTrackAction =
             SimpleAction.New(AppActions.Browser.ShowTrack.Action, GLib.VariantType.String));
         context.SetAccelsForAction($"{AppActions.Browser.Key}.{AppActions.Browser.Search.Action}",
-            [AppActions.Browser.Search.Accelerator!]);
+            [AppActions.Browser.Search.Accelerator]);
         context.SetAccelsForAction($"{AppActions.Browser.Key}.{AppActions.Browser.AllAlbums.Action}",
-            [AppActions.Browser.AllAlbums.Accelerator!]);
+            [AppActions.Browser.AllAlbums.Accelerator]);
         context.SetAccelsForAction($"{AppActions.Browser.Key}.{AppActions.Browser.Playlists.Action}",
-            [AppActions.Browser.Playlists.Accelerator!]);        
+            [AppActions.Browser.Playlists.Accelerator]);        
         context.InsertAppActionGroup(AppActions.Browser.Key, browserActionGroup);
 
         _searchAction.OnActivate += SearchActionOnOnActivate;
@@ -194,23 +194,14 @@ public partial class BrowserPagePresenter
 
             var serializedId = args.Parameter.GetString(out _);
             var artistId = _ariaControl.Parse(serializedId);
-
-            var artistInfo = await _aria.Library.GetArtistAsync(artistId);
-            if (artistInfo == null)
-            {
-                _messenger.Send(new ShowToastMessage("Could not find this artist."));
-                return;
-            }
-
             LogShowingArtistDetailsForArtist(artistId);
 
-            GLib.Functions.IdleAdd(0, () =>
+            await _artistPagePresenter.LoadArtistAsync(artistId);
+
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
                 View?.ShowArtistDetailRoot();
-                return false;
             });
-
-            _browserNavigationState.SelectedArtistId = artistId;
         }
         catch (Exception e)
         {

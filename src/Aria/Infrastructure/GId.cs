@@ -3,9 +3,9 @@ using GObject;
 
 namespace Aria.Infrastructure;
 
-// This class wraps an Id in a GObject.Object,
+// This class wraps an ID in a GObject.Object,
 // allowing it to be used as the content of GTK value objects.
-// This makes it straightforward to pass an Id through mechanisms
+// This makes it straightforward to pass an ID through mechanisms
 // such as drag-and-drop operations or GTK actions.
 
 [Subclass<GObject.Object>]

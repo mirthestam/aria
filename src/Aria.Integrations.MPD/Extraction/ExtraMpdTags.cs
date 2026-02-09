@@ -10,8 +10,6 @@ public static class ExtraMpdTags
     public static ITag Conductor { get; } = new ExtraTag("conductor");
 
     public static ITag Ensemble { get; } = new ExtraTag("ensemble");
-
-    public static ITag ComposerSort { get; } = new ExtraTag("composersort");
     
     private class ExtraTag : ITag
     {

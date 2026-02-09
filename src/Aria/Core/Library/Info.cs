@@ -4,5 +4,5 @@ namespace Aria.Core.Library;
 
 public abstract record Info
 {
-    public required Id Id { get; set; }    
+    public required Id Id { get; init; }    
 }

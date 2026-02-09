@@ -1,5 +1,6 @@
 using Aria.Core;
 using Aria.Core.Queue;
+using Aria.Infrastructure;
 using Gio;
 using GLib;
 
@@ -41,7 +42,7 @@ public partial class AlbumPage
 
     private void EnqueueFromAction(EnqueueAction? enqueueAction = IQueue.DefaultEnqueueAction)
     {
-        var trackList = _filteredTracks.Select(t => t.Track.Id!.ToString()).ToArray();
+        var trackList = _filteredTracks.Select(t => t.Track.Id.ToString()).ToArray();
 
         switch (enqueueAction)
         {

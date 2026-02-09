@@ -105,7 +105,7 @@ public partial class AlbumPagePresenter(
         LogLoadingAlbum(logger, album.Id);
         
         // Always assume the album is out of date, or only partial.
-        album = await aria.Library.GetAlbumAsync(album.Id);
+        album = await aria.Library.GetAlbumAsync(album.Id) ?? album;
         
         AbortLoading();
         _loadCts = new CancellationTokenSource();
@@ -128,7 +128,7 @@ public partial class AlbumPagePresenter(
             
             if (texture == null)
             {
-                LogCouldNotLoadAlbumCoverForAlbum(album.Id ?? Id.Empty);
+                LogCouldNotLoadAlbumCoverForAlbum(album.Id);
                 return;
             }
 
@@ -143,7 +143,7 @@ public partial class AlbumPagePresenter(
         }        
         catch (Exception e)
         {
-            LogCouldNotLoadAlbumCoverForAlbum(e, album.Id ?? Id.Empty);
+            LogCouldNotLoadAlbumCoverForAlbum(e, album.Id);
         }
     }
     

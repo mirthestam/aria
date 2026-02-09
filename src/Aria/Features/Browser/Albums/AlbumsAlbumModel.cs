@@ -8,7 +8,7 @@ using Object = GObject.Object;
 namespace Aria.Features.Browser.Albums;
 
 [Subclass<Object>]
-public sealed partial class AlbumsAlbumModel : INotifyPropertyChanged
+public partial class AlbumsAlbumModel : INotifyPropertyChanged
 {
     public static AlbumsAlbumModel NewForAlbumInfo(AlbumInfo album)
     {

@@ -22,8 +22,7 @@ public partial class Library
 
         var title = fullId.Title;
         var artistNames = fullId.AlbumArtistIds.Select(id => id).Select(id => id.Value);
-        var filters = new List<KeyValuePair<ITag, string>>();
-        filters.Add(new KeyValuePair<ITag, string>(MpdTags.Album, title));
+        var filters = new List<KeyValuePair<ITag, string>> { new(MpdTags.Album, title) };
         filters.AddRange(artistNames.Select(name => new KeyValuePair<ITag, string>(MpdTags.AlbumArtist, name)));
 
         using var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false);
@@ -56,7 +55,7 @@ public partial class Library
         {
             var tasks = artists
                 .Select(artist =>
-                    scope.SendCommandAsync(new MPD.Connection.Commands.SearchCommand(MpdTags.AlbumArtist, artist.Name)))
+                    scope.SendCommandAsync(new SearchCommand(MpdTags.AlbumArtist, artist.Name)))
                 .ToList();
 
             var responses = await Task.WhenAll(tasks).ConfigureAwait(false);
@@ -82,7 +81,7 @@ public partial class Library
         if (_artistAliases.IsEmpty) throw new InvalidOperationException("Artists has not been initialized yet");
         
         // Expand to all known backend aliases for this canonical artist
-        var aliasMap = _artistAliases.TryGetValue(mpdArtistId, out var aliases) ? aliases : null;
+        var aliasMap = _artistAliases.GetValueOrDefault(mpdArtistId);
         var namesToQuery = (aliasMap?.Keys ?? Enumerable.Empty<string>())
             .Append(mpdArtistId.Value)
             .Where(x => !string.IsNullOrWhiteSpace(x))
@@ -142,10 +141,10 @@ public partial class Library
         using var scope = await client.CreateConnectionScopeAsync(token: token).ConfigureAwait(false);
 
 
-        // Try to find the cover from directory the track resides in by looking for a file called cover.png, cover.jpg, or cover.webp.
+        // Try to find the cover from the directory the track resides in by looking for a file called cover.png, cover.jpg, or cover.webp.
         try
         {
-            long totalBinarySize = 9999;
+            long totalBinarySize;
             long currentSize = 0;
             var data = new List<byte>();
 
@@ -177,10 +176,10 @@ public partial class Library
             logger.LogError(e, "Failed to get album art from MPD");
         }
 
-        // Try to find the art by reading embedded pictures from binary tags (e.g. ID3v2’s APIC tag).
+        // Try to find the art by reading embedded pictures from binary tags (e.g., ID3v2’s APIC tag).
         try
         {
-            long totalBinarySize = 9999;
+            long totalBinarySize;
             long currentSize = 0;
             var data = new List<byte>();
 
@@ -211,6 +210,6 @@ public partial class Library
         }
 
         // No album art found. Just return the default album art.
-        return await GetDefaultAlbumResourceStreamAsync();
+        return await GetDefaultAlbumResourceStreamAsync(token);
     }    
 }

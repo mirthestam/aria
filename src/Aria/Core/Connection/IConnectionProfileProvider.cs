@@ -23,12 +23,12 @@ public interface IConnectionProfileProvider
     Task PersistProfileAsync(Guid id);
     
     /// <summary>
-    /// Removes this profile from persistent storage,
+    /// Removes this profile from persistent storage
     /// </summary>
     Task DeleteProfileAsync(Guid id);
     
     /// <summary>
-    /// Occurs when a discovery has occured and the profile list has been updated.
+    /// Occurs when a discovery has occurred and the profile list has been updated.
     /// </summary>
     event EventHandler DiscoveryCompleted;
 

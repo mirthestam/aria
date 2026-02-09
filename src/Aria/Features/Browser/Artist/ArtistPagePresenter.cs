@@ -1,6 +1,4 @@
-using System.ComponentModel;
 using Aria.Core;
-using Aria.Core.Connection;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Features.Shell;
@@ -11,27 +9,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Aria.Features.Browser.Artist;
 
-public partial class ArtistPagePresenter
+public partial class ArtistPagePresenter(
+    ILogger<ArtistPagePresenter> logger,
+    IMessenger messenger,
+    IAria aria,
+    ResourceTextureLoader textureLoader)
 {
-    private readonly ILogger<ArtistPagePresenter> _logger;
-    private readonly IMessenger _messenger;
-    private readonly IAria _aria;
-    private readonly BrowserNavigationState _state;
-    private readonly ResourceTextureLoader _textureLoader;
-    
     private CancellationTokenSource? _loadArtistCancellationTokenSource;
-
-    public ArtistPagePresenter(ILogger<ArtistPagePresenter> logger, IMessenger messenger, IAria aria,
-        BrowserNavigationState state, ResourceTextureLoader textureLoader)
-    {
-        _aria = aria;
-        _messenger = messenger;
-        _state = state;
-        _logger = logger;
-        _textureLoader = textureLoader;
-
-        _state.PropertyChanged += StateOnPropertyChanged;
-    }
 
     private ArtistPage? _view;
 
@@ -41,7 +25,7 @@ public partial class ArtistPagePresenter
         _view.TogglePage(ArtistPage.ArtistPages.Empty);
         _view.AlbumSelected += (albumInfo, artistInfo) =>
         {
-            var arguments = new[] { albumInfo.Id!.ToString(), artistInfo.Id!.ToString() };
+            var arguments = new[] { albumInfo.Id.ToString(), artistInfo.Id.ToString() };
             var argument = Variant.NewArray(VariantType.String, arguments.Select(Variant.NewString).ToArray());
             _view.ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbumForArtist.Action}", argument);
         };
@@ -51,7 +35,7 @@ public partial class ArtistPagePresenter
     {
         LogResettingArtistPage();
         
-        GLib.Functions.IdleAdd(0, () =>
+        Functions.IdleAdd(0, () =>
         {
             _view?.TogglePage(ArtistPage.ArtistPages.Empty);
             _view?.SetTitle("Artist"); // TODO now this name is defined in 2 places
@@ -59,33 +43,27 @@ public partial class ArtistPagePresenter
         });        
     }    
     
-    private void StateOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
-    {
-        if (e.PropertyName != nameof(BrowserNavigationState.SelectedArtistId)) return;
-        if (_state.SelectedArtistId == null) return;
-        
-        LogArtistSelectionChanged(_state.SelectedArtistId);
-        
-        _loadArtistCancellationTokenSource?.Cancel();
-        _loadArtistCancellationTokenSource?.Dispose();
-        _loadArtistCancellationTokenSource = new CancellationTokenSource();
-        _ = LoadArtistAsync(_state.SelectedArtistId, _loadArtistCancellationTokenSource.Token);
-    }
-    
-    private async Task LoadArtistAsync(Id artistId, CancellationToken ct)
+    public async Task LoadArtistAsync(Id artistId, CancellationToken externalCancellationToken = default)
     {
         LogLoadingArtist(artistId);
+        
+        await (_loadArtistCancellationTokenSource?.CancelAsync() ?? Task.CompletedTask);
+        _loadArtistCancellationTokenSource?.Dispose();
+        _loadArtistCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(externalCancellationToken);
+
+        var ct = _loadArtistCancellationTokenSource.Token;
+        
         try
         {
-            var artist = await _aria.Library.GetArtistAsync(artistId, ct);
+            var artist = await aria.Library.GetArtistAsync(artistId, ct);
             if (artist == null) throw new InvalidOperationException("Artist not found");
 
-            var albums = (await _aria.Library.GetAlbumsAsync(artistId, ct)).ToList();
-            var albumModels = albums.Select(a => AlbumModel.NewFor(a, artist))
+            var albums = (await aria.Library.GetAlbumsAsync(artistId, ct)).ToList();
+            var albumModels = albums.Select(AlbumModel.NewFor)
                 .OrderBy(a => a.Album.Title)
                 .ToList();
 
-            GLib.Functions.IdleAdd(0, () =>
+            Functions.IdleAdd(0, () =>
             {
                 _view?.TogglePage(albums.Count == 0 ? ArtistPage.ArtistPages.Empty : ArtistPage.ArtistPages.Artist);
                 _view?.ShowArtist(artist, albumModels);
@@ -105,7 +83,7 @@ public partial class ArtistPagePresenter
         catch (Exception e)
         {
             LogCouldNotLoadArtist(e, artistId);
-            _messenger.Send(new ShowToastMessage("Could not load this artist"));
+            messenger.Send(new ShowToastMessage("Could not load this artist"));
         }
     }
 
@@ -116,11 +94,11 @@ public partial class ArtistPagePresenter
 
         try
         {
-            model.CoverTexture = await _textureLoader.LoadFromAlbumResourceAsync(artId, ct);
+            model.CoverTexture = await textureLoader.LoadFromAlbumResourceAsync(artId, ct);
         }
         catch (Exception e)
         {
-            LogCouldNotLoadAlbumArtForAlbumId(e, model.Album.Id ?? Id.Empty);
+            LogCouldNotLoadAlbumArtForAlbumId(e, model.Album.Id);
         }
     }
 

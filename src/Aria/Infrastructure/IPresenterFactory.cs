@@ -1,6 +1,6 @@
 using Aria.Features.Shell;
 
-namespace Aria.Features.Browser.Album;
+namespace Aria.Infrastructure;
 
 public interface IPresenterFactory
 {

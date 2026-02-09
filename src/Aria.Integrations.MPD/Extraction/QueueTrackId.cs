@@ -13,7 +13,7 @@ public class QueueTrackId(int id) : Id.TypedId<int>(id, Key)
         return new QueueTrackId(id);
     }
 
-    public static Id FromContext(QueueTrackIdentificationContext context)
+    public static Id FromContext(QueueTrackBaseIdentificationContext context)
     {
         var idString = context.Tags.First(t => t.Name.Equals(PicardTagNames.QueueTags.Id, StringComparison.InvariantCultureIgnoreCase)).Value;
         var id = int.Parse(idString);

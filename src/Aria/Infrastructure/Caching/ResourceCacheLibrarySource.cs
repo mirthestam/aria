@@ -103,7 +103,7 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
                 await _innerLibrary.GetAlbumResourceStreamAsync(resourceId, cancellationToken).ConfigureAwait(false);
 
             var tmp = fileName + ".tmp";
-            long bytesWritten = 0;
+            long bytesWritten;
 
             await using (var fs = new FileStream(
                              tmp,

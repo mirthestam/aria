@@ -78,7 +78,6 @@ public class Program
 
                 // Features - Browser
                 x.AddSingleton<BrowserHostPresenter>();
-                x.AddSingleton<BrowserNavigationState>();                
                 x.AddSingleton<BrowserPagePresenter>();
                 
                 x.AddSingleton<AlbumPagePresenter>();

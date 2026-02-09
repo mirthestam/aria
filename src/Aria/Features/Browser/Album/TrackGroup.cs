@@ -1,6 +1,5 @@
 using Aria.Core.Library;
 using Aria.Infrastructure;
-using Gdk;
 using GLib;
 using GObject;
 using Gtk;
@@ -16,7 +15,6 @@ public partial class TrackGroup
     [Connect("credit-box")] private CreditBox _creditBox;
     [Connect("header-box")] private Box _headerBox;
     
-    // [Connect("track-gesture-click")] private GestureClick _trackGestureClick;    
     [Connect("track-popover-menu")] private PopoverMenu _trackPopoverMenu;    
     
     private IReadOnlyList<TrackArtistInfo> _albumSharedArtists = [];    
@@ -31,7 +29,7 @@ public partial class TrackGroup
     public string? Header
     {
         get => _headerLabel.Label_;
-        set => _headerLabel.Label_ = value;
+        private set => _headerLabel.Label_ = value;
     }
     
     partial void Initialize()
@@ -88,7 +86,7 @@ public partial class TrackGroup
                 _ => null
             };
 
-            var row = AlbumTrackRow.NewForTrackId(track.Id!);
+            var row = AlbumTrackRow.NewForTrackId(track.Id);
             
             var prefixLabel = Label.New(trackNumberText);
             prefixLabel.AddCssClass("numeric");
@@ -105,7 +103,7 @@ public partial class TrackGroup
             row.SetUseMarkup(false);
             row.SetTitle(track.Title);
             
-            var gesture = new GestureClick();
+            var gesture = GestureClick.NewWithProperties([]);
             gesture.Button = 3;
             gesture.OnPressed += TrackGestureClickOnOnPressed;
             row.AddController(gesture);
@@ -117,7 +115,7 @@ public partial class TrackGroup
 
             row.SetActivatable(true);
             row.SetActionName("album.enqueue-track-default");
-            row.SetActionTargetValue(Variant.NewString(track.Id?.ToString() ?? string.Empty));
+            row.SetActionTargetValue(Variant.NewString(track.Id.ToString()));
 
             InitializeTrackDragSource(row);
 
@@ -131,7 +129,7 @@ public partial class TrackGroup
         var sharedArtists = SharedArtistHelper.GetSharedArtists(_tracks).ToList();
         
         // Remove the shared artists from the album's shared artists list.
-        // This way we dont duplicate information from the album header.
+        // This way we don't duplicate information from the album header.
         sharedArtists = sharedArtists.Except(_albumSharedArtists).ToList();
         
         _creditBox.UpdateTracksCredits(sharedArtists);

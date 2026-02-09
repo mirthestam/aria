@@ -19,10 +19,5 @@ public interface IConnectionProfile
     /// </summary>
     public bool AutoConnect { get; set; }
     
-    /// <summary>
-    /// Gets a human readable connection string
-    /// </summary>
-    public string ConnectionDisplayString { get; }
-    
     public ConnectionFlags Flags { get; set; }
 }

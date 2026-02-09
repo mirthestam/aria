@@ -1,5 +1,6 @@
 using Adw;
 using Aria.Core;
+using Aria.Infrastructure;
 using Gio;
 
 namespace Aria.Features.Shell;

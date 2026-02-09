@@ -4,13 +4,13 @@ namespace Aria.Backends.MPD.Extraction;
 
 public class IdProvider : IIdProvider
 {
-    public Id CreateQueueTrackId(QueueTrackIdentificationContext context) => QueueTrackId.FromContext(context);
+    public Id CreateQueueTrackId(QueueTrackBaseIdentificationContext context) => QueueTrackId.FromContext(context);
     
-    public Id CreateTrackId(TrackIdentificationContext context) => TrackId.FromContext(context);
+    public Id CreateTrackId(TrackBaseIdentificationContext context) => TrackId.FromContext(context);
 
-    public Id CreateArtistId(ArtistIdentificationContext context) => ArtistId.FromContext(context);
+    public Id CreateArtistId(ArtistBaseIdentificationContext context) => ArtistId.FromContext(context);
 
-    public Id CreateAlbumId(AlbumIdentificationContext context) => AlbumId.FromContext(context);
+    public Id CreateAlbumId(AlbumBaseIdentificationContext context) => AlbumId.FromContext(context);
 
 
 public Id Parse(string id)

@@ -6,7 +6,7 @@ public enum QueueStateChangedFlags
     None = 0,
     
     /// <summary>
-    /// Indicates that another queue is loaded, and therefore the Id of the current queue has changed
+    /// Indicates that another queue is loaded, and therefore the ID of the current queue has changed
     /// </summary>
     Id = 1 << 0,
     

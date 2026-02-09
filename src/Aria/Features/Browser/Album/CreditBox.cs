@@ -1,7 +1,7 @@
 using Adw;
 using Aria.Core;
-using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Infrastructure;
 using GLib;
 using GObject;
 using Gtk;
@@ -82,7 +82,7 @@ public partial class CreditBox
         }
     }
     
-    private Button CreateArtistButton(ArtistInfo artist)
+    private static Button CreateArtistButton(ArtistInfo artist)
     {
         // Format the button
         var displayText = artist.Name;
@@ -92,7 +92,7 @@ public partial class CreditBox
 
         // Configure the action
         button.SetActionName($"{AppActions.Browser.Key}.{AppActions.Browser.ShowArtist.Action}");
-        var value = Variant.NewString(artist.Id?.ToString() ?? Id.Undetermined.ToString());
+        var value = Variant.NewString(artist.Id.ToString());
         button.SetActionTargetValue(value);
 
         return button;

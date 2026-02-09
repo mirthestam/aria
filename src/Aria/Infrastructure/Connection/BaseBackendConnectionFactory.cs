@@ -1,5 +1,4 @@
 using Aria.Core.Connection;
-using Aria.Core.Extraction;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Aria.Infrastructure.Connection;
@@ -28,18 +27,11 @@ public class BaseBackendConnectionFactory<TBackendConnection, TConnectionProfile
     {
         if (profile is not TConnectionProfile connectionProfile) throw new ArgumentException("Profile is not an supported profile");
         
-        // We use a scope for this factory so all its dependencies are scoped to this connection instance
+        // We use a scope for this factory, so all its dependencies are scoped to this connection instance
         var scope = serviceProvider.CreateScope();
         try
         {
             var connection = scope.ServiceProvider.GetRequiredService<TBackendConnection>();
-            
-            if (connection is BaseBackendConnection baseConnection)
-            {
-                // The idea here is that in the future, the connectionProfile can influence the selected tag parser.
-                baseConnection.SetTagParser( scope.ServiceProvider.GetRequiredService<ITagParser>());
-            }          
-            
             await ConfigureAsync(connection, connectionProfile);
             
             return new ScopedBackendConnection(connection, scope);

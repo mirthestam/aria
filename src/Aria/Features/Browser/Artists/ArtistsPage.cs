@@ -1,11 +1,9 @@
 using Adw;
-using Aria.Core;
 using Aria.Core.Library;
 using Gio;
 using GLib;
 using GObject;
 using Gtk;
-using Action = System.Action;
 using ListStore = Gio.ListStore;
 
 namespace Aria.Features.Browser.Artists;

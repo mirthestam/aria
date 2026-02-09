@@ -20,11 +20,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="Features\" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <EmbeddedResource Include="Features\Connect\ConnectDialog.ui" />
         <None Remove="Resources\cover.jpg" />
         <None Remove="Resources\vinyl-record.png" />
         <None Remove="UI\Connect\ConnectDialog.ui" />

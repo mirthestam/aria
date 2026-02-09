@@ -30,38 +30,9 @@ public class AlbumsParser(ITagParser tagParser)
         {
             parsedResults.Add(ParseAlbumInformation(currentTrackTags));
         }
-
-        // 2. Group by Album ID to consolidate the individual tracks into a full album
-        var uniqueAlbumInfos = parsedResults
-            .GroupBy(res => res.Album.Id)
-            .Select(group =>
-            {
-                // The template for the album (metadata like Title, etc.)
-                var albumMetadata = group.First().Album;
-
-                // Since each entry in 'group' represents one track found for this album:
-                // 1. We extract the Track from each result in the group
-                var consolidatedTracks = group
-                    .Select(x => x.Track)
-                    .ToList();
-
-                // Return the album metadata enriched with the full collection of tracks
-                return albumMetadata with
-                {
-                    Tracks = consolidatedTracks,
-                    CreditsInfo = albumMetadata.CreditsInfo with
-                    {
-                        // Also aggregate any credits found across all tracks
-                        AlbumArtists = group.SelectMany(x => x.Album.CreditsInfo.AlbumArtists).DistinctBy(a => a.Id)
-                            .ToList(),
-                        Artists = group.SelectMany(x => x.Album.CreditsInfo.Artists).DistinctBy(a => a.Artist.Id)
-                            .ToList()
-                    }
-                };
-            });
-
+        
         // 2. Group by Album ID and consolidate all individual tracks into full AlbumInfo objects
-        var xxx =  parsedResults
+        var albums =  parsedResults
             .GroupBy(res => res.Album.Id)
             .Select(group =>
             {
@@ -96,7 +67,7 @@ public class AlbumsParser(ITagParser tagParser)
                 };
             });
 
-        return xxx;
+        return albums;
     }
 
     private (AlbumInfo Album, AlbumTrackInfo Track) ParseAlbumInformation(List<Tag> trackTags)
@@ -116,7 +87,7 @@ public class AlbumsParser(ITagParser tagParser)
                     [
                         new AssetInfo
                         {
-                            Id = new AssetId(albumTrackInfo.Track.FileName),
+                            Id = new AssetId(track.FileName),
                             Type = AssetType.FrontCover
                         }
                     ]

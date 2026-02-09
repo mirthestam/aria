@@ -2,7 +2,7 @@ using Aria.Core.Library;
 
 namespace Aria.Core.Extraction;
 
-public sealed class ArtistIdentificationContext : IdentificationContext
+public sealed class ArtistBaseIdentificationContext : BaseIdentificationContext
 {
     /// <summary>
     /// Details about the artist that have been collected so far

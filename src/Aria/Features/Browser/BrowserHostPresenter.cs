@@ -1,10 +1,7 @@
 using Aria.Core;
-using Aria.Core.Connection;
 using Aria.Core.Library;
-using Aria.Features.Player.Queue;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
-using Aria.Infrastructure.Connection;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.Logging;
 
@@ -28,7 +25,7 @@ public partial class BrowserHostPresenter : IRootPresenter<BrowserHost>, IRecipi
         messenger.Register(this);
     }
 
-    public BrowserHost View { get; set; } = null!;
+    public BrowserHost View { get; private set; } = null!;
 
     public void Attach(BrowserHost view, AttachContext context)
     {

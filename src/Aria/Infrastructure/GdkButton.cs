@@ -1,4 +1,4 @@
-namespace Aria.Features.Browser.Albums;
+namespace Aria.Infrastructure;
 
 public enum GdkButton : uint
 {

@@ -1,6 +1,7 @@
 using Adw;
 using Aria.Core;
 using Aria.Core.Library;
+using Aria.Infrastructure;
 using Gdk;
 using GLib;
 using GObject;
@@ -38,7 +39,7 @@ public partial class SearchPage
     
     partial void Initialize()
     {
-        OnMap += (s, e) => GLib.Functions.IdleAdd(0, () =>
+        OnMap += (_, _) => GLib.Functions.IdleAdd(0, () =>
         {
             _searchEntry.GrabFocus();
             return false;
@@ -92,7 +93,7 @@ public partial class SearchPage
     private SearchTrackActionRow CreateTrackRow(TrackInfo track)
     {
         // Appearance
-        var row = SearchTrackActionRow.NewFor(track.Id!);
+        var row = SearchTrackActionRow.NewFor(track.Id);
         row.Activatable = true;
         row.UseMarkup = false;
         row.Title = track.Title;
@@ -107,14 +108,14 @@ public partial class SearchPage
             
         // Action
         row.ActionName = $"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueDefault.Action}";
-        var param = Variant.NewArray(VariantType.String, [Variant.NewString(track.Id?.ToString() ?? string.Empty)]);
+        var param = Variant.NewArray(VariantType.String, [Variant.NewString(track.Id.ToString())]);
         row.SetActionTargetValue(param);
         return row;
     }
 
     private SearchAlbumActionRow CreateAlbumRow(AlbumInfo album)
     {
-        var row = SearchAlbumActionRow.NewWith(album.Id!);
+        var row = SearchAlbumActionRow.NewWith(album.Id);
             
         // Appearance
         row.Activatable = true;
@@ -134,7 +135,7 @@ public partial class SearchPage
         _albumDragSources.Add(dragSource);          
             
         // Action
-        var albumIdString = album.Id!.ToString();
+        var albumIdString = album.Id.ToString();
         row.ActionName = $"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}";
         var param = Variant.NewString(albumIdString);
         row.SetActionTargetValue(param);
@@ -163,7 +164,7 @@ public partial class SearchPage
         row.AddSuffix(image);
             
         row.ActionName = $"{AppActions.Browser.Key}.{AppActions.Browser.ShowArtist.Action}";
-        var param = Variant.NewString(artist.Id!.ToString());
+        var param = Variant.NewString(artist.Id.ToString());
         row.SetActionTargetValue(param);
         row.Subtitle = RolesFormatting.Format(artist.Roles);
         

@@ -12,7 +12,7 @@ public class AlbumIdTests
     void TestAlbumIdParsing()
     {
         var expectedArtistId = ArtistId.Parse("Chopin");
-        var context = new AlbumIdentificationContext
+        var context = new AlbumBaseIdentificationContext
         {
             Album = new AlbumInfo
             {

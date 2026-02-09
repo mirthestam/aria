@@ -5,17 +5,20 @@ namespace Aria.Infrastructure;
 
 public abstract class BaseLibrary : ILibrarySource 
 {
-    public virtual event EventHandler? Updated;    
+    public virtual event EventHandler? Updated;
+
+    public abstract Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(CancellationToken cancellationToken = default);
+    public abstract Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(Id artistId, CancellationToken cancellationToken = default);
+    public abstract Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default);
     
-    public virtual Task<IEnumerable<ArtistInfo>> GetArtistsAsync(CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<ArtistInfo>());
-    public virtual Task<IEnumerable<ArtistInfo>> GetArtistsAsync(ArtistQuery query, CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<ArtistInfo>());
-    public virtual Task<ArtistInfo?> GetArtistAsync(Id artistId, CancellationToken cancellationToken = default) => Task.FromResult(default(ArtistInfo));
-    public virtual Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<AlbumInfo>());
-    public virtual Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(Id artistId, CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<AlbumInfo>());
-    public virtual Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default) => Task.FromResult(default(AlbumInfo));
-    public virtual Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default) => Task.FromResult(SearchResults.Empty);
-    public virtual Task<IEnumerable<PlaylistInfo>> GetPlaylistsAsync(CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<PlaylistInfo>());
-    public virtual Task<PlaylistInfo?> GetPlaylistAsync(Id playlistId, CancellationToken cancellationToken = default) => Task.FromResult(default(PlaylistInfo));    
+    public abstract Task<IEnumerable<ArtistInfo>> GetArtistsAsync(CancellationToken cancellationToken = default);
+    public abstract Task<IEnumerable<ArtistInfo>> GetArtistsAsync(ArtistQuery query, CancellationToken cancellationToken = default);
+    public abstract Task<ArtistInfo?> GetArtistAsync(Id artistId, CancellationToken cancellationToken = default);
+
+    public abstract Task<IEnumerable<PlaylistInfo>> GetPlaylistsAsync(CancellationToken cancellationToken = default);
+    public abstract Task<PlaylistInfo?> GetPlaylistAsync(Id playlistId, CancellationToken cancellationToken = default);    
+    
+    public abstract Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default);
     
     public virtual Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default) => Task.FromResult<Info?>(null);
 

@@ -19,13 +19,6 @@ public partial class BackendConnection(
     IIdProvider idProvider)
     : BaseBackendConnection( player, queue, library, idProvider)
 {
-    public override bool IsConnected => client.IsConnected;
-
-    ~BackendConnection()
-    {
-        Console.WriteLine("MPDBackendConnection is FINALIZED");
-    }    
-    
     public void SetCredentials(ConnectionConfig connectionConfig)
     {
         client.Config = connectionConfig;

@@ -1,6 +1,7 @@
 using Adw;
 using Aria.Core.Library;
 using Aria.Features.Browser.Search;
+using Aria.Infrastructure;
 using GLib;
 using GObject;
 using Gtk;

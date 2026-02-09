@@ -46,7 +46,6 @@ public partial class SearchPage
     
     private static void AlbumOnOnDragBegin(DragSource sender, DragSource.DragBeginSignalArgs args)
     {
-        return;
         // TODO: when album art is available in the album row,
         // Use the code below to use it as the drag icon.
         

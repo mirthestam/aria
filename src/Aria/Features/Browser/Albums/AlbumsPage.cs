@@ -76,7 +76,7 @@ public partial class AlbumsPage
         // To be honest, this is probably not the 'correct' approach
         // as right-clicking outside an item also invokes this logic.
         
-        // But it works and I have been unable to find out the correct way.
+        // But it works, and I have been unable to find out the correct way.
         
         var selected = _singleSelection.GetSelected();
         if (selected == GtkConstants.GtkInvalidListPosition) return;

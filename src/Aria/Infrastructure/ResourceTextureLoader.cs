@@ -1,7 +1,6 @@
 using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Gdk;
-using GLib.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace Aria.Infrastructure;
@@ -10,7 +9,7 @@ public partial class ResourceTextureLoader(ILogger<ResourceTextureLoader> logger
 {
     public async Task<Texture?> LoadFromAlbumResourceAsync(Id resourceId, CancellationToken cancellationToken = default)
     {
-        using var pixelBufferLoader = new GdkPixbuf.PixbufLoader();
+        using var pixelBufferLoader = GdkPixbuf.PixbufLoader.NewWithProperties([]);
         try
         {
             await using var stream = await library.GetAlbumResourceStreamAsync(resourceId, cancellationToken)

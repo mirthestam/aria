@@ -21,27 +21,24 @@ public partial class QueueTrackModel : INotifyPropertyChanged
     private void Parse(QueueTrackInfo queueTrack)
     {
         var track = queueTrack.Track;
-        TitleText = track?.Title ?? "Unnamed track";
-        if (track?.Work?.ShowMovement ?? false)
+        TitleText = track.Title;
+        if (track.Work?.ShowMovement ?? false)
             // For  these kind of works, we ignore the
             TitleText = $"{track.Work.MovementName} ({track.Work.MovementNumber} {track.Title} ({track.Work.Work})";
         
-        var credits = track?.CreditsInfo;
-        
-        if (credits != null)
-        {
-            var artists = string.Join(", ", credits.OtherArtists.Select(x => x.Artist.Name));
-        
-            var details = new List<string>();
-            var conductors = string.Join(", ", credits.Conductors.Select(x => x.Artist.Name));
-            if (!string.IsNullOrEmpty(conductors))
-                details.Add($"{conductors}");
-        
-            ComposersText = string.Join(", ", credits.Composers.Select(x => x.Artist.Name));
-        
-            SubTitleText = artists;
-            if (details.Count > 0) SubTitleText += $" ({string.Join(", ", details)})";
-        }
+        var credits = track.CreditsInfo;
+        var artists = string.Join(", ", credits.OtherArtists.Select(x => x.Artist.Name));
+    
+        var details = new List<string>();
+        var conductors = string.Join(", ", credits.Conductors.Select(x => x.Artist.Name));
+        if (!string.IsNullOrEmpty(conductors))
+            details.Add($"{conductors}");
+    
+        ComposersText = string.Join(", ", credits.Composers.Select(x => x.Artist.Name));
+    
+        SubTitleText = artists;
+        if (details.Count > 0) SubTitleText += $" ({string.Join(", ", details)})";
+    
         
         if (queueTrack.Track.Duration == TimeSpan.Zero)
         {

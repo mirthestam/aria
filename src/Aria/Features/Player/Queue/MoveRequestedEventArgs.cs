@@ -2,14 +2,8 @@ using Aria.Core.Extraction;
 
 namespace Aria.Features.Player.Queue;
 
-public class MoveRequestedEventArgs : EventArgs
+public class MoveRequestedEventArgs(Id sourceId, int targetIndex) : EventArgs
 {
-    public Id SourceId { get; }
-    public int TargetIndex { get; }
-
-    public MoveRequestedEventArgs(Id sourceId, int targetIndex)
-    {
-        SourceId = sourceId;
-        TargetIndex = targetIndex;
-    }
+    public Id SourceId { get; } = sourceId;
+    public int TargetIndex { get; } = targetIndex;
 }

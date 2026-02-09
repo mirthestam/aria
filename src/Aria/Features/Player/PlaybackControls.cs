@@ -1,7 +1,6 @@
 using Aria.Core.Player;
 using Gdk;
 using GObject;
-using Graphene;
 using Gtk;
 using Box = Gtk.Box;
 using Range = Gtk.Range;
@@ -53,8 +52,8 @@ public partial class PlaybackControls
         
         var target = TimeSpan.FromSeconds(seconds);
 
-        _seekCts?.Cancel();
-        _seekCts?.Dispose();
+        _seekCts.Cancel();
+        _seekCts.Dispose();
         _seekCts = new CancellationTokenSource();
         var ct = _seekCts.Token;
 

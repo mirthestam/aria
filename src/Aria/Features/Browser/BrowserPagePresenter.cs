@@ -1,18 +1,14 @@
 using Aria.Core;
 using Aria.Core.Extraction;
-using Aria.Core.Library;
-using Aria.Core.Queue;
 using Aria.Features.Browser.Album;
 using Aria.Features.Browser.Albums;
 using Aria.Features.Browser.Artist;
 using Aria.Features.Browser.Artists;
 using Aria.Features.Browser.Playlists;
 using Aria.Features.Browser.Search;
-using Aria.Features.Player.Queue;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
-using Gio;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
 
@@ -29,8 +25,7 @@ public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
     private readonly ArtistPagePresenter _artistPagePresenter;
     private readonly ArtistsPagePresenter _artistsPagePresenter;
     private readonly PlaylistsPagePresenter _playlistsPagePresenter;
-
-    private readonly BrowserNavigationState _browserNavigationState;
+    
     private readonly ILogger<BrowserPage> _logger;
     private readonly SearchPagePresenter _searchPagePresenter;
 
@@ -40,7 +35,6 @@ public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
         IMessenger messenger,
         IAria aria,
         IAriaControl ariaControl,
-        BrowserNavigationState browserNavigationState,
         AlbumsPagePresenter albumsPagePresenter,
         ArtistPagePresenter artistPagePresenter,
         ArtistsPagePresenter artistsPagePresenter,
@@ -57,7 +51,6 @@ public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
         _searchPagePresenter = searchPagePresenter;
         _playlistsPagePresenter = playlistsPagePresenter;
         _albumsPagePresenter = albumsPagePresenter;
-        _browserNavigationState = browserNavigationState;
         _presenterFactory = presenterFactory;
     }
 
@@ -126,7 +119,6 @@ public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
     private void ShowAllAlbums()
     {
         LogShowingAllAlbums();
-        _browserNavigationState.SelectedArtistId = null;
         
         GLib.Functions.IdleAdd(0, () =>
         {
@@ -137,8 +129,6 @@ public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
     
     private void ShowPlaylists()
     {
-        _browserNavigationState.SelectedArtistId = null;
-
         GLib.Functions.IdleAdd(0, () =>
         {
             View?.ShowPlaylists();

@@ -1,9 +1,5 @@
 using Aria.Core;
 using Aria.Core.Library;
-using Aria.Core.Queue;
-using CommunityToolkit.Mvvm.Messaging;
-using Gio;
-using GLib;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
 
@@ -46,7 +42,7 @@ public partial class SearchPagePresenter(ILogger<SearchPagePresenter> logger, IA
             {
                 if (token.IsCancellationRequested) return false;
                     
-                View?.ShowResults(_searchResults);
+                View.ShowResults(_searchResults);
                 return false;
             });                        
         }

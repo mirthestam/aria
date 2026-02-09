@@ -12,7 +12,7 @@ public class ArtistId(string artistName) : Id.TypedId<string>(artistName, Key)
 {
     public const string Key = "ART";
     
-    public static Id FromContext(ArtistIdentificationContext context)
+    public static Id FromContext(ArtistBaseIdentificationContext context)
     {
         return new ArtistId(context.Artist.Name);
     }

@@ -1,8 +1,6 @@
-using Aria.Core;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Core.Player;
-using Aria.Core.Queue;
 using Aria.Infrastructure;
 using Gdk;
 using GObject;
@@ -19,8 +17,6 @@ public partial class PlayerBar
     [Connect("subtitle-label")] private Label _subTitleLabel;
     [Connect("title-label")] private Label _titleLabel;
     [Connect("media-controls")] private Player.MediaControls _mediaControls;
-
-    private DropTarget? _dropTarget;
     
     public event EventHandler<Id> EnqueueRequested;    
     
@@ -55,31 +51,27 @@ public partial class PlayerBar
             return;
         }
         
-        var titleText = trackInfo?.Title ?? "Unnamed tracks";
-        if (trackInfo?.Work?.ShowMovement ?? false)
+        var titleText = trackInfo.Title;
+        if (trackInfo.Work?.ShowMovement ?? false)
             // For  these kind of works, we ignore the
             titleText = $"{trackInfo.Work.MovementName} ({trackInfo.Work.MovementNumber} {trackInfo.Title} ({trackInfo.Work.Work})";
 
 
-        var credits = trackInfo?.CreditsInfo;
-        var subTitleText = "";
+        var credits = trackInfo.CreditsInfo;
 
-        if (credits != null)
-        {
-            var artists = string.Join(", ", credits.OtherArtists.Select(x => x.Artist.Name));
+        var artists = string.Join(", ", credits.OtherArtists.Select(x => x.Artist.Name));
 
-            var details = new List<string>();
-            var conductors = string.Join(", ", credits.Conductors.Select(x => x.Artist.Name));
-            if (!string.IsNullOrEmpty(conductors))
-                details.Add($"conducted by {conductors}");
+        var details = new List<string>();
+        var conductors = string.Join(", ", credits.Conductors.Select(x => x.Artist.Name));
+        if (!string.IsNullOrEmpty(conductors))
+            details.Add($"conducted by {conductors}");
 
-            var composers = string.Join(", ", credits.Composers.Select(x => x.Artist.Name));
-            if (!string.IsNullOrEmpty(composers))
-                details.Add($"composed by {composers}");
+        var composers = string.Join(", ", credits.Composers.Select(x => x.Artist.Name));
+        if (!string.IsNullOrEmpty(composers))
+            details.Add($"composed by {composers}");
 
-            subTitleText = artists;
-            if (details.Count > 0) subTitleText += $" ({string.Join(", ", details)})";
-        }
+        var subTitleText = artists;
+        if (details.Count > 0) subTitleText += $" ({string.Join(", ", details)})";
 
         _titleLabel.Label_ = titleText;
         _subTitleLabel.Label_ = subTitleText;
