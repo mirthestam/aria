@@ -67,4 +67,6 @@ public interface IPlayer
     /// Seeks to the specified position in the current track.
     /// </summary>
     Task SeekAsync(TimeSpan position, CancellationToken cancellationToken = default);
+
+    Task SetVolumeAsync(int volume);
 }

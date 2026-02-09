@@ -17,9 +17,12 @@ public partial class PlaybackControls
     [Connect("media-controls")] private MediaControls _mediaControls;
     [Connect("playlist-progress-label")] private Label _playlistProgressLabel;
     [Connect("remaining-time-label")] private Label _remainingTimeLabel;
+    [Connect("tech-label")] private Label _techLabel;
 
     [Connect("elapsed-popover")] private Popover _elapsedPopover;
     [Connect("elapsed-popover-label")] private Label _elapsedPopoverLabel;
+
+    [Connect("volume-scale-button")] private ScaleButton _volumeButton;
 
     private EventControllerMotion _motionController;
     private TimeSpan _shownDuration;
@@ -27,10 +30,11 @@ public partial class PlaybackControls
     private CancellationTokenSource _seekCts;
 
     public event SeekRequestedAsyncHandler? SeekRequested;
+    public event EventHandler<int>? VolumeChanged;
     
     partial void Initialize()
     {
-        _motionController = new EventControllerMotion();
+        _motionController = EventControllerMotion.NewWithProperties([]);
         _elapsedScale.AddController(_motionController);
         _elapsedScale.OnChangeValue += ElapsedScaleOnOnChangeValue;
 
@@ -38,6 +42,8 @@ public partial class PlaybackControls
 
         _motionController.OnMotion += MotionControllerOnOnMotion;
         _motionController.OnLeave += MotionControllerOnOnLeave;
+
+        _volumeButton.OnValueChanged += VolumeButtonOnValueChanged;
     }
 
     private bool ElapsedScaleOnOnChangeValue(Range sender, Range.ChangeValueSignalArgs args)
@@ -58,6 +64,12 @@ public partial class PlaybackControls
         return false;
     }
     
+    private void VolumeButtonOnValueChanged(ScaleButton sender, ScaleButton.ValueChangedSignalArgs args)
+    {
+        var volume = (int)Math.Round(args.Value);
+        VolumeChanged?.Invoke(this, volume);
+    }
+
     private void MotionControllerOnOnLeave(EventControllerMotion sender, EventArgs args)
     {
         _elapsedPopover.Popdown();
@@ -104,29 +116,30 @@ public partial class PlaybackControls
             _elapsedPopover.Popdown();
         }
     }
-
-    public void SetProgress(TimeSpan trackElapsed, TimeSpan trackDuration)
+    
+    public void SetProgress(PlaybackProgress progress)
     {
-        _elapsedTimeLabel.Label_ = trackElapsed.ToString(@"mm\:ss");
+        _elapsedTimeLabel.Label_ = progress.Elapsed.ToString(@"mm\:ss");
         
-        if (trackDuration == TimeSpan.Zero)
+        if (progress.Duration == TimeSpan.Zero)
         {
-            if (_shownDuration == trackDuration) return;
+            if (_shownDuration == progress.Duration) return;
             _elapsedScale.Visible = false;                            
-            _shownDuration = trackDuration;
+            _shownDuration = progress.Duration;
             _remainingTimeLabel.Label_ = "—:—";
         }
         else
         {
-            if (_shownDuration != trackDuration)
+            if (_shownDuration != progress.Duration)
             {
                 _elapsedScale.Visible = true;                
-                _elapsedScale.SetRange(0, trackDuration.TotalSeconds);
-                _shownDuration = trackDuration;
+                _elapsedScale.SetRange(0, progress.Duration.TotalSeconds);
+                _shownDuration = progress.Duration;
             }
 
-            _elapsedScale.SetValue(trackElapsed.TotalSeconds);
-            _remainingTimeLabel.Label_ =(trackDuration - trackElapsed).ToString(@"mm\:ss");    
+            _elapsedScale.SetValue(progress.Elapsed.TotalSeconds);
+            _remainingTimeLabel.Label_ =(progress.Duration - progress.Elapsed).ToString(@"mm\:ss");
+            _techLabel.Label_ = $"{progress.AudioBits}-bit / {progress.AudioSampleRate / 1000.0:F1} kHz";
         }
     }
 
@@ -154,5 +167,11 @@ public partial class PlaybackControls
         };
 
         _mediaControls.SetPlaybackState(playerState);
+    }
+
+    public void SetVolume(int? playerVolume)
+    {
+        _volumeButton.Visible = playerVolume.HasValue;
+        _volumeButton.SetValue(playerVolume?? 0);
     }
 }

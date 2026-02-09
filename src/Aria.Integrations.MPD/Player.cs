@@ -16,6 +16,10 @@ public class Player(Client client) : BasePlayer
     public override async Task NextAsync() => await client.SendCommandAsync(new NextCommand()).ConfigureAwait(false);
     public override async Task PreviousAsync() => await client.SendCommandAsync(new PreviousCommand()).ConfigureAwait(false);
     public override async Task StopAsync() => await client.SendCommandAsync(new StopCommand()).ConfigureAwait(false);
+    public override async Task SetVolumeAsync(int volume)
+    {
+        await client.SendCommandAsync(new SetVolumeCommand((byte)volume)).ConfigureAwait(false);
+    }
 
     public override async Task SeekAsync(TimeSpan position, CancellationToken cancellationToken = default)
     {
@@ -41,7 +45,7 @@ public class Player(Client client) : BasePlayer
             State = newState;
             flags |= PlayerStateChangedFlags.PlaybackState;
         }
-
+        
         // Check Volume
         var newVol = s.Volume == -1 ? null : (int?)s.Volume;
         if (Volume != newVol)
@@ -53,6 +57,10 @@ public class Player(Client client) : BasePlayer
         // Check Progress
         if (Progress.Elapsed != s.Elapsed || Progress.Duration != s.Duration)
         {
+            Progress.AudioBits = s.AudioBits;
+            Progress.AudioChannels = s.AudioChannels;
+            Progress.AudioSampleRate = s.AudioSampleRate;
+            Progress.Bitrate = s.Bitrate;
             Progress.Elapsed = s.Elapsed;
             Progress.Duration = s.Duration;
             flags |= PlayerStateChangedFlags.Progress;

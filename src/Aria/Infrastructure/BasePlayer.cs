@@ -9,8 +9,8 @@ public abstract class BasePlayer : IPlayerSource
     public virtual event EventHandler<PlayerStateChangedEventArgs>? StateChanged;
     
     public virtual Id Id { get; protected set;  } = Id.Empty;
-    
-    public virtual int? Volume { get; protected set;  }
+
+    public virtual int? Volume { get; protected set; } = null;
     
     public virtual bool SupportsVolume => false;
     
@@ -35,6 +35,8 @@ public abstract class BasePlayer : IPlayerSource
     public virtual Task StopAsync() => Task.CompletedTask;
     
     public virtual Task SeekAsync(TimeSpan position, CancellationToken cancellationToken = default) => Task.CompletedTask;
+    
+    public virtual Task SetVolumeAsync(int volume) => Task.CompletedTask;
 
     protected void OnStateChanged(PlayerStateChangedFlags flags)
     {

@@ -44,12 +44,26 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
         View = player;
         View.SeekRequested += ViewOnSeekRequested;
         View.EnqueueRequested += ViewOnEnqueueRequested;
+        View.VolumeChanged += ViewOnVolumeChanged;
 
         _queuePresenter.Attach(View.Queue);
         
+        
         InitializeActions(context);
     }
-    
+
+    private async void ViewOnVolumeChanged(object? sender, int e)
+    {
+        try
+        {
+            await _aria.Player.SetVolumeAsync(e);
+        }
+        catch (Exception exception)
+        {
+        
+        }
+    }
+
     private async Task ViewOnSeekRequested(TimeSpan position, CancellationToken cancellationToken)
     {
         await _aria.Player.SeekAsync(position, cancellationToken);
@@ -100,9 +114,18 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
         {
             GLib.Functions.IdleAdd(0, () =>
             {
-                View?.SetProgress(_aria.Player.Progress.Elapsed, _aria.Player.Progress.Duration);
+                View?.SetProgress(_aria.Player.Progress);
                 return false;
             });            
+        }
+
+        if (flags.HasFlag(PlayerStateChangedFlags.Volume))
+        {
+            GLib.Functions.IdleAdd(0, () =>
+            {
+                View?.SetVolume(_aria.Player.Volume);
+                return false;
+            });                        
         }
     }
 

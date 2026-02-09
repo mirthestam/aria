@@ -22,31 +22,23 @@ public partial class Player
     public Queue.Queue Queue => _queue;
 
     public event SeekRequestedAsyncHandler? SeekRequested;    
+    public event EventHandler<int>? VolumeChanged;
     
     public event EventHandler<Id> EnqueueRequested;    
     
     partial void Initialize()
     {
         _playbackControls.SeekRequested += PlaybackControlsOnSeekRequested;
+        _playbackControls.VolumeChanged += PlaybackControlsOnVolumeChanged;
         
         // Add the playback drop target
         var type = GObject.Type.Object;        
         var idWrapperDropTarget = DropTarget.New(type, DragAction.Copy);
         idWrapperDropTarget.OnDrop  += IdWrapperDropTargetOnOnDrop;
         AddController(idWrapperDropTarget);
-        
-        ShortcutController shortcutController = new();
-        var shortcut = Shortcut.New(ShortcutTrigger.ParseString("<Control>y"),
-            ShortcutAction.ParseString($"{AppActions.Queue.Key}.{AppActions.Queue.Clear}"));
-        shortcut.OnNotify += ShortcutOnOnNotify;
-        shortcutController.AddShortcut(shortcut);
-        AddController(shortcutController);
     }
 
-    private void ShortcutOnOnNotify(Object sender, NotifySignalArgs args)
-    {
-        throw new NotImplementedException();
-    }
+    private void PlaybackControlsOnVolumeChanged(object? sender, int e) => VolumeChanged?.Invoke(sender, e);
 
     private bool IdWrapperDropTargetOnOnDrop(DropTarget sender, DropTarget.DropSignalArgs args)
     {
@@ -76,9 +68,9 @@ public partial class Player
         _coverPicture.SetPaintable(null);
     }
 
-    public void SetProgress(TimeSpan progressElapsed, TimeSpan progressDuration)
+    public void SetProgress(PlaybackProgress progress)
     {
-        _playbackControls.SetProgress(progressElapsed, progressDuration);
+        _playbackControls.SetProgress(progress);
     }
 
     public void SetPlaylistInfo(int? orderCurrentIndex, int queueLength)
@@ -89,5 +81,10 @@ public partial class Player
     public void SetPlaybackState(PlaybackState playerState)
     {
         _playbackControls.SetPlaybackState(playerState);
+    }
+
+    public void SetVolume(int? playerVolume)
+    {
+        _playbackControls.SetVolume(playerVolume);
     }
 }

@@ -21,19 +21,55 @@
       </object>
     </child>
     <child>
-      <object class="GtkCenterBox" id="statistics-center-box">
+      <object class="GtkCenterBox" id="controls-center-box">
         <property name="center-widget">
-          <object class="AriaFeaturesPlayerMediaControls" id="media-controls"/>
+          <object class="GtkBox">
+            <property name="spacing">12</property>
+            <child>
+              <object class="AriaFeaturesPlayerMediaControls" id="media-controls"/>
+            </child>
+          </object>
         </property>
         <property name="css-classes">toolbar</property>
         <property name="end-widget">
           <object class="GtkBox">
-            <property name="css-classes">toolbar-text</property>
-            <property name="orientation">vertical</property>
-            <property name="valign">start</property>
+            <property name="spacing">12</property>
             <child>
-              <object class="GtkLabel" id="remaining-time-label">
-                <property name="label">00:00</property>
+              <object class="GtkScaleButton" id="volume-scale-button">
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="page-increment">10.0</property>
+                    <property name="step-increment">2.0</property>
+                    <property name="upper">100.0</property>
+                    <property name="value">50.0</property>
+                  </object>
+                </property>
+                <property name="icons">audio-volume-muted-symbolic
+audio-volume-high-symbolic
+audio-volume-low-symbolic
+audio-volume-medium-symbolic</property>
+                <property name="value">0.0</property>
+                <property name="visible">True</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkBox" id="right-info-box">
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkLabel" id="remaining-time-label">
+                    <property name="label">00:00</property>
+                    <property name="xalign">1.0</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="tech-label">
+                    <property name="css-classes">dimmed
+caption
+                                </property>
+                    <property name="label">24-bit 96k</property>
+                    <property name="xalign">1.0</property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
@@ -42,22 +78,30 @@
         <property name="margin-start">6</property>
         <property name="start-widget">
           <object class="GtkBox">
-            <property name="css-classes">toolbar-text</property>
-            <property name="orientation">vertical</property>
-            <property name="valign">start</property>
+            <property name="spacing">12</property>
             <child>
-              <object class="GtkLabel" id="elapsed-time-label">
-                <property name="has-tooltip">True</property>
-                <property name="label">00:00</property>
-                <property name="tooltip-text">Elapsed time</property>
-              </object>
-            </child>
-            <child>
-              <object class="GtkLabel" id="playlist-progress-label">
-                <property name="css-classes">dimmed
+              <object class="GtkBox" id="left-info-box">
+                <property name="css-classes">toolbar-text</property>
+                <property name="orientation">vertical</property>
+                <property name="spacing">0</property>
+                <property name="valign">start</property>
+                <child>
+                  <object class="GtkLabel" id="elapsed-time-label">
+                    <property name="has-tooltip">True</property>
+                    <property name="label">00:00</property>
+                    <property name="tooltip-text">Elapsed time</property>
+                    <property name="xalign">0.0</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="playlist-progress-label">
+                    <property name="css-classes">dimmed
 caption
                                 </property>
-                <property name="label">0/0</property>
+                    <property name="label">0/0</property>
+                    <property name="xalign">0.0</property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>
