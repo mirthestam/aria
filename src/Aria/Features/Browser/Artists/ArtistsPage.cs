@@ -1,4 +1,5 @@
 using Adw;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Gio;
 using GLib;
@@ -15,15 +16,16 @@ public partial class ArtistsPage
     [Connect("artists-list-view")] private ListView _artistsListView;
     [Connect("artists-menu-button")] private MenuButton _artistsMenuButton;
     [Connect("navigation-menu")] private ListBox _navigationMenu;
-    
-    private SingleSelection _artistsSelectionModel;
-    private ListStore _artistsListStore;    
+
+    private SingleSelection _singleSelection;
+    private ListStore _listStore;
+    private Dictionary<Id, ArtistModel> _artistModels = new();
     private SignalListItemFactory _signalListItemFactory;
-    
-    public SimpleAction ArtistsFilterAction { get; private set; }   
+
+    public SimpleAction ArtistsFilterAction { get; private set; }
 
     public event Action<ArtistInfo>? ArtistSelected;
-    
+
     partial void Initialize()
     {
         InitializeArtistsList();
@@ -34,7 +36,7 @@ public partial class ArtistsPage
     {
         var displayName = filter switch
         {
-            ArtistsFilter.Artists => "All Artists",    
+            ArtistsFilter.Artists => "All Artists",
             ArtistsFilter.Main => "Artists",
             ArtistsFilter.Composers => "Composers",
             ArtistsFilter.Conductors => "Conductors",
@@ -42,21 +44,23 @@ public partial class ArtistsPage
             ArtistsFilter.Performers => "Performers",
             _ => throw new ArgumentOutOfRangeException(nameof(filter), filter, null)
         };
-        
+
         ArtistsFilterAction.SetState(Variant.NewString(filter.ToString()));
         _artistsMenuButton.SetLabel(displayName);
     }
-    
+
     public void RefreshArtists(IEnumerable<ArtistInfo> artists, ArtistNameDisplay nameDisplay)
     {
-        _artistsListStore.RemoveAll();
+        _listStore.RemoveAll();
+        _artistModels.Clear();
         foreach (var artist in artists)
         {
-            var listViewItem = ArtistModel.NewForArtistInfo(artist, nameDisplay);
-            _artistsListStore.Append(listViewItem);
+            var model = ArtistModel.NewForArtistInfo(artist, nameDisplay);
+            _artistModels.Add(artist.Id, model);
+            _listStore.Append(model);
         }
-    }    
-    
+    }
+
     private void InitializeArtistsList()
     {
         _signalListItemFactory = SignalListItemFactory.NewWithProperties([]);
@@ -71,15 +75,15 @@ public partial class ArtistsPage
                 widget.Update(model);
         };
 
-        _artistsListStore = ListStore.New(ArtistModel.GetGType());
+        _listStore = ListStore.New(ArtistModel.GetGType());
 
-        _artistsSelectionModel = SingleSelection.New(_artistsListStore);
-        _artistsSelectionModel.Autoselect = false;
-        _artistsSelectionModel.CanUnselect = true;
-        _artistsSelectionModel.OnSelectionChanged += ArtistsSelectionModelOnOnSelectionModelChanged;
-        
+        _singleSelection = SingleSelection.New(_listStore);
+        _singleSelection.Autoselect = false;
+        _singleSelection.CanUnselect = true;
+        _singleSelection.OnSelectionChanged += SingleSelectionOnOnSelectionChanged;
+
         _artistsListView.SetFactory(_signalListItemFactory);
-        _artistsListView.SetModel(_artistsSelectionModel);        
+        _artistsListView.SetModel(_singleSelection);
     }
 
     private void InitializeArtistsMenu()
@@ -90,11 +94,11 @@ public partial class ArtistsPage
         InsertActionGroup("artists", actionGroup);
         _artistsMenuButton.InsertActionGroup("artists", actionGroup);
     }
-    
-    private void ArtistsSelectionModelOnOnSelectionModelChanged(SelectionModel sender,
+
+    private void SingleSelectionOnOnSelectionChanged(SelectionModel sender,
         SelectionModel.SelectionChangedSignalArgs args)
     {
-        if (_artistsSelectionModel.SelectedItem is not ArtistModel selectedModel) return;
+        if (_singleSelection.SelectedItem is not ArtistModel selectedModel) return;
 
         _navigationMenu.UnselectAll();
         ArtistSelected?.Invoke(selectedModel.Artist);
@@ -102,6 +106,27 @@ public partial class ArtistsPage
 
     public void Unselect()
     {
-        _artistsSelectionModel.UnselectAll();
+        _singleSelection.UnselectAll();
+    }
+
+    public void SelectArtist(Id artistId)
+    {
+        if (!_artistModels.TryGetValue(artistId, out var model))
+        {
+            _singleSelection.UnselectAll();
+            return;
+        }
+
+        if (!_listStore.Find(model, out var position))
+        {
+            // I return now. However, it would be nicer,
+            // if we have a sort and filter decorator here.
+            // Also, because when I change the filter I don't want to lose the selection
+            _singleSelection.UnselectAll();
+            return;
+        }
+
+        _singleSelection.SelectItem(position, true);
+        _artistsListView.ScrollTo(position, ListScrollFlags.None, null);
     }
 }

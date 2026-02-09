@@ -1,4 +1,5 @@
 using Aria.Core;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
@@ -156,4 +157,10 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
 
     [LoggerMessage(LogLevel.Error, "Failed to reset artists page")]
     partial void LogFailedToResetArtistsPage(Exception e);
+
+    public async Task SelectArtist(Id artistId)
+    {
+        // This artist is must be selected in the sidebar.
+        _view.SelectArtist(artistId);
+    }
 }

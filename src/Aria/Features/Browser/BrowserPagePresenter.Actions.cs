@@ -196,6 +196,7 @@ public partial class BrowserPagePresenter
             var artistId = _ariaControl.Parse(serializedId);
             LogShowingArtistDetailsForArtist(artistId);
 
+            await _artistsPagePresenter.SelectArtist(artistId);
             await _artistPagePresenter.LoadArtistAsync(artistId);
 
             await GtkDispatch.InvokeIdleAsync(() =>
