@@ -19,6 +19,7 @@ public partial class BrowserPagePresenter
     private SimpleAction _showArtistAction;
     private SimpleAction _showAlbumAction;
     private SimpleAction _showAlbumForArtistAction;
+    private SimpleAction _showPlaylistsAction;
 
     private SimpleAction _showTrackAction;
     
@@ -28,6 +29,7 @@ public partial class BrowserPagePresenter
 
         browserActionGroup.AddAction(_searchAction = SimpleAction.New(AppActions.Browser.Search.Action, null));
         browserActionGroup.AddAction(_allAlbumsAction = SimpleAction.New(AppActions.Browser.AllAlbums.Action, null));
+        browserActionGroup.AddAction(_showPlaylistsAction = SimpleAction.New(AppActions.Browser.Playlists.Action, null));        
         browserActionGroup.AddAction(_showArtistAction =
             SimpleAction.New(AppActions.Browser.ShowArtist.Action, GLib.VariantType.String));
         browserActionGroup.AddAction(_showAlbumAction =
@@ -41,6 +43,8 @@ public partial class BrowserPagePresenter
             [AppActions.Browser.Search.Accelerator!]);
         context.SetAccelsForAction($"{AppActions.Browser.Key}.{AppActions.Browser.AllAlbums.Action}",
             [AppActions.Browser.AllAlbums.Accelerator!]);
+        context.SetAccelsForAction($"{AppActions.Browser.Key}.{AppActions.Browser.Playlists.Action}",
+            [AppActions.Browser.Playlists.Accelerator!]);        
         context.InsertAppActionGroup(AppActions.Browser.Key, browserActionGroup);
 
         _searchAction.OnActivate += SearchActionOnOnActivate;
@@ -49,6 +53,7 @@ public partial class BrowserPagePresenter
         _showAlbumAction.OnActivate += ShowAlbumActionOnOnActivate;
         _showAlbumForArtistAction.OnActivate += ShowAlbumForArtistActionOnOnActivate;
         _showTrackAction.OnActivate += ShowTrackActionOnOnActivate;
+        _showPlaylistsAction.OnActivate += ShowPlaylistsActionOnOnActivate;
     }
 
     private async void ShowTrackActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
@@ -218,6 +223,11 @@ public partial class BrowserPagePresenter
         ShowAllAlbums();
     }
 
+    private void ShowPlaylistsActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        ShowPlaylists();
+    }    
+    
     private void SearchActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         // User wants to start the search functionality

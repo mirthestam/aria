@@ -18,6 +18,7 @@ public static class AppActions
         
         public static readonly AppAction Search = new("search", "<Control>f");        
         public static readonly AppAction AllAlbums = new("show-all-albums", "<Control>h");
+        public static readonly AppAction Playlists = new("show-playlists", "<Control>p");        
         public static readonly AppAction ShowAlbum = new("show-album");
         public static readonly AppAction ShowAlbumForArtist = new("show-album-for-artist");
         public static readonly AppAction ShowArtist = new("show-artist");        

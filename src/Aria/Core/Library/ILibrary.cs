@@ -2,25 +2,6 @@ using Aria.Core.Extraction;
 
 namespace Aria.Core.Library;
 
-public enum ArtistSort
-{
-    ByName,
-    ByNameSort
-}
-
-public sealed record ArtistQuery
-{
-    /// <summary>
-    /// If set, only returns artists that have at least one of the specified role flags (OR/ANY semantics).
-    /// Example: Composer|Conductor returns artists that are either composer or conductor (or both).
-    /// </summary>    
-    public ArtistRoles? RequiredRoles { get; init; }
-
-    public ArtistSort Sort { get; init; } = ArtistSort.ByName;
-
-    public static ArtistQuery All { get; } = new();
-}
-
 /// <summary>
 /// Provides access to the library
 /// </summary>
@@ -66,6 +47,10 @@ public interface ILibrary
     /// Searches the library amongst tracks, albums etc that match the specified query.
     /// </summary>
     Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default);
+ 
+    Task<IEnumerable<PlaylistInfo>> GetPlaylistsAsync(CancellationToken cancellationToken = default);
+
+    Task<PlaylistInfo?> GetPlaylistAsync(Id playlistId, CancellationToken cancellationToken = default);    
     
     Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default);
 }

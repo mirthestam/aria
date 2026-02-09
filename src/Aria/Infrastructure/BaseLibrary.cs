@@ -14,6 +14,9 @@ public abstract class BaseLibrary : ILibrarySource
     public virtual Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(Id artistId, CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<AlbumInfo>());
     public virtual Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default) => Task.FromResult(default(AlbumInfo));
     public virtual Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default) => Task.FromResult(SearchResults.Empty);
+    public virtual Task<IEnumerable<PlaylistInfo>> GetPlaylistsAsync(CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<PlaylistInfo>());
+    public virtual Task<PlaylistInfo?> GetPlaylistAsync(Id playlistId, CancellationToken cancellationToken = default) => Task.FromResult(default(PlaylistInfo));    
+    
     public virtual Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default) => Task.FromResult<Info?>(null);
 
     public virtual async Task<Stream> GetAlbumResourceStreamAsync(Id id, CancellationToken ct)

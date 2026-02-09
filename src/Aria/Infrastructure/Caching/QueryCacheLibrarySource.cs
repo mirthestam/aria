@@ -38,6 +38,16 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
     
     public Task<Stream> GetAlbumResourceStreamAsync(Id resourceId, CancellationToken token) => _inner.GetAlbumResourceStreamAsync(resourceId, token);
 
+    public Task<IEnumerable<PlaylistInfo>> GetPlaylistsAsync(CancellationToken cancellationToken = default)
+    {
+        return _inner.GetPlaylistsAsync(cancellationToken);
+    }
+
+    public Task<PlaylistInfo?> GetPlaylistAsync(Id playlistId, CancellationToken cancellationToken = default)
+    {
+        return _inner.GetPlaylistAsync(playlistId, cancellationToken);
+    }
+
     public async Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default)
     {
         var key = $"id:{id}";

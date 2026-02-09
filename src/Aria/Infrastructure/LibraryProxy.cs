@@ -38,6 +38,9 @@ public class LibraryProxy : ILibrarySource
     public Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default) =>
         _innerLibrary.SearchAsync(query, cancellationToken);
 
+    public Task<IEnumerable<PlaylistInfo>> GetPlaylistsAsync(CancellationToken cancellationToken = default) => _innerLibrary.GetPlaylistsAsync(cancellationToken);
+    public Task<PlaylistInfo?> GetPlaylistAsync(Id playlistId, CancellationToken cancellationToken = default) => _innerLibrary.GetPlaylistAsync(playlistId, cancellationToken);
+
     public Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default) =>
         _innerLibrary.GetItemAsync(id, cancellationToken);
 
@@ -84,6 +87,9 @@ public class LibraryProxy : ILibrarySource
 
         public Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default)
             => Task.FromResult(SearchResults.Empty);
+
+        public Task<IEnumerable<PlaylistInfo>> GetPlaylistsAsync(CancellationToken cancellationToken = default) => Task.FromResult(Enumerable.Empty<PlaylistInfo>());
+        public Task<PlaylistInfo?> GetPlaylistAsync(Id playlistId, CancellationToken cancellationToken = default) => Task.FromResult<PlaylistInfo?>(null);
 
         public Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default)
             => Task.FromResult<Info?>(null);

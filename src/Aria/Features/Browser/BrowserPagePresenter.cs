@@ -6,6 +6,7 @@ using Aria.Features.Browser.Album;
 using Aria.Features.Browser.Albums;
 using Aria.Features.Browser.Artist;
 using Aria.Features.Browser.Artists;
+using Aria.Features.Browser.Playlists;
 using Aria.Features.Browser.Search;
 using Aria.Features.Player.Queue;
 using Aria.Features.Shell;
@@ -27,6 +28,7 @@ public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
 
     private readonly ArtistPagePresenter _artistPagePresenter;
     private readonly ArtistsPagePresenter _artistsPagePresenter;
+    private readonly PlaylistsPagePresenter _playlistsPagePresenter;
 
     private readonly BrowserNavigationState _browserNavigationState;
     private readonly ILogger<BrowserPage> _logger;
@@ -43,7 +45,8 @@ public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
         ArtistPagePresenter artistPagePresenter,
         ArtistsPagePresenter artistsPagePresenter,
         IPresenterFactory presenterFactory,
-        SearchPagePresenter searchPagePresenter)
+        SearchPagePresenter searchPagePresenter, 
+        PlaylistsPagePresenter playlistsPagePresenter)
     {
         _logger = logger;
         _messenger = messenger;
@@ -52,6 +55,7 @@ public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
         _artistPagePresenter = artistPagePresenter;
         _artistsPagePresenter = artistsPagePresenter;
         _searchPagePresenter = searchPagePresenter;
+        _playlistsPagePresenter = playlistsPagePresenter;
         _albumsPagePresenter = albumsPagePresenter;
         _browserNavigationState = browserNavigationState;
         _presenterFactory = presenterFactory;
@@ -66,6 +70,7 @@ public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
         _artistsPagePresenter.Attach(view.LibraryArtistsPage);
         _albumsPagePresenter.Attach(view.LibraryAlbumsPage);
         _searchPagePresenter.Attach(view.SearchPage);
+        _playlistsPagePresenter.Attach(view.LibraryPlaylistsPage, context);
         
         InitializeActions(context);
     }
@@ -81,6 +86,9 @@ public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
         
         // Preload the artists
         await _artistsPagePresenter.RefreshAsync(cancellationToken);
+        
+        // Preload the playlists
+        await _playlistsPagePresenter.RefreshAsync(cancellationToken);
         
         // Load all albums 
         await _albumsPagePresenter.RefreshAsync(cancellationToken).ContinueWith(t =>
@@ -101,7 +109,7 @@ public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
         {
             LogResettingBrowserPage();
             _albumPagePresenter?.Reset();
-
+            _playlistsPagePresenter.Reset();
             _albumsPagePresenter.Reset();
             _artistsPagePresenter.Reset();
             _artistPagePresenter.Reset();
@@ -119,13 +127,24 @@ public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
     {
         LogShowingAllAlbums();
         _browserNavigationState.SelectedArtistId = null;
-
+        
         GLib.Functions.IdleAdd(0, () =>
         {
             View?.ShowAllAlbumsRoot();
             return false;
         });    
     }
+    
+    private void ShowPlaylists()
+    {
+        _browserNavigationState.SelectedArtistId = null;
+
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            View?.ShowPlaylists();
+            return false;
+        });    
+    }    
     
     [LoggerMessage(LogLevel.Debug, "Refreshing browser page...")]
     partial void LogRefreshingBrowserPage();    

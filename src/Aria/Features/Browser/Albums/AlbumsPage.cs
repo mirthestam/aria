@@ -12,15 +12,15 @@ namespace Aria.Features.Browser.Albums;
 [Template<AssemblyResource>("Aria.Features.Browser.Albums.AlbumsPage.ui")]
 public partial class AlbumsPage
 {
-    [Connect("albums-grid-view")] private GridView _albumsGridView;
+    [Connect("albums-grid-view")] private GridView _gridView;
     [Connect("artist-stack")] private Stack _artistStack;
 
     [Connect("gesture-click")] private GestureClick _gestureClick;    
     [Connect("album-popover-menu")] private PopoverMenu _albumPopoverMenu;
     
-    private ListStore _albumsListStore;
-    private SingleSelection _albumsSelection;
-    private SignalListItemFactory _signalListItemFactory;
+    private ListStore _listStore;
+    private SingleSelection _singleSelection;
+    private SignalListItemFactory _itemFactory;
     
     private AlbumsAlbumModel? _contextMenuItem;
     
@@ -32,27 +32,25 @@ public partial class AlbumsPage
         InitializeActions();
     }
 
-    public void ShowAlbums(IReadOnlyList<AlbumsAlbumModel> albums)
+    public void ShowAlbums(IReadOnlyList<AlbumsAlbumModel> models)
     {
         Clear();
-        
-        var albumsList = albums.ToList();
-        foreach (var album in albumsList) _albumsListStore.Append(album);
+        foreach (var model in models) _listStore.Append(model);
     }
     
     private void InitializeGridView()
     {
-        _signalListItemFactory = new SignalListItemFactory();
-        _signalListItemFactory.OnSetup += OnSignalListItemFactoryOnOnSetup;
-        _signalListItemFactory.OnBind += OnSignalListItemFactoryOnOnBind;
+        _itemFactory =SignalListItemFactory.NewWithProperties([]);
+        _itemFactory.OnSetup += OnItemFactoryOnOnSetup;
+        _itemFactory.OnBind += OnItemFactoryOnOnBind;
 
-        _albumsListStore = ListStore.New(AlbumsAlbumModel.GetGType());
-        _albumsSelection = SingleSelection.New(_albumsListStore);
-        _albumsGridView.SetFactory(_signalListItemFactory);
-        _albumsGridView.SetModel(_albumsSelection);
+        _listStore = ListStore.New(AlbumsAlbumModel.GetGType());
+        _singleSelection = SingleSelection.New(_listStore);
+        _gridView.SetFactory(_itemFactory);
+        _gridView.SetModel(_singleSelection);
         
-        _albumsGridView.SingleClickActivate = true; // TODO: Move to .UI
-        _albumsGridView.OnActivate += AlbumsGridViewOnOnActivate;
+        _gridView.SingleClickActivate = true; // TODO: Move to .UI
+        _gridView.OnActivate += GridViewOnOnActivate;
         _gestureClick.OnPressed += GestureClickOnOnPressed;
     }
     
@@ -65,7 +63,7 @@ public partial class AlbumsPage
         }
         _albumDragSources.Clear();       
         
-        _albumsListStore.RemoveAll();        
+        _listStore.RemoveAll();        
     }
     
     private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
@@ -80,9 +78,9 @@ public partial class AlbumsPage
         
         // But it works and I have been unable to find out the correct way.
         
-        var selected = _albumsSelection.GetSelected();
+        var selected = _singleSelection.GetSelected();
         if (selected == GtkConstants.GtkInvalidListPosition) return;
-        _contextMenuItem = (AlbumsAlbumModel) _albumsListStore.GetObject(selected)!;
+        _contextMenuItem = (AlbumsAlbumModel) _listStore.GetObject(selected)!;
         
         var rect = new Rectangle
         {
@@ -96,15 +94,15 @@ public partial class AlbumsPage
             _albumPopoverMenu.Popup();
     }
     
-    private void AlbumsGridViewOnOnActivate(GridView sender, GridView.ActivateSignalArgs args)
+    private void GridViewOnOnActivate(GridView sender, GridView.ActivateSignalArgs args)
     {
-        if (_albumsSelection.SelectedItem is not AlbumsAlbumModel selectedModel) return;
+        if (_singleSelection.SelectedItem is not AlbumsAlbumModel selectedModel) return;
 
         // We just use the first album artist as the artist to show in the hierarchy. 
         AlbumSelected?.Invoke(selectedModel.Album, selectedModel.Album.CreditsInfo.AlbumArtists[0]);
     }
     
-    private static void OnSignalListItemFactoryOnOnBind(SignalListItemFactory _, SignalListItemFactory.BindSignalArgs args)
+    private static void OnItemFactoryOnOnBind(SignalListItemFactory _, SignalListItemFactory.BindSignalArgs args)
     {
         var listItem = (ListItem)args.Object;
         var modelItem = (AlbumsAlbumModel)listItem.GetItem()!;

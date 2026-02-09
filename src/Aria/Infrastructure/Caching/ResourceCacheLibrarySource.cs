@@ -62,6 +62,16 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
     public Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default) =>
         _innerLibrary.SearchAsync(query, cancellationToken);
 
+    public Task<IEnumerable<PlaylistInfo>> GetPlaylistsAsync(CancellationToken cancellationToken = default)
+    {
+        return _innerLibrary.GetPlaylistsAsync(cancellationToken);
+    }
+
+    public Task<PlaylistInfo?> GetPlaylistAsync(Id playlistId, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default) =>
         _innerLibrary.GetItemAsync(id, cancellationToken);
 

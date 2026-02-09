@@ -10,6 +10,7 @@ using Aria.Features.Browser.Album;
 using Aria.Features.Browser.Albums;
 using Aria.Features.Browser.Artist;
 using Aria.Features.Browser.Artists;
+using Aria.Features.Browser.Playlists;
 using Aria.Features.Browser.Search;
 using Aria.Features.Details;
 using Aria.Features.Player;
@@ -71,27 +72,20 @@ public class Program
                 x.AddTransient<ITagParser, PicardTagParser>();
                 x.AddSingleton<IPresenterFactory, PresenterFactory>();                
                 
-                // Main
-                x.AddSingleton<MainWindow>(sp =>
-                {
-                    var presenter = sp.GetRequiredService<MainWindowPresenter>();
-                    var logger = sp.GetRequiredService<ILogger<MainWindow>>();
-                    var window = MainWindow.New(presenter, logger);
-                    return window;
-                });
-                
                 x.AddSingleton<MainWindowPresenter>();
                 x.AddSingleton<MainPagePresenter>();
                 x.AddSingleton<WelcomePagePresenter>();
 
                 // Features - Browser
-                x.AddSingleton<AlbumPagePresenter>();
-                x.AddSingleton<AlbumsPagePresenter>();                
-                x.AddSingleton<ArtistPagePresenter>();
-                x.AddSingleton<ArtistsPagePresenter>();                
                 x.AddSingleton<BrowserHostPresenter>();
                 x.AddSingleton<BrowserNavigationState>();                
                 x.AddSingleton<BrowserPagePresenter>();
+                
+                x.AddSingleton<AlbumPagePresenter>();
+                x.AddSingleton<AlbumsPagePresenter>();                
+                x.AddSingleton<ArtistPagePresenter>();
+                x.AddSingleton<ArtistsPagePresenter>();
+                x.AddSingleton<PlaylistsPagePresenter>();                
                 x.AddSingleton<SearchPagePresenter>();
 
                 // Features - Details

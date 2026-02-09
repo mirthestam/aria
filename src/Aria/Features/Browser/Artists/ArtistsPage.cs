@@ -61,7 +61,7 @@ public partial class ArtistsPage
     
     private void InitializeArtistsList()
     {
-        _signalListItemFactory = new SignalListItemFactory();
+        _signalListItemFactory = SignalListItemFactory.NewWithProperties([]);
         _signalListItemFactory.OnSetup += (_, args) =>
         {
             ((ListItem)args.Object).SetChild(ArtistListItem.NewWithProperties([]));
@@ -77,12 +77,11 @@ public partial class ArtistsPage
 
         _artistsSelectionModel = SingleSelection.New(_artistsListStore);
         _artistsSelectionModel.Autoselect = false;
+        _artistsSelectionModel.CanUnselect = true;
         _artistsSelectionModel.OnSelectionChanged += ArtistsSelectionModelOnOnSelectionModelChanged;
         
         _artistsListView.SetFactory(_signalListItemFactory);
         _artistsListView.SetModel(_artistsSelectionModel);        
-
-        _navigationMenu.OnRowActivated += NavigationMenuOnOnRowActivated;        
     }
 
     private void InitializeArtistsMenu()
@@ -94,12 +93,6 @@ public partial class ArtistsPage
         _artistsMenuButton.InsertActionGroup("artists", actionGroup);
     }
     
-    private void NavigationMenuOnOnRowActivated(ListBox sender, ListBox.RowActivatedSignalArgs args)
-    {
-        _artistsSelectionModel.UnselectAll();
-        ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.AllAlbums.Action}", null);
-    }
-
     private void ArtistsSelectionModelOnOnSelectionModelChanged(SelectionModel sender,
         SelectionModel.SelectionChangedSignalArgs args)
     {
@@ -107,5 +100,10 @@ public partial class ArtistsPage
 
         _navigationMenu.UnselectAll();
         ArtistSelected?.Invoke(selectedModel.Artist);
+    }
+
+    public void Unselect()
+    {
+        _artistsSelectionModel.UnselectAll();
     }
 }

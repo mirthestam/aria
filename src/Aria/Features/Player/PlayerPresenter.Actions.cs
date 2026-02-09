@@ -114,23 +114,7 @@ public partial class PlayerPresenter
             sender.SetState(Variant.NewBoolean(_aria.Queue.Consume.Enabled));
         }
     }
-
-    // private async void AriaQueueRepeatActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
-    // {
-    //     try
-    //     {
-    //         // await _aria.Queue.SetRepeatAsync(!_aria.Queue.Repeat.Enabled, _aria.Queue.Repeat.Single);
-    //     }
-    //     catch (Exception e)
-    //     {
-    //         _logger.LogWarning(e, "Failed to set repeat");
-    //         _messenger.Send(new ShowToastMessage("Failed to set repeat"));
-    //
-    //         // Revert UI state to actual current value if call fails
-    //         sender.SetState(Variant.NewBoolean(_aria.Queue.Repeat.Enabled));
-    //     }
-    // }
-
+    
     private async void AriaQueueShuffleActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
         try

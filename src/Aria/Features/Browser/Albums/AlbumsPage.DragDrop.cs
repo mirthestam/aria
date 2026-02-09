@@ -10,7 +10,7 @@ public partial class AlbumsPage
 {
     private readonly List<DragSource> _albumDragSources = [];
     
-    private void OnSignalListItemFactoryOnOnSetup(SignalListItemFactory factory, SignalListItemFactory.SetupSignalArgs args)
+    private void OnItemFactoryOnOnSetup(SignalListItemFactory factory, SignalListItemFactory.SetupSignalArgs args)
     {
         var item = (ListItem)args.Object;
         var child = AlbumsAlbumListItem.NewWithProperties([]);

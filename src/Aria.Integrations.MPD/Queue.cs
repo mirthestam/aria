@@ -53,6 +53,10 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
                     tracks.AddRange(album.Tracks.Select(t => t.Track));
                     break;
                 
+                case PlaylistInfo playlist:
+                    tracks.AddRange(playlist.Tracks.Select(t => t.Track));
+                    break;
+                
                 default:
                     throw new ArgumentOutOfRangeException(nameof(items), items, null);
             }            

@@ -32,6 +32,11 @@
                                 <property name="tag">library-albums</property>
                               </object>
                             </child>
+                            <child>
+                              <object class="AriaFeaturesBrowserPlaylistsPlaylistsPage" id="library-playlists">
+                                <property name="tag">library-playlists</property>
+                              </object>
+                            </child>
                           </object>
                         </child>
                       </object>

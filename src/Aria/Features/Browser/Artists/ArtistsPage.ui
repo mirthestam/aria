@@ -50,9 +50,22 @@
                 <property name="valign">end</property>
                 <child>
                   <object class="GtkListBoxRow" id="all-albums-row">
+                    <property name="action-name">aria-browser.show-all-albums</property>
                     <property name="child">
                       <object class="GtkLabel">
                         <property name="label">All Albums</property>
+                        <property name="lines">-1</property>
+                        <property name="xalign">0.0</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkListBoxRow" id="playlists-row">
+                    <property name="action-name">aria-browser.show-playlists</property>
+                    <property name="child">
+                      <object class="GtkLabel">
+                        <property name="label">Playlists</property>
                         <property name="lines">-1</property>
                         <property name="xalign">0.0</property>
                       </object>

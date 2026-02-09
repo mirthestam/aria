@@ -30,6 +30,7 @@ public Id Parse(string id)
     // Route to the appropriate ID parser based on the key prefix
         return parts[0] switch
         {
+            PlaylistId.Key => PlaylistId.Parse(value),
             ArtistId.Key => ArtistId.Parse(value),
             TrackId.Key => TrackId.Parse(value),
             AlbumId.Key => AlbumId.Parse(value, ArtistId.Parse),
