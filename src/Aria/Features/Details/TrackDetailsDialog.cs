@@ -54,7 +54,10 @@ public partial class TrackDetailsDialog
         _trackVolumeRow.SetSubtitle(track.VolumeName ?? "");
         _trackNumberRow.SetSubtitle(track.TrackNumber != null ? track.TrackNumber.Value.ToString() : "");
         
-        _workPreferencesGroup.Visible = track.Track.Work != null;
+        // Only show work information if we have a work
+        // Some tracks only have movement information. But, for Aria, that does not make sense
+        // if we have no work to display.
+        _workPreferencesGroup.Visible = !string.IsNullOrWhiteSpace(track.Track.Work?.Work);
         _workNameRow.SetSubtitle(track.Track.Work?.Work ?? "");
         _workMovementRow.SetSubtitle(track.Track.Work?.MovementName ?? "");
         _workMovementNumberRow.SetSubtitle(track.Track.Work?.MovementNumber ?? "");
