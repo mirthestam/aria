@@ -56,81 +56,90 @@ public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>,
 
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
-        _ = RefreshCover(cancellationToken);
+        await RefreshCoverAsync(cancellationToken);
 
-        Refresh(QueueStateChangedFlags.All);
-        Refresh(PlayerStateChangedFlags.All);
+        await RefreshAsync(QueueStateChangedFlags.All, cancellationToken);
+        await RefreshAsync(PlayerStateChangedFlags.All, cancellationToken);
 
         await Task.CompletedTask;
     }
 
-    public void Reset()
+    public async Task ResetAsync()
     {
         AbortRefreshCover();
 
-        GLib.Functions.IdleAdd(0, () =>
+        await GtkDispatch.InvokeIdleAsync(() =>
         {
             _view?.ClearCover();
-            return false;
         });
     }
 
-    public void Receive(PlayerStateChangedMessage message)
+    public async void Receive(PlayerStateChangedMessage message)
     {
-        Refresh(message.Value);
+        try
+        {
+            await RefreshAsync(message.Value);
+        }
+        catch
+        {
+            // OK
+        }
     }
 
-    public void Receive(QueueStateChangedMessage message)
+    public async void Receive(QueueStateChangedMessage message)
     {
-        Refresh(message.Value);
+        try
+        {
+            await RefreshAsync(message.Value);
+        }
+        catch
+        {
+            // OK
+        }
     }
 
-    private void Refresh(PlayerStateChangedFlags flags)
+    private async Task RefreshAsync(PlayerStateChangedFlags flags, CancellationToken cancellationToken = default)
     {
         if (flags.HasFlag(PlayerStateChangedFlags.PlaybackState))
         {
-            GLib.Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() => 
             {
                 _view?.SetPlaybackState(_aria.Player.State);
-                return false;
-            });
+            }, cancellationToken);
         }
 
         if (flags.HasFlag(PlayerStateChangedFlags.Progress))
         {
-            GLib.Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() => 
             {
                 _view?.SetProgress(_aria.Player.Progress.Elapsed, _aria.Player.Progress.Duration);
-                return false;
-            });
+            }, cancellationToken);
         }
     }
 
-    private void Refresh(QueueStateChangedFlags flags)
+    private async Task RefreshAsync(QueueStateChangedFlags flags, CancellationToken cancellationToken = default)
     {
         if (!flags.HasFlag(QueueStateChangedFlags.Id) && !flags.HasFlag(QueueStateChangedFlags.PlaybackOrder)) return;
         
         if (_aria.Queue.Length == 0)
         {
             // The queue has changed and is empty.
-            GLib.Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() => 
             {
                 _view?.SetCurrentTrack(null);
-                return false;
-            });
+            }, cancellationToken);
         }
         else
         {
             var track = _aria.Queue.CurrentTrack;
 
-            GLib.Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() => 
             {
                 _view?.SetCurrentTrack(track?.Track);
-                return false;
-            });
+            }, cancellationToken);
         }
 
-        _ = RefreshCover();
+        await RefreshCoverAsync(cancellationToken);
     }
 
     private void AbortRefreshCover()
@@ -140,7 +149,7 @@ public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>,
         _coverArtCancellationTokenSource = null;
     }
 
-    private async Task RefreshCover(CancellationToken externalCancellationToken = default)
+    private async Task RefreshCoverAsync(CancellationToken externalCancellationToken = default)
     {
         AbortRefreshCover();
 
@@ -155,11 +164,10 @@ public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>,
             var track = _aria.Queue.CurrentTrack;
             if (track == null)
             {
-                GLib.Functions.IdleAdd(0, () =>
+                await GtkDispatch.InvokeIdleAsync(() =>
                 {
                     _view?.ClearCover();
-                    return false;
-                });
+                }, cancellationToken);
                 return;
             }
 
@@ -169,11 +177,10 @@ public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>,
             if (cancellationToken.IsCancellationRequested) return;
             if (texture == null) return;
 
-            GLib.Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
                 _view?.LoadCover(texture);
-                return false;
-            });
+            }, cancellationToken);
         }
         catch (OperationCanceledException)
         {

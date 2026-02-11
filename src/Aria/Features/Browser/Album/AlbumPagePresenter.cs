@@ -115,13 +115,11 @@ public partial class AlbumPagePresenter(
 
         try
         {
-            GLib.Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
                 View?.LoadAlbum(album, filteredArtist);
-                return false;
-            });                        
+            }, ct);                        
             
-
             var assetId = album.Assets.FrontCover?.Id ?? Id.Empty;
             var texture = await textureLoader.LoadFromAlbumResourceAsync(assetId, ct);
             ct.ThrowIfCancellationRequested();
@@ -132,11 +130,10 @@ public partial class AlbumPagePresenter(
                 return;
             }
 
-            GLib.Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
                 View?.SetCover(texture);
-                return false;
-            });                        
+            }, ct);                        
         }
         catch (OperationCanceledException)
         {

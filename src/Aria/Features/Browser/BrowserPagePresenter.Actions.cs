@@ -129,15 +129,14 @@ public partial class BrowserPagePresenter
 
             _albumPagePresenter = _presenterFactory.Create<AlbumPagePresenter>();
 
-            GLib.Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() => 
             {
                 var albumPageView = View?.PushAlbumPage();
-                if (albumPageView == null) return false;
+                if (albumPageView == null) return;
 
                 _albumPagePresenter.Attach(albumPageView);
 
                 _ = _albumPagePresenter.LoadAsync(albumInfo, artistInfo);
-                return false;
             });
         }
         catch (Exception e)
@@ -167,15 +166,14 @@ public partial class BrowserPagePresenter
 
             _albumPagePresenter = _presenterFactory.Create<AlbumPagePresenter>();
 
-            GLib.Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
                 var albumPageView = View?.PushAlbumPage();
-                if (albumPageView == null) return false;
+                if (albumPageView == null) return;
                 _albumPagePresenter.Attach(albumPageView);
-
-                _ = _albumPagePresenter.LoadAsync(albumInfo);
-                return false;
             });
+            
+            await _albumPagePresenter.LoadAsync(albumInfo);
         }
         catch (Exception e)
         {
@@ -210,14 +208,28 @@ public partial class BrowserPagePresenter
         }
     }
 
-    private void AllAlbumsActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    private async void AllAlbumsActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        ShowAllAlbums();
+        try
+        {
+            await ShowAllAlbumsAsync();
+        }
+        catch
+        {
+            // OK
+        }
     }
 
-    private void ShowPlaylistsActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    private async void ShowPlaylistsActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        ShowPlaylists();
+        try
+        {
+            await ShowPlaylistsAsync();
+        }
+        catch
+        {
+            // OK
+        }
     }    
     
     private void SearchActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)

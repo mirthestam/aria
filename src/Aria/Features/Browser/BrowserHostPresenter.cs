@@ -46,7 +46,7 @@ public partial class BrowserHostPresenter : IRootPresenter<BrowserHost>, IRecipi
             View.ToggleState(BrowserHost.BrowserState.EmptyCollection);
         }, cancellationToken).ConfigureAwait(false);        
         
-        _browserPresenter.Reset();
+        await _browserPresenter.ResetAsync().ConfigureAwait(false);
     }
     
     public async void Receive(LibraryUpdatedMessage message)
@@ -87,11 +87,10 @@ public partial class BrowserHostPresenter : IRootPresenter<BrowserHost>, IRecipi
             
             LogCouldNotLoadLibrary(e);
             
-            GLib.Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
                 View.ToggleState(BrowserHost.BrowserState.EmptyCollection);
-                return false;
-            });            
+            }, cancellationToken);            
         }
     }
 

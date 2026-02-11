@@ -80,14 +80,13 @@ public class PlaylistsPagePresenter(ILogger<PlaylistsPagePresenter> logger, IAri
         }
     }    
     
-    public void Reset()
+    public async Task ResetAsync()
     {
         //LogResettingArtistPage();
         
-        GLib.Functions.IdleAdd(0, () =>
+        await GtkDispatch.InvokeIdleAsync(() =>
         {
             View?.TogglePage(PlaylistsPage.PlaylistsPages.Empty);
-            return false;
         });        
     }    
 }

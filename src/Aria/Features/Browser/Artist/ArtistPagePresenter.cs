@@ -31,16 +31,15 @@ public partial class ArtistPagePresenter(
         };
     }    
     
-    public void Reset()
+    public async Task ResetAsync()
     {
         LogResettingArtistPage();
         
-        Functions.IdleAdd(0, () =>
+        await GtkDispatch.InvokeIdleAsync(() =>
         {
             _view?.TogglePage(ArtistPage.ArtistPages.Empty);
             _view?.SetTitle("Artist"); // TODO now this name is defined in 2 places
-            return false;
-        });        
+        }).ConfigureAwait(false);                
     }    
     
     public async Task LoadArtistAsync(Id artistId, CancellationToken externalCancellationToken = default)
@@ -63,12 +62,11 @@ public partial class ArtistPagePresenter(
                 .OrderBy(a => a.Album.Title)
                 .ToList();
 
-            Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
                 _view?.TogglePage(albums.Count == 0 ? ArtistPage.ArtistPages.Empty : ArtistPage.ArtistPages.Artist);
                 _view?.ShowArtist(artist, albumModels);
-                return false;
-            });            
+            }, ct);            
 
             LogArtistLoadedLoadingArtwork(artistId);
             

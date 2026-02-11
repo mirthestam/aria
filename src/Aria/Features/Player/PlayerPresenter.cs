@@ -72,27 +72,33 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
         await RefreshAsync(QueueStateChangedFlags.All, cancellationToken);
-        Refresh(PlayerStateChangedFlags.All);
+        await RefreshAsync(PlayerStateChangedFlags.All, cancellationToken);
 
         await _queuePresenter.RefreshAsync(cancellationToken);
         await RefreshCover(cancellationToken);        
     }
 
-    public void Reset()
+    public async Task ResetAsync()
     {
-        _queuePresenter.Reset();
+        await _queuePresenter.ResetAsync();
         AbortRefreshCover();
         
-        Functions.IdleAdd(0, () =>
+        await GtkDispatch.InvokeIdleAsync(() => 
         {
             View?.ClearCover();
-            return false;
         });        
     }
     
-    public void Receive(PlayerStateChangedMessage message)
+    public async void Receive(PlayerStateChangedMessage message)
     {
-        Refresh(message.Value);
+        try
+        {
+            await RefreshAsync(message.Value);
+        }
+        catch
+        {
+            // OK
+        }
     }
 
     public async void Receive(QueueStateChangedMessage message)
@@ -107,32 +113,29 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
         }
     }
 
-    private void Refresh(PlayerStateChangedFlags flags)
+    private async Task RefreshAsync(PlayerStateChangedFlags flags, CancellationToken cancellationToken = default)
     {
         if (flags.HasFlag(PlayerStateChangedFlags.PlaybackState))
         {
-            Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
                 View?.SetPlaybackState(_aria.Player.State);
-                return false;
-            });            
+            }, cancellationToken);            
         }
         if (flags.HasFlag(PlayerStateChangedFlags.Progress))
         {
-            Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
                 View?.SetProgress(_aria.Player.Progress);
-                return false;
-            });            
+            }, cancellationToken);            
         }
 
         if (flags.HasFlag(PlayerStateChangedFlags.Volume))
         {
-            Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
                 View?.SetVolume(_aria.Player.Volume);
-                return false;
-            });                        
+            }, cancellationToken);                        
         }
     }
 
@@ -241,11 +244,10 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
             if (cancellationToken.IsCancellationRequested) return;
             if (texture == null) return;
             
-            Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
                 View?.LoadCover(texture);
-                return false;
-            });            
+            }, cancellationToken);            
         }
         catch (OperationCanceledException)
         {

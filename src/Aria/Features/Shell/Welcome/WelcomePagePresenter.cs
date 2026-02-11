@@ -1,5 +1,6 @@
 using Aria.Core;
 using Aria.Core.Connection;
+using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
 using Gio;
 using Microsoft.Extensions.Logging;
@@ -54,7 +55,7 @@ public partial class WelcomePagePresenter(
         _ = ConnectAndPersistAsync(x.Id).ContinueWith(t =>
         {
             // If here, we failed to connect. As a fallback,
-            // We just laod the connection and show them.
+            // We just load the connection and show them.
             messenger.Send(new ShowToastMessage("Failed to auto-connect to '" + x.Name + "'"));
             LogFailedToAutoConnect(logger, t.Exception);
             _ = RefreshConnectionsAsync();
@@ -64,7 +65,7 @@ public partial class WelcomePagePresenter(
 
     private async Task RefreshConnectionsAsync(CancellationToken externalCancellationToken = default)
     {
-        await AbortRefreshAndDiscovery();
+        await AbortRefreshAndDiscoveryAsync();
 
         try
         {
@@ -79,12 +80,11 @@ public partial class WelcomePagePresenter(
             var connectionModels = connections
                 .Select(ConnectionModel.FromConnectionProfile);
 
-            GLib.Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
-                if (cancellationToken.IsCancellationRequested) return false;
+                if (cancellationToken.IsCancellationRequested) return;
                 View?.RefreshConnections(connectionModels);
-                return false;
-            });
+            }, cancellationToken);
 
             LogConnectionsRefreshed(logger);
         }
@@ -104,11 +104,10 @@ public partial class WelcomePagePresenter(
 
         LogDiscovering(logger);
 
-        GLib.Functions.IdleAdd(0, () =>
+        await GtkDispatch.InvokeIdleAsync(() =>
         {
             View?.Discovering = true;
-            return false;
-        });
+        }, cancellationToken);
 
         try
         {
@@ -116,29 +115,34 @@ public partial class WelcomePagePresenter(
         }
         finally
         {
-            GLib.Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
-                if (View != null) View.Discovering = false;
-                return false;
-            });
+                View?.Discovering = false;
+            }, cancellationToken);
         }
 
         if (cancellationToken.IsCancellationRequested) LogDiscoveryAborted(logger);
         else LogDiscoveryCompleted(logger);
     }
 
-    private void ConnectionProfileProviderOnDiscoveryCompleted(object? sender, EventArgs e)
+    private async void ConnectionProfileProviderOnDiscoveryCompleted(object? sender, EventArgs e)
     {
-        GLib.Functions.IdleAdd(0, () =>
+        try
         {
-            View?.Discovering = false;
-            return false;
-        });
+            await GtkDispatch.InvokeIdleAsync(() => 
+            {
+                View?.Discovering = false;
+            });
 
-        _ = RefreshConnectionsAsync();
+            await RefreshConnectionsAsync();
+        }
+        catch
+        {
+            // OK
+        }
     }
 
-    private async Task AbortRefreshAndDiscovery()
+    private async Task AbortRefreshAndDiscoveryAsync()
     {
         LogAbortingRefreshDiscovery(logger);
 
@@ -150,10 +154,9 @@ public partial class WelcomePagePresenter(
         _discoveryCancellationTokenSource?.Dispose();
         _discoveryCancellationTokenSource = null;
 
-        GLib.Functions.IdleAdd(0, () =>
+        await GtkDispatch.InvokeIdleAsync(() =>
         {
-            if (View != null) View.Discovering = false;
-            return false;
+            View?.Discovering = false;
         });
 
         LogAbortedRefreshDiscovery(logger);
@@ -251,7 +254,7 @@ public partial class WelcomePagePresenter(
     private async Task ConnectAndPersistAsync(Guid profileId)
     {
         // We can stop refreshing + discovery, we are connecting.
-        await AbortRefreshAndDiscovery();
+        await AbortRefreshAndDiscoveryAsync();
         
         LogConnectingToProfile(logger, profileId);
         await ariaControl.StartAsync(profileId);

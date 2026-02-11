@@ -96,16 +96,16 @@ public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
             LogBrowserPageRefreshed();
     }
 
-    public void Reset()
+    public async Task ResetAsync()
     {
         try
         {
             LogResettingBrowserPage();
             _albumPagePresenter?.Reset();
-            _playlistsPagePresenter.Reset();
+            await _playlistsPagePresenter.ResetAsync();
             _albumsPagePresenter.Reset();
             _artistsPagePresenter.Reset();
-            _artistPagePresenter.Reset();
+            await _artistPagePresenter.ResetAsync();
             _searchPagePresenter.Reset();
             View?.ShowArtistDetailRoot();
             LogBrowserPageReset();
@@ -116,23 +116,21 @@ public partial class BrowserPagePresenter : IRootPresenter<BrowserPage>
         }
     }
     
-    private void ShowAllAlbums()
+    private async Task ShowAllAlbumsAsync()
     {
         LogShowingAllAlbums();
         
-        GLib.Functions.IdleAdd(0, () =>
+        await GtkDispatch.InvokeIdleAsync(() =>
         {
             View?.ShowAllAlbumsRoot();
-            return false;
         });    
     }
     
-    private void ShowPlaylists()
+    private async Task ShowPlaylistsAsync()
     {
-        GLib.Functions.IdleAdd(0, () =>
+        await GtkDispatch.InvokeIdleAsync(() =>
         {
             View?.ShowPlaylists();
-            return false;
         });    
     }    
     

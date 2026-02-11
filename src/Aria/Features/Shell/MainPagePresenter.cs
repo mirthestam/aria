@@ -118,8 +118,8 @@ public partial class MainPagePresenter : IRootPresenter<MainPage>
         {
             LogDisconnectedFromBackendUnloadingUi();
             await _browserHostPresenter.ResetAsync(cancellationToken);
-            _playerPresenter.Reset();
-            _playerBarPresenter.Reset();
+            await _playerPresenter.ResetAsync();
+            await _playerBarPresenter.ResetAsync();
             LogUiIsReset();
             await Task.CompletedTask;
         }

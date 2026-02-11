@@ -32,15 +32,14 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
         _loadCts = null;
     }
     
-    private void AbortAndClear()
+    private async Task AbortAndClearAsync()
     {
         Abort();
         
-        GLib.Functions.IdleAdd(0, () =>
+        await GtkDispatch.InvokeIdleAsync(() => 
         {
             _view?.TogglePage(Queue.QueuePages.Empty);
             _view?.RefreshTracks([]);
-            return false;
         });        
     }        
 
@@ -97,9 +96,9 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
         await RefreshTracksAsync(externalCancellationToken);
     }
 
-    public void Reset()
+    public async Task ResetAsync()
     {
-        AbortAndClear();
+        await AbortAndClearAsync();
     }    
     
     public void Receive(PlayerStateChangedMessage message)
@@ -124,10 +123,9 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
 
             if (message.Value.HasFlag(QueueStateChangedFlags.PlaybackOrder))
             {
-                GLib.Functions.IdleAdd(0, () =>
+                await GtkDispatch.InvokeIdleAsync(() =>
                 {
                     _view?.SelectTrackIndex(_aria.Queue.Order.CurrentIndex);
-                    return false;
                 });        
             }
         }

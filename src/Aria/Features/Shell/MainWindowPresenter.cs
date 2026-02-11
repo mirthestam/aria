@@ -18,7 +18,7 @@ public partial class MainWindowPresenter : IRecipient<ShowToastMessage>
     private readonly WelcomePagePresenter _welcomePagePresenter;
 
     public MainWindow View { get; private set; }
-    
+
     public MainWindowPresenter(IMessenger messenger,
         MainPagePresenter mainPagePresenter,
         WelcomePagePresenter welcomePagePresenter,
@@ -31,41 +31,47 @@ public partial class MainWindowPresenter : IRecipient<ShowToastMessage>
         _welcomePagePresenter = welcomePagePresenter;
         _ariaControl = ariaControl;
         _logger = logger;
-        
+
         messenger.Register(this);
-        
+
         _ariaControl.StateChanged += AriaControlOnStateChanged;
     }
 
-    private void AriaControlOnStateChanged(object? sender, EngineStateChangedEventArgs e)
+    private async void AriaControlOnStateChanged(object? sender, EngineStateChangedEventArgs e)
     {
-        GLib.Functions.IdleAdd(0, () =>
+        try
         {
-            switch (e.State)
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
-                case EngineState.Stopped:
-                    View.TogglePage(MainWindow.MainPages.Welcome);
-                    _ = _welcomePagePresenter.RefreshAsync();
-                    break;
-                case EngineState.Starting:
-                    View.TogglePage(MainWindow.MainPages.Connecting);
-                    break;
-                case EngineState.Seeding:
-                    // Ignore seeding state
-                    break;
-                case EngineState.Ready:
-                    View.TogglePage(MainWindow.MainPages.Main);
-                    break;
-                case EngineState.Stopping:
-                    // Ignore stopping state
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-            return false;
-        });
+                switch (e.State)
+                {
+                    case EngineState.Stopped:
+                        View.TogglePage(MainWindow.MainPages.Welcome);
+                        _ = _welcomePagePresenter.RefreshAsync();
+                        break;
+                    case EngineState.Starting:
+                        View.TogglePage(MainWindow.MainPages.Connecting);
+                        break;
+                    case EngineState.Seeding:
+                        // Ignore seeding state
+                        break;
+                    case EngineState.Ready:
+                        View.TogglePage(MainWindow.MainPages.Main);
+                        break;
+                    case EngineState.Stopping:
+                        // Ignore stopping state
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+            });
+        }
+        catch
+        {
+            // OK
+        }
     }
-    
+
     public void Attach(MainWindow view)
     {
         View = view;
@@ -75,10 +81,10 @@ public partial class MainWindowPresenter : IRecipient<ShowToastMessage>
             InsertAppActionGroup = View.InsertActionGroup,
             SetAccelsForAction = _application.SetAccelsForAction
         };
-        
+
         _welcomePagePresenter.Attach(View.WelcomePage, context);
         _mainPagePresenter.Attach(View.MainPage, context);
-        
+
         InitializeActions(context);
 
         View.TogglePage(MainWindow.MainPages.Welcome);
@@ -88,23 +94,32 @@ public partial class MainWindowPresenter : IRecipient<ShowToastMessage>
     {
         await _ariaControl.InitializeAsync();
         View.Show();
-        
+
         var autoConnected = await _welcomePagePresenter.TryStartAutoConnectAsync();
         if (!autoConnected)
         {
-            await _welcomePagePresenter.RefreshAsync();            
+            await _welcomePagePresenter.RefreshAsync();
         }
     }
 
-    public void Receive(ShowToastMessage message) => ShowToast(message.Message);
-
-    private void ShowToast(string message)
+    public async void Receive(ShowToastMessage message)
     {
-        GLib.Functions.IdleAdd(0, () =>
+        try
         {
-            View.ShowToast(message);            
-            return false;
-        });
+            await ShowToast(message.Message);
+        }
+        catch
+        {
+            // OK
+        }
+    }
+
+    private async Task ShowToast(string message)
+    {
+        await GtkDispatch.InvokeIdleAsync(() =>
+        {
+            View.ShowToast(message);
+        }).ConfigureAwait(false);
     }
 
     [LoggerMessage(LogLevel.Critical, "Failed to disconnect.")]
