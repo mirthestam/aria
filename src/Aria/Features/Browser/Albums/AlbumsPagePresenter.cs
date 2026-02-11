@@ -32,11 +32,6 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
     public void Attach(AlbumsPage view)
     {
         _view = view;
-        _view.AlbumSelected += (albumInfo, _) =>
-        {
-            var parameter = Variant.NewString(albumInfo.Id.ToString()); 
-            _view.ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", parameter);
-        };
     }
     
     public async Task RefreshAsync(CancellationToken cancellationToken = default)

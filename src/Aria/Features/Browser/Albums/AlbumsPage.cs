@@ -2,6 +2,7 @@ using Adw;
 using Aria.Core.Library;
 using Aria.Infrastructure;
 using Gdk;
+using GLib;
 using GObject;
 using Gtk;
 using ListStore = Gio.ListStore;
@@ -23,9 +24,6 @@ public partial class AlbumsPage
     private SignalListItemFactory _itemFactory;
     
     private AlbumsAlbumModel? _contextMenuItem;
-    
-    // TODO: refactor, sending global action is enough
-    public event Action<AlbumInfo, ArtistInfo>? AlbumSelected;
     
     partial void Initialize()
     {
@@ -71,8 +69,8 @@ public partial class AlbumsPage
     {
         if (_singleSelection.SelectedItem is not AlbumsAlbumModel selectedModel) return;
 
-        // We just use the first album artist as the artist to show in the hierarchy. 
-        AlbumSelected?.Invoke(selectedModel.Album, selectedModel.Album.CreditsInfo.AlbumArtists[0]);
+        var parameter = selectedModel.Album.Id.ToVariant(); 
+        ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", parameter);        
     }
     
     private static void OnItemFactoryOnOnBind(SignalListItemFactory _, SignalListItemFactory.BindSignalArgs args)
