@@ -129,7 +129,7 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
         {
             group = new TrackGroup
             {
-                Title = parsed.Heading,
+                Header = parsed.Heading,
                 Key = parsed.Heading
             };
         }

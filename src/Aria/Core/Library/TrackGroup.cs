@@ -5,7 +5,7 @@ public record TrackGroup
     /// <summary>
     /// The title of the track group to show to the user
     /// </summary>
-    public required string Title { get; init; }
+    public required string Header { get; init; }
     
     /// <summary>
     /// They key of the track group.

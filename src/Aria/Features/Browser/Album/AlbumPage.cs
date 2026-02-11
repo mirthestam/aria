@@ -66,7 +66,7 @@ public partial class AlbumPage
         foreach (var group in _trackGroups)
         {
             group.RemoveTracks();
-            _tracksBox.Remove(group);            
+            _tracksBox.Remove(group);
         }
 
         _trackGroups.Clear();
@@ -75,39 +75,42 @@ public partial class AlbumPage
             return;
 
         List<AlbumTrackInfo> currentGroupTracks = [];
+
         string? currentGroupKey = null;
+        string? currentGroupHeader = null;
 
         foreach (var track in _filteredTracks)
         {
             var trackGroupKey = track.Group?.Key;
+            var trackGroupHeader = track.Group?.Header;
 
-            // If the group key changes, create a TrackGroup for the previous group
+            // group boundary?
             if (currentGroupKey != trackGroupKey && currentGroupTracks.Count > 0)
             {
-                var headerText = track.Group?.Title;
-                currentGroupTracks = CreateTrackGroup(headerText, _sharedArtists);
+                _ = CreateTrackGroup(currentGroupHeader, _sharedArtists);
+            }
+            
+            if (currentGroupKey != trackGroupKey)
+            {
+                currentGroupKey = trackGroupKey;
+                currentGroupHeader = trackGroupHeader;
             }
 
-            currentGroupKey = trackGroupKey;
             currentGroupTracks.Add(track);
         }
-
-        // Add the final group
+        
         if (currentGroupTracks.Count > 0)
         {
-            _ = CreateTrackGroup(currentGroupKey, _sharedArtists);
+            _ = CreateTrackGroup(currentGroupHeader, _sharedArtists);
         }
 
         if (_trackGroups.Count != 1) return;
-        
-        // Decide what to do with a single group.
-        
+
+        // Disable the header if there is only one group
         var mainGroup = _trackGroups[0];
         if (string.IsNullOrWhiteSpace(mainGroup.Header))
         {
-            // There is just one group. Also, it has no name.
-            // We don't need the header here as we can use the global header.
-            _trackGroups[0].HeaderVisible = false;                
+            _trackGroups[0].HeaderVisible = false;
         }
 
         return;
