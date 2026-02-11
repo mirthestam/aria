@@ -32,7 +32,7 @@ To Run without Flatpak:
 This software aims to follow the [GNOME Human Interface Guidelines](https://developer.gnome.org/hig/).
 
 ## Contributing
-
+Anyone who wants to help is very welcome. If you want to get in contact feel free to chat with us via matrix ([#aria-player:matrix.org](https://matrix.to/#/#aria-player:matrix.org?via=matrix.org))
 Please try to follow the [GNOME Code of Conduct](https://conduct.gnome.org).
 
 ## Thanks
