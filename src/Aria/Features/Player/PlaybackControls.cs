@@ -1,4 +1,6 @@
+using Aria.Core.Library;
 using Aria.Core.Player;
+using Aria.Features.Player.Queue;
 using Gdk;
 using GObject;
 using Gtk;
@@ -22,11 +24,13 @@ public partial class PlaybackControls
     [Connect("elapsed-popover-label")] private Label _elapsedPopoverLabel;
 
     [Connect("volume-scale-button")] private ScaleButton _volumeButton;
+    
+    [Connect("track-item")] private TrackListItem _trackListItem;
 
     private EventControllerMotion _motionController;
     private TimeSpan _shownDuration;
     
-    private CancellationTokenSource _seekCts;
+    private CancellationTokenSource? _seekCts;
 
     public event SeekRequestedAsyncHandler? SeekRequested;
     public event EventHandler<int>? VolumeChanged;
@@ -52,8 +56,8 @@ public partial class PlaybackControls
         
         var target = TimeSpan.FromSeconds(seconds);
 
-        _seekCts.Cancel();
-        _seekCts.Dispose();
+        _seekCts?.Cancel();
+        _seekCts?.Dispose();
         _seekCts = new CancellationTokenSource();
         var ct = _seekCts.Token;
 
@@ -115,6 +119,15 @@ public partial class PlaybackControls
             _elapsedPopover.Popdown();
         }
     }
+
+    public void SetCurrentTrack(QueueTrackInfo? trackInfo)
+    {
+        _trackListItem.Visible = trackInfo != null;
+        
+        if (trackInfo == null) return;
+        var model = QueueTrackModel.NewFromQueueTrackInfo(trackInfo);
+        _trackListItem.Bind(model);
+    }
     
     public void SetProgress(PlaybackProgress progress)
     {
@@ -172,5 +185,10 @@ public partial class PlaybackControls
     {
         _volumeButton.Visible = playerVolume.HasValue;
         _volumeButton.SetValue(playerVolume?? 0);
+    }
+
+    public void SetCover(Texture? texture)
+    {
+        _trackListItem.Model?.CoverTexture = texture;
     }
 }

@@ -51,31 +51,10 @@ public partial class PlayerBar
             return;
         }
         
-        var titleText = trackInfo.Title;
-        if (trackInfo.Work?.ShowMovement ?? false)
-            // For  these kind of works, we ignore the
-            titleText = $"{trackInfo.Work.MovementName} ({trackInfo.Work.MovementNumber} {trackInfo.Title} ({trackInfo.Work.Work})";
-
-
-        var credits = trackInfo.CreditsInfo;
-
-        var artists = string.Join(", ", credits.OtherArtists.Select(x => x.Artist.Name));
-
-        var details = new List<string>();
-        var conductors = string.Join(", ", credits.Conductors.Select(x => x.Artist.Name));
-        if (!string.IsNullOrEmpty(conductors))
-            details.Add($"conducted by {conductors}");
-
-        var composers = string.Join(", ", credits.Composers.Select(x => x.Artist.Name));
-        if (!string.IsNullOrEmpty(composers))
-            details.Add($"composed by {composers}");
-
-        var subTitleText = artists;
-        if (details.Count > 0) subTitleText += $" ({string.Join(", ", details)})";
-
-        _titleLabel.Label_ = titleText;
-        _subTitleLabel.Label_ = subTitleText;
-    }
+        var lines = CurrentTrackHelper.GetLines(trackInfo);
+        _titleLabel.Label_ = lines[0];
+        _subTitleLabel.Label_ = lines[1];
+      }
     
     public void SetPlaybackState(PlaybackState playerState)
     {

@@ -9,7 +9,7 @@ using ListStore = Gio.ListStore;
 
 namespace Aria.Features.Browser.Playlists;
 
-// TODO: Context-menu for playlist with enqueue, rename and delete options
+// TODO: Context-menu for playlist with rename option
 // TODO: Load album-art in playlist icon
 // TODO: Load album-art in drag & drop 
 // TODO: Option to save queue as playlist

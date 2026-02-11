@@ -172,6 +172,6 @@ public partial class Queue
         var listItem = (ListItem)args.Object;
         var modelItem = (QueueTrackModel)listItem.GetItem()!;
         var widget = (TrackListItem)listItem.GetChild()!;
-        widget.Initialize(modelItem);
+        widget.Bind(modelItem);
     }
 }

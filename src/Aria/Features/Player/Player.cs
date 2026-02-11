@@ -1,4 +1,5 @@
 using Aria.Core.Extraction;
+using Aria.Core.Library;
 using Aria.Core.Player;
 using Aria.Infrastructure;
 using Gdk;
@@ -56,12 +57,14 @@ public partial class Player
     
     public void LoadCover(Texture texture)
     {
+        _playbackControls.SetCover(texture);
         _coverPicture.Visible = true;
         _coverPicture.SetPaintable(texture);
     }
 
     public void ClearCover()
     {
+        _playbackControls.SetCover(null);        
         _coverPicture.Visible = false;
         _coverPicture.SetPaintable(null);
     }
@@ -84,5 +87,10 @@ public partial class Player
     public void SetVolume(int? playerVolume)
     {
         _playbackControls.SetVolume(playerVolume);
+    }
+
+    public void SetCurrentTrack(QueueTrackInfo? trackTrack)
+    {
+        _playbackControls.SetCurrentTrack(trackTrack);
     }
 }

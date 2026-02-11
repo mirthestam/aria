@@ -47,8 +47,9 @@
   <ui template-class="AriaFeaturesPlayerBarPlayerBar" filename="Features/PlayerBar/PlayerBar.ui" sha256="c3835875502d21048f3dc409c4618e3f334af7229dcf67bc953dced4cb569f65">
     <requires>AriaFeaturesPlayerMediaControls</requires>
   </ui>
-  <ui template-class="AriaFeaturesPlayerPlaybackControls" filename="Features/Player/PlaybackControls.ui" sha256="747f41f65eb023f572477dabaceb09c510087342fdcca4a9772df2ab0223ae63">
+  <ui template-class="AriaFeaturesPlayerPlaybackControls" filename="Features/Player/PlaybackControls.ui" sha256="9e276bc7623de36f1b5a3dc9d22ddd94719aa4f315425aee0e02f9bc4ab604cb">
     <requires>AriaFeaturesPlayerMediaControls</requires>
+    <requires>AriaFeaturesPlayerQueueTrackListItem</requires>
   </ui>
   <ui template-class="AriaFeaturesBrowserBrowserHost" filename="Features/Browser/BrowserHost.ui" sha256="3c17a641e3ca0a4a26353195894a2ab22f8440d93172410e6104a3eededd8908">
     <requires>AriaFeaturesBrowserBrowserEmptyPage</requires>
@@ -66,7 +67,7 @@
     <requires>AriaFeaturesBrowserArtistsArtistsPage</requires>
     <requires>AriaFeaturesBrowserSearchSearchPage</requires>
   </ui>
-  <ui template-class="AriaFeaturesPlayerPlayer" filename="Features/Player/Player.ui" sha256="82bd6de88db8d86562628a36efc6cc3c719d9858cf4a0aed4df39f47b024cc52">
+  <ui template-class="AriaFeaturesPlayerPlayer" filename="Features/Player/Player.ui" sha256="1bdf5aea89d8c8f4c6ecb12a32c9c935afed8e2971f90d6c94f91d4679e29f50">
     <requires>AriaFeaturesPlayerQueueQueue</requires>
     <requires>AriaFeaturesPlayerPlaybackControls</requires>
   </ui>

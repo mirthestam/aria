@@ -71,7 +71,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
 
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
     {
-        Refresh(QueueStateChangedFlags.All);
+        await RefreshAsync(QueueStateChangedFlags.All, cancellationToken);
         Refresh(PlayerStateChangedFlags.All);
 
         await _queuePresenter.RefreshAsync(cancellationToken);
@@ -95,9 +95,16 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
         Refresh(message.Value);
     }
 
-    public void Receive(QueueStateChangedMessage message)
+    public async void Receive(QueueStateChangedMessage message)
     {
-        Refresh(message.Value);
+        try
+        {
+            await RefreshAsync(message.Value);
+        }
+        catch
+        {
+            // TODO log
+        }
     }
 
     private void Refresh(PlayerStateChangedFlags flags)
@@ -129,7 +136,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
         }
     }
 
-    private void Refresh(QueueStateChangedFlags flags)
+    private async Task RefreshAsync(QueueStateChangedFlags flags, CancellationToken cancellationToken = default)
     {
         // Some changes implicitly effect playback order.
         var refreshPlaybackOrder = false;
@@ -157,25 +164,40 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
         
         if (flags.HasFlag(QueueStateChangedFlags.Id) || flags.HasFlag(QueueStateChangedFlags.PlaybackOrder))
         {
-            Functions.IdleAdd(0, () =>
+
+            if (_aria.Queue.Length == 0)
+            {
+                await GtkDispatch.InvokeIdleAsync(() => 
+                {
+                    View?.SetCurrentTrack(null);
+                }, cancellationToken);                
+            }
+            else
+            {
+                var track = _aria.Queue.CurrentTrack;
+                await GtkDispatch.InvokeIdleAsync(() =>
+                {
+                    View?.SetCurrentTrack(track);
+                }, cancellationToken);
+            }
+            
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
                 View?.SetPlaylistInfo(_aria.Queue.Order.CurrentIndex, _aria.Queue.Length);
-                return false;
-            });            
+            }, cancellationToken);            
         }
         
         if (refreshPlaybackOrder || flags.HasFlag(QueueStateChangedFlags.PlaybackOrder))
         {
-            Functions.IdleAdd(0, () =>
+            await GtkDispatch.InvokeIdleAsync(() =>
             {
                 _ariaPlayerPreviousTrackAction.SetEnabled(_aria.Queue.Order.CurrentIndex > 0);
                 _ariaPlayerNextTrackAction.SetEnabled(_aria.Queue.Order.HasNext);
                 _ariaPlayerPlayPauseAction.SetEnabled(_aria.Queue.Length > 0);
-                return false;
-            });
+            }, cancellationToken);
         }
         
-        _ = RefreshCover();
+        await RefreshCover(cancellationToken);
     }
     
     private void AbortRefreshCover()
@@ -204,11 +226,10 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
             var track = _aria.Queue.CurrentTrack;
             if (track == null)
             {
-                Functions.IdleAdd(0, () =>
+                await GtkDispatch.InvokeIdleAsync(() =>
                 {
                     View?.ClearCover();
-                    return false;
-                });
+                }, cancellationToken);
                 return;
             }
             

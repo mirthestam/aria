@@ -23,7 +23,7 @@ public partial class TrackListItem
 
     public QueueTrackModel? Model { get; private set; }
 
-    public void Initialize(QueueTrackModel model)
+    public void Bind(QueueTrackModel model)
     {
         if (Model != null)
         {
