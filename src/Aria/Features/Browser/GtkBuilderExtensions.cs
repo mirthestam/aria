@@ -33,7 +33,8 @@ public static class GtkBuilderExtensions
             builder.WithGType<ArtistListItem>();            
             
             // Playlists
-            builder.WithGType<PlaylistsPage>();            
+            builder.WithGType<PlaylistsPage>();    
+            builder.WithGType<PlaylistNameCell>();           
             
             // Search
             builder.WithGType<SearchPage>();            

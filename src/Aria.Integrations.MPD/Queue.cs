@@ -70,12 +70,20 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
     {
         switch (info)
         {
+            case AlbumTrackInfo albumTrack:
+                await EnqueueAsync([albumTrack.Track], index).ConfigureAwait(false);
+                break;
+            
             case TrackInfo track:
                 await EnqueueAsync([track], index).ConfigureAwait(false);
                 break;
 
             case AlbumInfo album:
                 await EnqueueAsync(album.Tracks.Select(t => t.Track), index).ConfigureAwait(false);
+                break;
+            
+            case PlaylistInfo playlist:
+                await EnqueueAsync(playlist.Tracks.Select(t => t.Track), index).ConfigureAwait(false);
                 break;
         }
     }

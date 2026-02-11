@@ -1,6 +1,7 @@
 using Aria.Core;
 using Aria.Core.Queue;
 using Aria.Infrastructure;
+using Gdk;
 using Gio;
 using GLib;
 using Gtk;
@@ -14,7 +15,7 @@ public partial class AlbumsPage
     private SimpleAction _enqueueReplaceAction;
     private SimpleAction _enqueueNextAction;
     private SimpleAction _enqueueEndAction;
-
+    
     private void InitializeActions()
     {
         const string group = "album";
@@ -67,25 +68,50 @@ public partial class AlbumsPage
         
         _albumPopoverMenu.SetMenuModel(menu);        
     }    
+ 
+    private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
+    {
+        // The grid is in single click activate mode.
+        // That means that hover changes the selection.
+        // The user 'is' able to hover even when the context menu is shown.
+        // Therefore, I remember the hovered item at the moment the menu was shown.
+        
+        // To be honest, this is probably not the 'correct' approach
+        // as right-clicking outside an item also invokes this logic.
+        
+        // But it works, and I have been unable to find out the correct way.
+        
+        var selected = _singleSelection.GetSelected();
+        if (selected == GtkConstants.GtkInvalidListPosition) return;
+        _contextMenuItem = (AlbumsAlbumModel) _listStore.GetObject(selected)!;
+        
+        var rect = new Rectangle
+        {
+            X = (int)Math.Round(args.X),
+            Y = (int)Math.Round(args.Y),
+        };
+
+        _albumPopoverMenu.SetPointingTo(rect);
+
+        if (!_albumPopoverMenu.Visible)
+            _albumPopoverMenu.Popup();
+    }
     
     private void EnqueueEndActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argument = Variant.NewString(_contextMenuItem!.Album.Id.ToString()); 
-        var argumentArray = Variant.NewArray(VariantType.String, [argument]);
+        var argumentArray = _contextMenuItem!.Album.Id.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueEnd.Action}", argumentArray);
     }
 
     private void EnqueueNextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argument = Variant.NewString(_contextMenuItem!.Album.Id.ToString()); 
-        var argumentArray = Variant.NewArray(VariantType.String, [argument]);
+        var argumentArray = _contextMenuItem!.Album.Id.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueNext.Action}", argumentArray);
     }
 
     private void EnqueueReplaceActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argument = Variant.NewString(_contextMenuItem!.Album.Id.ToString()); 
-        var argumentArray = Variant.NewArray(VariantType.String, [argument]);
+        var argumentArray = _contextMenuItem!.Album.Id.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueReplace.Action}", argumentArray);
     }
 

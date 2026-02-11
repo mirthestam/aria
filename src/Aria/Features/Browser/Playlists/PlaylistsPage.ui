@@ -21,6 +21,17 @@
                         <property name="show-row-separators">False</property>
                         <property name="single-click-activate">True</property>
                         <child>
+                          <object class="GtkPopoverMenu" id="playlist-popover-menu">
+                            <property name="halign">start</property>
+                            <property name="has-arrow">false</property>
+                          </object>
+                        </child>
+                        <child>
+                          <object class="GtkGestureClick" id="gesture-click">
+                            <property name="button">3</property>
+                          </object>
+                        </child>
+                        <child>
                           <object class="GtkColumnViewColumn" id="name-column">
                             <property name="expand">True</property>
                             <property name="factory">
@@ -55,4 +66,14 @@
       </object>
     </child>
   </template>
+  <object class="AdwAlertDialog" id="confirm-playlist-delete">
+    <property name="body">Are you sure you wish do delete this playlist?</property>
+    <property name="heading">Delete Playlist?</property>
+    <property name="default-response">delete</property>
+    <property name="close-response">cancel</property>    
+    <responses>
+      <response id="cancel" translatable="yes">_Cancel</response>
+      <response id="delete" translatable="yes" appearance="destructive">_Delete</response>
+    </responses>    
+  </object>
 </interface>

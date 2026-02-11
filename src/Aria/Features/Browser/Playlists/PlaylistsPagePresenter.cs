@@ -1,4 +1,5 @@
 using Aria.Core;
+using Aria.Core.Extraction;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using Microsoft.Extensions.Logging;
@@ -14,7 +15,20 @@ public class PlaylistsPagePresenter(ILogger<PlaylistsPagePresenter> logger, IAri
     public void Attach(PlaylistsPage view, AttachContext context)
     {
         View = view;
+        View.DeleteRequested += ViewOnDeleteRequested;
         View.TogglePage(PlaylistsPage.PlaylistsPages.Empty);
+    }
+
+    private async void ViewOnDeleteRequested(object? sender, Id e)
+    {
+        try
+        {
+            await aria.Library.DeletePlaylistAsync(e);
+        }
+        catch (Exception exception)
+        {
+            // TODO handle
+        }
     }
 
     public PlaylistsPage? View { get; private set; }
@@ -42,9 +56,9 @@ public class PlaylistsPagePresenter(ILogger<PlaylistsPagePresenter> logger, IAri
         
         try
         {
-            var albums = await aria.Library.GetPlaylistsAsync(cancellationToken).ConfigureAwait(false);
+            var infos = await aria.Library.GetPlaylistsAsync(cancellationToken).ConfigureAwait(false);
             
-            var albumModels = albums.Select(PlaylistModel.NewForPlaylistInfo)
+            var models = infos.Select(PlaylistModel.NewForPlaylistInfo)
                 .OrderBy(a => a.Playlist.Name)
                 .ToList();
             cancellationToken.ThrowIfCancellationRequested();
@@ -52,7 +66,7 @@ public class PlaylistsPagePresenter(ILogger<PlaylistsPagePresenter> logger, IAri
             await GtkDispatch.InvokeIdleAsync(() =>
             {
                 if (cancellationToken.IsCancellationRequested) return;
-                View?.ShowPlaylists(albumModels);
+                View?.ShowPlaylists(models);
             }, cancellationToken).ConfigureAwait(false);
             
             //LogAlbumsLoaded();

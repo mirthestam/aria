@@ -13,39 +13,71 @@ public partial class Library
     // Playlists
     public override async Task<IEnumerable<PlaylistInfo>> GetPlaylistsAsync(CancellationToken cancellationToken = default)
     {
-        var response = await client.SendCommandAsync(new ListPlaylistsCommand(), token: cancellationToken);
-        if (!response.IsSuccess) return [];
+        using var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false);
+
+        var playlists = await FetchPlaylistsMetaAsync(scope).ConfigureAwait(false);
+        if (playlists.Count == 0) return [];
         
-        return response.Content!.Select(playlist => new PlaylistInfo
+        var result = new List<PlaylistInfo>(playlists.Count);
+        foreach (var playlist in playlists)
         {
-            Name = playlist.Name, 
-            LastModified = playlist.LastModified, 
-            Id = new PlaylistId(playlist.Name)
-        }).ToList();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // Load tracks for the playlists
+            var tracks = await FetchPlaylistTracksAsync(scope, playlist.Name).ConfigureAwait(false);
+            result.Add(playlist with
+            {
+                Tracks = tracks.ToList()
+            });
+        }
+
+        return result;
     }
-    
+
     public override async Task<PlaylistInfo?> GetPlaylistAsync(Id playlistId, CancellationToken cancellationToken = default)
     {
-        using var scope = await client.CreateConnectionScopeAsync(token: cancellationToken);
-        
-        var typedPlaylistId = (PlaylistId)playlistId;
-        
-        var response = await scope.SendCommandAsync(new ListPlaylistInfoCommand(typedPlaylistId.Value));
-        if (!response.IsSuccess) return null;
-        var tags = response.Content!.Select(kvp => new Tag(kvp.Key, kvp.Value)).ToList();
+        using var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false);
 
-        // I need 2 commands
-        // the META and the files command
-        
-        var playlists = await GetPlaylistsAsync(cancellationToken).ConfigureAwait(false);
+        var typedPlaylistId = (PlaylistId)playlistId;
+
+        // Find the meta from the meta-headers
+        var playlists = await FetchPlaylistsMetaAsync(scope).ConfigureAwait(false);
         var playlist = playlists.FirstOrDefault(x => x.Id == typedPlaylistId);
         if (playlist == null) return null;
-        
-        var tracks = _playlistParser.GetPlaylist(tags);
-        
+
+        var tracks = await FetchPlaylistTracksAsync(scope, typedPlaylistId.Value).ConfigureAwait(false);
+
         return playlist with
         {
             Tracks = tracks.ToList()
         };
-    }    
+    }
+
+    public override async Task DeletePlaylistAsync(Id id, CancellationToken cancellationToken = default)
+    {
+        var typedPlaylistId = (PlaylistId)id;
+        await client.SendCommandAsync(new RmCommand(typedPlaylistId.Value), token: cancellationToken);
+    }
+
+    private static async Task<List<PlaylistInfo>> FetchPlaylistsMetaAsync(Connection.ConnectionScope scope)
+    {
+        var response = await scope.SendCommandAsync(new ListPlaylistsCommand()).ConfigureAwait(false);
+        if (!response.IsSuccess) return [];
+
+        return response.Content!.Select(playlist => new PlaylistInfo
+        {
+            Name = playlist.Name,
+            LastModified = playlist.LastModified,
+            Id = new PlaylistId(playlist.Name)
+        }).ToList();
+    }
+
+    private async Task<IEnumerable<AlbumTrackInfo>> FetchPlaylistTracksAsync(Connection.ConnectionScope scope, string playlistName)
+    {
+        var response = await scope.SendCommandAsync(new ListPlaylistInfoCommand(playlistName)).ConfigureAwait(false);
+        if (!response.IsSuccess) return [];
+
+        var tags = response.Content!.Select(kvp => new Tag(kvp.Key, kvp.Value)).ToList();
+        return _playlistParser.GetPlaylist(tags);
+    }
 }

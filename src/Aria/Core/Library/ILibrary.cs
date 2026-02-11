@@ -53,4 +53,6 @@ public interface ILibrary
     Task<PlaylistInfo?> GetPlaylistAsync(Id playlistId, CancellationToken cancellationToken = default);    
     
     Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default);
+    
+    Task DeletePlaylistAsync(Id id, CancellationToken cancellationToken = default);
 }

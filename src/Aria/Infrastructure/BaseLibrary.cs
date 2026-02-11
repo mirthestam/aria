@@ -19,8 +19,10 @@ public abstract class BaseLibrary : ILibrarySource
     public abstract Task<PlaylistInfo?> GetPlaylistAsync(Id playlistId, CancellationToken cancellationToken = default);    
     
     public abstract Task<SearchResults> SearchAsync(string query, CancellationToken cancellationToken = default);
-    
-    public virtual Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default) => Task.FromResult<Info?>(null);
+
+    public abstract Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default);
+
+    public abstract Task DeletePlaylistAsync(Id id, CancellationToken cancellationToken = default);
 
     public virtual async Task<Stream> GetAlbumResourceStreamAsync(Id id, CancellationToken ct)
     {

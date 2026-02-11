@@ -28,6 +28,7 @@
         <EmbeddedResource Include="Features\Browser\BrowserHost.ui" />
         <EmbeddedResource Include="Features\Browser\BrowserEmptyPage.ui" />
         <EmbeddedResource Include="Features\Browser\BrowserPage.ui" />
+        <EmbeddedResource Include="Features\Browser\Playlists\PlaylistNameCell.ui" />
         <EmbeddedResource Include="Features\Browser\Playlists\PlaylistsEmptyPage.ui" />
         <EmbeddedResource Include="Features\Browser\Playlists\PlaylistsPage.ui" />
         <EmbeddedResource Include="Features\Browser\Search\SearchPage.ui" />

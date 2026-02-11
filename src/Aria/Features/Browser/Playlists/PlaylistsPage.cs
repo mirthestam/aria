@@ -9,6 +9,11 @@ using ListStore = Gio.ListStore;
 
 namespace Aria.Features.Browser.Playlists;
 
+// TODO: Context-menu for playlist with enqueue, rename and delete options
+// TODO: Load album-art in playlist icon
+// TODO: Load album-art in drag & drop 
+// TODO: Option to save queue as playlist
+
 [Subclass<NavigationPage>]
 [Template<AssemblyResource>("Aria.Features.Browser.Playlists.PlaylistsPage.ui")]
 public partial class PlaylistsPage
@@ -30,9 +35,12 @@ public partial class PlaylistsPage
     private ListStore _listStore;
     private SingleSelection _selection;
     
+    private PlaylistModel? _contextMenuItem;    
+    
     partial void Initialize()
     {
         InitializeColumnView();
+        InitializeActions();
     }
 
     public void TogglePage(PlaylistsPages page)
@@ -58,7 +66,7 @@ public partial class PlaylistsPage
     
     private void InitializeColumnView()
     {
-        var nameSorter = CustomSorter.New<PlaylistModel>((a, b) => string.Compare(a.Playlist.Name, b.Playlist.Name, StringComparison.Ordinal));
+        var nameSorter = CustomSorter.New<PlaylistModel>((a, b) => string.Compare(a.Playlist.Name, b.Playlist.Name, StringComparison.OrdinalIgnoreCase));
         var dateSorter = CustomSorter.New<PlaylistModel>((a, b) => a.Playlist.LastModified.CompareTo(b.Playlist.LastModified));
         
         _nameColumn.SetSorter(nameSorter);
@@ -80,6 +88,8 @@ public partial class PlaylistsPage
     
         _columnView.SetModel(_selection);
         _columnView.OnActivate += ColumnViewOnOnActivate;
+        
+        _gestureClick.OnPressed += GestureClickOnOnPressed;        
     }
 
     private void ColumnViewOnOnActivate(ColumnView sender, ColumnView.ActivateSignalArgs args)
@@ -106,7 +116,7 @@ public partial class PlaylistsPage
         
         listItem.SetChild(label);
     }
-    private void ModifiedColumnBind(SignalListItemFactory sender, SignalListItemFactory.BindSignalArgs args)
+    private static void ModifiedColumnBind(SignalListItemFactory sender, SignalListItemFactory.BindSignalArgs args)
     {
         var listItem = (ListItem)args.Object;
         var model = (PlaylistModel)listItem.GetItem()!;
@@ -117,23 +127,24 @@ public partial class PlaylistsPage
     private void NameColumnSetup(SignalListItemFactory sender, SignalListItemFactory.SetupSignalArgs args)
     {
         var listItem = (ListItem)args.Object;
-        var label = Label.NewWithProperties([]);
-        label.SetXalign(0);
+        
+        var cell = PlaylistNameCell.NewWithProperties([]);
         
         var dragSource = DragSource.New();
         dragSource.Actions = DragAction.Copy;
         dragSource.OnDragBegin += DragSourceOnOnDragBegin;
         dragSource.OnPrepare += DragSourceOnOnPrepare;
-        label.AddController(dragSource);
+        cell.AddController(dragSource);
         
-        listItem.SetChild(label);
+        listItem.SetChild(cell);
     }
-    private void NameColumnBind(SignalListItemFactory sender, SignalListItemFactory.BindSignalArgs args)
+    
+    private static void NameColumnBind(SignalListItemFactory sender, SignalListItemFactory.BindSignalArgs args)
     {
         var listItem = (ListItem)args.Object;
         var model = (PlaylistModel)listItem.GetItem()!;
-        var label = (Label)listItem.GetChild()!;
-        label.Label_ = model.Playlist.Name;
+        var cell = (PlaylistNameCell)listItem.GetChild()!;
+        cell.Bind(model);
     }
 
     private void Clear()

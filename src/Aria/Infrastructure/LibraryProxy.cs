@@ -67,6 +67,11 @@ public class LibraryProxy : ILibrarySource
         return _innerLibrary?.GetItemAsync(id, cancellationToken) ?? Task.FromResult<Info?>(null);
     }
 
+    public Task DeletePlaylistAsync(Id id, CancellationToken cancellationToken = default)
+    {
+        return _innerLibrary?.DeletePlaylistAsync(id, cancellationToken) ?? Task.CompletedTask;
+    }
+
     internal void Attach(ILibrarySource library)
     {
         _innerLibrary = library;

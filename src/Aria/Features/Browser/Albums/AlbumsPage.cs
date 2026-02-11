@@ -24,6 +24,7 @@ public partial class AlbumsPage
     
     private AlbumsAlbumModel? _contextMenuItem;
     
+    // TODO: refactor, sending global action is enough
     public event Action<AlbumInfo, ArtistInfo>? AlbumSelected;
     
     partial void Initialize()
@@ -64,34 +65,6 @@ public partial class AlbumsPage
         _albumDragSources.Clear();       
         
         _listStore.RemoveAll();        
-    }
-    
-    private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
-    {
-        // The grid is in single click activate mode.
-        // That means that hover changes the selection.
-        // The user 'is' able to hover even when the context menu is shown.
-        // Therefore, I remember the hovered item at the moment the menu was shown.
-        
-        // To be honest, this is probably not the 'correct' approach
-        // as right-clicking outside an item also invokes this logic.
-        
-        // But it works, and I have been unable to find out the correct way.
-        
-        var selected = _singleSelection.GetSelected();
-        if (selected == GtkConstants.GtkInvalidListPosition) return;
-        _contextMenuItem = (AlbumsAlbumModel) _listStore.GetObject(selected)!;
-        
-        var rect = new Rectangle
-        {
-            X = (int)Math.Round(args.X),
-            Y = (int)Math.Round(args.Y),
-        };
-
-        _albumPopoverMenu.SetPointingTo(rect);
-
-        if (!_albumPopoverMenu.Visible)
-            _albumPopoverMenu.Popup();
     }
     
     private void GridViewOnOnActivate(GridView sender, GridView.ActivateSignalArgs args)

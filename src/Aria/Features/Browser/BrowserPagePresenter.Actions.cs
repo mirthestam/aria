@@ -28,8 +28,8 @@ public partial class BrowserPagePresenter
         var browserActionGroup = SimpleActionGroup.New();
 
         browserActionGroup.AddAction(_searchAction = SimpleAction.New(AppActions.Browser.Search.Action, null));
-        browserActionGroup.AddAction(_allAlbumsAction = SimpleAction.New(AppActions.Browser.AllAlbums.Action, null));
-        browserActionGroup.AddAction(_showPlaylistsAction = SimpleAction.New(AppActions.Browser.Playlists.Action, null));        
+        browserActionGroup.AddAction(_allAlbumsAction = SimpleAction.New(AppActions.Browser.ShowAllAlbums.Action, null));
+        browserActionGroup.AddAction(_showPlaylistsAction = SimpleAction.New(AppActions.Browser.ShowAllPlaylists.Action, null));        
         browserActionGroup.AddAction(_showArtistAction =
             SimpleAction.New(AppActions.Browser.ShowArtist.Action, GLib.VariantType.String));
         browserActionGroup.AddAction(_showAlbumAction =
@@ -41,10 +41,10 @@ public partial class BrowserPagePresenter
             SimpleAction.New(AppActions.Browser.ShowTrack.Action, GLib.VariantType.String));
         context.SetAccelsForAction($"{AppActions.Browser.Key}.{AppActions.Browser.Search.Action}",
             [AppActions.Browser.Search.Accelerator]);
-        context.SetAccelsForAction($"{AppActions.Browser.Key}.{AppActions.Browser.AllAlbums.Action}",
-            [AppActions.Browser.AllAlbums.Accelerator]);
-        context.SetAccelsForAction($"{AppActions.Browser.Key}.{AppActions.Browser.Playlists.Action}",
-            [AppActions.Browser.Playlists.Accelerator]);        
+        context.SetAccelsForAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAllAlbums.Action}",
+            [AppActions.Browser.ShowAllAlbums.Accelerator]);
+        context.SetAccelsForAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAllPlaylists.Action}",
+            [AppActions.Browser.ShowAllPlaylists.Accelerator]);        
         context.InsertAppActionGroup(AppActions.Browser.Key, browserActionGroup);
 
         _searchAction.OnActivate += SearchActionOnOnActivate;
