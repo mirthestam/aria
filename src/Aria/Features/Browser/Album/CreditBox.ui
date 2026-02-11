@@ -12,7 +12,6 @@
         <property name="valign">fill</property>
         <child>
           <object class="GtkLabel" id="composers-label">
-            <property name="css-classes">dimmed</property>
             <property name="label">Composed By</property>
             <property name="margin-bottom">3</property>
             <property name="margin-top">3</property>
@@ -26,11 +25,11 @@
           </object>
         </child>
         <child>
-          <object class="AdwWrapBox" id="composers-box">
-            <property name="child-spacing">0</property>
+          <object class="GtkBox" id="composers-box">
             <property name="halign">start</property>
             <property name="margin-start">0</property>
             <property name="margin-top">0</property>
+            <property name="orientation">vertical</property>
             <property name="valign">fill</property>
             <property name="visible">False</property>
             <layout>
@@ -41,7 +40,6 @@
         </child>
         <child>
           <object class="GtkLabel" id="conductors-label">
-            <property name="css-classes">dimmed</property>
             <property name="label">Conducted By</property>
             <property name="margin-bottom">3</property>
             <property name="margin-top">3</property>
@@ -55,10 +53,10 @@
           </object>
         </child>
         <child>
-          <object class="AdwWrapBox" id="conductors-box">
-            <property name="child-spacing">0</property>
+          <object class="GtkBox" id="conductors-box">
             <property name="halign">start</property>
             <property name="margin-top">0</property>
+            <property name="orientation">vertical</property>
             <property name="visible">False</property>
             <layout>
               <property name="column">1</property>
@@ -68,7 +66,6 @@
         </child>
         <child>
           <object class="GtkLabel" id="arranged-label">
-            <property name="css-classes">dimmed</property>
             <property name="label">Arranged By</property>
             <property name="margin-end">3</property>
             <property name="margin-top">3</property>
@@ -82,11 +79,11 @@
           </object>
         </child>
         <child>
-          <object class="AdwWrapBox" id="arranged-box">
-            <property name="child-spacing">0</property>
+          <object class="GtkBox" id="arranged-box">
             <property name="halign">start</property>
             <property name="margin-start">0</property>
             <property name="margin-top">0</property>
+            <property name="orientation">vertical</property>
             <property name="valign">fill</property>
             <property name="visible">False</property>
             <layout>
@@ -97,7 +94,6 @@
         </child>
         <child>
           <object class="GtkLabel" id="performers-label">
-            <property name="css-classes">dimmed</property>
             <property name="label">Performed By</property>
             <property name="margin-bottom">3</property>
             <property name="margin-top">3</property>
@@ -111,11 +107,11 @@
           </object>
         </child>
         <child>
-          <object class="AdwWrapBox" id="performers-box">
-            <property name="child-spacing">0</property>
+          <object class="GtkBox" id="performers-box">
             <property name="halign">start</property>
             <property name="margin-start">0</property>
             <property name="margin-top">0</property>
+            <property name="orientation">vertical</property>
             <property name="valign">fill</property>
             <property name="visible">False</property>
             <layout>
@@ -126,7 +122,6 @@
         </child>
         <child>
           <object class="GtkLabel" id="solists-label">
-            <property name="css-classes">dimmed</property>
             <property name="label">Solists</property>
             <property name="margin-bottom">3</property>
             <property name="margin-top">3</property>
@@ -140,11 +135,11 @@
           </object>
         </child>
         <child>
-          <object class="AdwWrapBox" id="solists-box">
-            <property name="child-spacing">0</property>
+          <object class="GtkBox" id="solists-box">
             <property name="halign">start</property>
             <property name="margin-start">0</property>
             <property name="margin-top">0</property>
+            <property name="orientation">vertical</property>
             <property name="valign">fill</property>
             <property name="visible">False</property>
             <layout>
@@ -155,7 +150,6 @@
         </child>
         <child>
           <object class="GtkLabel" id="main-label">
-            <property name="css-classes">dimmed</property>
             <property name="label">Featuring</property>
             <property name="margin-bottom">3</property>
             <property name="margin-top">3</property>
@@ -169,11 +163,11 @@
           </object>
         </child>
         <child>
-          <object class="AdwWrapBox" id="main-box">
-            <property name="child-spacing">0</property>
+          <object class="GtkBox" id="main-box">
             <property name="halign">start</property>
             <property name="margin-start">0</property>
             <property name="margin-top">0</property>
+            <property name="orientation">vertical</property>
             <property name="valign">fill</property>
             <property name="visible">False</property>
             <layout>

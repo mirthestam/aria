@@ -15,7 +15,7 @@
   <ui template-class="AriaFeaturesBrowserSearchSearchPage" filename="Features/Browser/Search/SearchPage.ui" sha256="fdc805e1d342f338166115c1f8741df473c22d8a04c3db25b86406c1b838c78e"/>
   <ui template-class="AriaFeaturesBrowserArtistsArtistsPage" filename="Features/Browser/Artists/ArtistsPage.ui" sha256="d42a15c136369de44bf20d21a4ad853112d3d659f225b6a3ac06909c434b2bb0"/>
   <ui template-class="AriaFeaturesBrowserAlbumsAlbumsPage" filename="Features/Browser/Albums/AlbumsPage.ui" sha256="88fbb8a5af17708d05eae6117f482942421d9e4ac80e6d188fecdc9e45c2be90"/>
-  <ui template-class="AriaFeaturesBrowserAlbumCreditBox" filename="Features/Browser/Album/CreditBox.ui" sha256="18be2274f835c1d3f34018f9aa35a9eea943db99c263ff0b249849f039127675"/>
+  <ui template-class="AriaFeaturesBrowserAlbumCreditBox" filename="Features/Browser/Album/CreditBox.ui" sha256="bfbe2b83f3716b3fbf89249ddc1e861614e4f5389e721b1bdf9eb995425bf492"/>
   <ui template-class="AriaFeaturesBrowserAlbumsAlbumsAlbumListItem" filename="Features/Browser/Albums/AlbumsAlbumListItem.ui" sha256="e0b5e3ac0de8924a65ae901f292ca17ea638f963eb09af8176395608261b3969"/>
   <ui>
     <content><![CDATA[<interface>
@@ -39,7 +39,7 @@
   <ui template-class="AriaFeaturesPlayerQueueQueue" filename="Features/Player/Queue/Queue.ui" sha256="572ebf42b115498e5e5719286684af5d4004bbc4b4a62f33fbbf309d24e7c595"/>
   <ui template-class="AriaFeaturesPlayerQueueTrackListItem" filename="Features/Player/Queue/TrackListItem.ui" sha256="b1952e6ecbaec3baca44c0184596e72d0f4b9c353304dc695ec2868ed8a7b068"/>
   <ui template-class="AriaFeaturesDetailsTrackDetailsDialog" filename="Features/Details/TrackDetailsDialog.ui" sha256="267213fd314edfff05df1f14f5d55ed7fae33f0ca58aec73b0263d3f5c21fb3e"/>
-  <ui template-class="AriaFeaturesBrowserPlaylistsPlaylistsPage" filename="Features/Browser/Playlists/PlaylistsPage.ui" sha256="d148a72618f6524d347542c0e89c594347ca77afaae4e1d6206c0d2d2701ba24"/>
+  <ui template-class="AriaFeaturesBrowserPlaylistsPlaylistsPage" filename="Features/Browser/Playlists/PlaylistsPage.ui" sha256="a111288d8ef9c69d8062e45499371b87adcff00588582b3a9f4b16efa1441f5d"/>
   <ui template-class="AriaFeaturesBrowserPlaylistsPlaylistNameCell" filename="Features/Browser/Playlists/PlaylistNameCell.ui" sha256="b0fd45d5587c7dd58a7cf85c9cdda3ab16b26cad1e95db606995f004fe97a0b8"/>
   <ui template-class="AriaFeaturesBrowserArtistArtistPage" filename="Features/Browser/Artist/ArtistPage.ui" sha256="8e1c2f84f6569eb6b756a468fef22f142cde15d50f480a7344528efa60638ffc">
     <requires>AriaFeaturesBrowserArtistEmptyPage</requires>
@@ -56,7 +56,7 @@
   <ui template-class="AriaFeaturesBrowserAlbumTrackGroup" filename="Features/Browser/Album/TrackGroup.ui" sha256="5834704522e08b941029d5bfe2acd67a89ca3c05a1a2b4370140ffde02437ad1">
     <requires>AriaFeaturesBrowserAlbumCreditBox</requires>
   </ui>
-  <ui template-class="AriaFeaturesBrowserAlbumAlbumPage" filename="Features/Browser/Album/AlbumPage.ui" sha256="268902823629e45be17e7b87f4fd3b70737f794ae954c15a08fc2ba4c3eaee08">
+  <ui template-class="AriaFeaturesBrowserAlbumAlbumPage" filename="Features/Browser/Album/AlbumPage.ui" sha256="204d65138f2a5441badafb4bedd2cdefccf48063d53bc2115020d549aa725d5f">
     <requires>AriaFeaturesBrowserAlbumCreditBox</requires>
   </ui>
   <ui template-class="AriaFeaturesBrowserBrowserPage" filename="Features/Browser/BrowserPage.ui" sha256="ddf6e1da25c564daedf5fe35c2823a2eaf7c52f8874db203b14c0d9accf3278f">

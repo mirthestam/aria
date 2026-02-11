@@ -68,12 +68,13 @@
   </template>
   <object class="AdwAlertDialog" id="confirm-playlist-delete">
     <property name="body">Are you sure you wish do delete this playlist?</property>
-    <property name="heading">Delete Playlist?</property>
+    <property name="close-response">cancel</property>
     <property name="default-response">delete</property>
-    <property name="close-response">cancel</property>    
+    <property name="heading">Delete Playlist?</property>
+    <!-- Custom object fragments -->
     <responses>
       <response id="cancel" translatable="yes">_Cancel</response>
       <response id="delete" translatable="yes" appearance="destructive">_Delete</response>
-    </responses>    
+    </responses>
   </object>
 </interface>
