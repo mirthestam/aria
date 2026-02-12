@@ -16,7 +16,11 @@ public partial class AlbumListItem
     
     public void Initialize(AlbumModel model)
     {
-        if (Model != null) Model.PropertyChanged -= ModelOnPropertyChanged;
+        if (Model != null)
+        {
+            _coverPicture.SetPaintable(null);
+            Model.PropertyChanged -= ModelOnPropertyChanged;
+        }
         
         Model = model;
         Model.PropertyChanged += ModelOnPropertyChanged;
@@ -26,18 +30,17 @@ public partial class AlbumListItem
         _titleLabel.SetLabel(model.Album.Title);
         _subTitleLabel.SetLabel(artistsLine);
         
-        SetCoverPicture();
+        UpdateCoverPicture();
     }
     
     private void ModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(AlbumModel.CoverTexture)) return;
-        SetCoverPicture();
+        UpdateCoverPicture();
     }
  
-    private void SetCoverPicture()
+    private void UpdateCoverPicture()
     {
-        if (Model?.CoverTexture == null) return;
-        _coverPicture.SetPaintable(Model.CoverTexture);
+        _coverPicture.SetPaintable(Model?.CoverTexture);
     }
 }

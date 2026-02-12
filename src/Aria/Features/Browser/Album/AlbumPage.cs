@@ -125,7 +125,23 @@ public partial class AlbumPage
             return currentGroupTracks;
         }
     }
-    
+
+    public override void Dispose()
+    {
+        _coverPicture.SetPaintable(null);
+
+        foreach (var group in _trackGroups)
+        {
+            group.RemoveTracks();
+            _tracksBox.Remove(group);
+            group.Dispose();
+        }
+        _trackGroups.Clear();
+        
+        base.Dispose();
+        RunDispose();        
+    }
+
     public void SetCover(Texture texture)
     {
         _coverPicture.SetPaintable(texture);

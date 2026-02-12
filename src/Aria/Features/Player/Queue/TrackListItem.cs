@@ -19,15 +19,21 @@ public partial class TrackListItem
     [Connect("title-label")] private Label _titleLabel;
     
     [Connect("gesture-click")] private GestureClick _gestureClick;    
-    [Connect("popover-menu")] private PopoverMenu _popoverMenu;
+    //[Connect("popover-menu")] private PopoverMenu _popoverMenu;
 
     public QueueTrackModel? Model { get; private set; }
 
+    partial void Initialize()
+    {
+        _gestureClick.OnPressed += GestureClickOnOnPressed;        
+    }
+    
     public void Bind(QueueTrackModel model)
     {
         if (Model != null)
         {
             // ListItems can be reused by GTK for different models.
+            _coverPicture.SetPaintable(null);
             Model.PropertyChanged -= ModelOnPropertyChanged;
         }
 
@@ -41,10 +47,8 @@ public partial class TrackListItem
         _composerLabel.Visible = !string.IsNullOrEmpty(model.ComposersText);
         _durationLabel.SetLabel(model.DurationText);
         
-        _gestureClick.OnPressed += GestureClickOnOnPressed;        
-
-        ConfigureContextMenu();
-        SetCoverPicture();
+        // ConfigureContextMenu();
+        UpdateCoverPicture();
     }
     
     private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
@@ -55,41 +59,38 @@ public partial class TrackListItem
             Y = (int)Math.Round(args.Y),
         };
 
-        _popoverMenu.SetPointingTo(rect);
-
-        if (!_popoverMenu.Visible)
-            _popoverMenu.Popup();
+        // _popoverMenu.SetPointingTo(rect);
+        //
+        // if (!_popoverMenu.Visible)
+        //     _popoverMenu.Popup();
     }
     
-    private void ConfigureContextMenu()
-    {
-        var menu = Menu.NewWithProperties([]);
-        menu.AppendItem(MenuItem.New("Remove", $"queue.delete-selection"));
-        menu.AppendItem(MenuItem.New("Track Details", $"queue.show-track"));        
-        menu.AppendItem(MenuItem.New("Show Album", $"queue.show-album"));        
-        
-        var playlistSection = Menu.NewWithProperties([]);
-        playlistSection.AppendItem(MenuItem.New("Clear", $"{AppActions.Queue.Key}.{AppActions.Queue.Clear.Action}"));
-        
-        menu.AppendSection(null, playlistSection);
-        
-        _popoverMenu.SetMenuModel(menu);
-    }
+    // private void ConfigureContextMenu()
+    // {
+    //     var menu = Menu.NewWithProperties([]);
+    //     menu.AppendItem(MenuItem.New("Remove", $"queue.delete-selection"));
+    //     menu.AppendItem(MenuItem.New("Track Details", $"queue.show-track"));        
+    //     menu.AppendItem(MenuItem.New("Show Album", $"queue.show-album"));        
+    //     
+    //     var playlistSection = Menu.NewWithProperties([]);
+    //     playlistSection.AppendItem(MenuItem.New("Clear", $"{AppActions.Queue.Key}.{AppActions.Queue.Clear.Action}"));
+    //     
+    //     menu.AppendSection(null, playlistSection);
+    //     
+    //     // TODO: This one is expensive.
+    //     // And I already know; I want this NOT per item. 
+    //     // So, refactor this.
+    //     _popoverMenu.SetMenuModel(menu);
+    // }
 
-    private void SetCoverPicture()
+    private void UpdateCoverPicture()
     {
-        if (Model?.CoverTexture == null) return;
-        _coverPicture.SetPaintable(Model.CoverTexture);
+        _coverPicture.SetPaintable(Model?.CoverTexture);
     }
 
     private void ModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName != nameof(QueueTrackModel.CoverTexture)) return;
-
-        GLib.Functions.TimeoutAdd(0, 0, () =>
-        {
-            SetCoverPicture();
-            return false;
-        });
+        GtkDispatch.InvokeIdle(UpdateCoverPicture);
     }
 }

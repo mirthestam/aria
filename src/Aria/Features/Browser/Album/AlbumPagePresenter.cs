@@ -5,6 +5,7 @@ using Aria.Core.Queue;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
+using Gdk;
 using Gio;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
@@ -19,6 +20,7 @@ public partial class AlbumPagePresenter(
     ResourceTextureLoader textureLoader) : IPresenter<AlbumPage>
 {
     private AlbumInfo? _album;
+    private Texture? _currentCoverTexture;    
     private CancellationTokenSource? _loadCts;
 
     public void Attach(AlbumPage view)
@@ -36,6 +38,9 @@ public partial class AlbumPagePresenter(
         try
         {
             AbortLoading();
+            
+            _currentCoverTexture?.Dispose();
+            _currentCoverTexture = null;            
         }
         catch (Exception e)
         {
@@ -120,20 +125,28 @@ public partial class AlbumPagePresenter(
                 View?.LoadAlbum(album, filteredArtist);
             }, ct);                        
             
+            _currentCoverTexture?.Dispose();
+            _currentCoverTexture = null;            
+            
             var assetId = album.Assets.FrontCover?.Id ?? Id.Empty;
-            var texture = await textureLoader.LoadFromAlbumResourceAsync(assetId, ct);
+            var newCoverTexture = await textureLoader.LoadFromAlbumResourceAsync(assetId, ct);
             ct.ThrowIfCancellationRequested();
             
-            if (texture == null)
+            if (newCoverTexture == null)
             {
                 LogCouldNotLoadAlbumCoverForAlbum(album.Id);
                 return;
             }
+            
+            var previousCoverTexture = _currentCoverTexture;
+            _currentCoverTexture = newCoverTexture;            
 
             await GtkDispatch.InvokeIdleAsync(() =>
             {
-                View?.SetCover(texture);
-            }, ct);                        
+                View?.SetCover(newCoverTexture);
+            }, ct);              
+            
+            previousCoverTexture?.Dispose();
         }
         catch (OperationCanceledException)
         {

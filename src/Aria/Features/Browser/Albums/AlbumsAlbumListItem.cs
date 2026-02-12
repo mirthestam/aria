@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using Aria.Infrastructure;
 using GObject;
 using Gtk;
 
@@ -14,9 +15,13 @@ public partial class AlbumsAlbumListItem
     
     public AlbumsAlbumModel? Model { get; private set; }
 
-    public void Initialize(AlbumsAlbumModel model)
+    public void Bind(AlbumsAlbumModel model)
     {
-        if (Model != null) Model.PropertyChanged -= ModelOnPropertyChanged;
+        if (Model != null)
+        {
+            _coverPicture.SetPaintable(null);            
+            Model.PropertyChanged -= ModelOnPropertyChanged;
+        }
 
         Model = model;
         Model.PropertyChanged += ModelOnPropertyChanged;
@@ -26,23 +31,17 @@ public partial class AlbumsAlbumListItem
         _titleLabel.SetLabel(model.Album.Title);
         _subTitleLabel.SetLabel(artistsLine);
         
-        SetCoverPicture();
+        UpdateCoverPicture();
     }
     
     private void ModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName != nameof(AlbumsAlbumModel.CoverTexture)) return;
-        
-        GLib.Functions.TimeoutAdd(0, 0, () =>
-        {
-            SetCoverPicture();
-            return false;
-        });
+        if (e.PropertyName != nameof(AlbumsAlbumModel.CoverTexture)) return;            
+        GtkDispatch.InvokeIdle(UpdateCoverPicture);
     }
 
-    private void SetCoverPicture()
+    private void UpdateCoverPicture()
     {
-        if (Model?.CoverTexture == null) return;
-        _coverPicture.SetPaintable(Model.CoverTexture);
+        _coverPicture.SetPaintable(Model?.CoverTexture);
     }
 }

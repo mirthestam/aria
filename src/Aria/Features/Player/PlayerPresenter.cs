@@ -7,6 +7,7 @@ using Aria.Features.Player.Queue;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
+using Gdk;
 using GLib;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
@@ -24,6 +25,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
     private readonly IMessenger _messenger;
     
     private CancellationTokenSource? _coverArtCancellationTokenSource;
+    private Texture? _currentCoverTexture;    
     
     public Player? View { get; private set; }
     
@@ -75,7 +77,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
         await RefreshAsync(PlayerStateChangedFlags.All, cancellationToken);
 
         await _queuePresenter.RefreshAsync(cancellationToken);
-        await RefreshCover(cancellationToken);        
+        await RefreshCoverAsync(cancellationToken);        
     }
 
     public async Task ResetAsync()
@@ -86,7 +88,10 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
         await GtkDispatch.InvokeIdleAsync(() => 
         {
             View?.ClearCover();
-        });        
+        });
+        
+        _currentCoverTexture?.Dispose();
+        _currentCoverTexture = null;        
     }
     
     public async void Receive(PlayerStateChangedMessage message)
@@ -200,7 +205,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
             }, cancellationToken);
         }
         
-        await RefreshCover(cancellationToken);
+        await RefreshCoverAsync(cancellationToken);
     }
     
     private void AbortRefreshCover()
@@ -210,7 +215,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
         _coverArtCancellationTokenSource = null;
     }
 
-    private async Task RefreshCover(CancellationToken externalCancellationToken = default)
+    private async Task RefreshCoverAsync(CancellationToken externalCancellationToken = default)
     {
         AbortRefreshCover();
         
@@ -233,21 +238,30 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
                 {
                     View?.ClearCover();
                 }, cancellationToken);
+                
+                _currentCoverTexture?.Dispose();
+                _currentCoverTexture = null;
+                
                 return;
             }
             
             var coverInfo = track.Track.Assets.FrontCover;
             //var texture = await _resourceTextureLoader.LoadFromAlbumResourceAsync(coverInfo?.Id ?? Id.Empty, cancellationToken).ConfigureAwait(false);
-            var texture = await Task.Run(
+            var newCoverTexture = await Task.Run(
                 () => _resourceTextureLoader.LoadFromAlbumResourceAsync(coverInfo?.Id ?? Id.Empty, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
             if (cancellationToken.IsCancellationRequested) return;
-            if (texture == null) return;
+            if (newCoverTexture == null) return;
+            
+            var previousCoverTexture = _currentCoverTexture;
+            _currentCoverTexture = newCoverTexture;            
             
             await GtkDispatch.InvokeIdleAsync(() =>
             {
-                View?.LoadCover(texture);
+                View?.LoadCover(newCoverTexture);
             }, cancellationToken);            
+            
+            previousCoverTexture?.Dispose();            
         }
         catch (OperationCanceledException)
         {

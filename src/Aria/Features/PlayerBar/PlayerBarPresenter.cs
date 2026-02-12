@@ -6,6 +6,7 @@ using Aria.Core.Queue;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
+using Gdk;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
 
@@ -17,6 +18,7 @@ public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>,
     private readonly ILogger<PlayerBarPresenter> _logger;
     private readonly IMessenger _messenger;
     private readonly ResourceTextureLoader _resourceTextureLoader;
+    private Texture? _currentCoverTexture;    
     private PlayerBar? _view;
 
     private CancellationTokenSource? _coverArtCancellationTokenSource;
@@ -72,6 +74,9 @@ public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>,
         {
             _view?.ClearCover();
         });
+        
+        _currentCoverTexture?.Dispose();
+        _currentCoverTexture = null;
     }
 
     public async void Receive(PlayerStateChangedMessage message)
@@ -168,19 +173,27 @@ public partial class PlayerBarPresenter : IRecipient<PlayerStateChangedMessage>,
                 {
                     _view?.ClearCover();
                 }, cancellationToken);
+                
+                _currentCoverTexture?.Dispose();
+                _currentCoverTexture = null;
+                
                 return;
             }
 
             var coverInfo = track.Track.Assets.FrontCover;
-            var texture =
-                await _resourceTextureLoader.LoadFromAlbumResourceAsync(coverInfo?.Id ?? Id.Empty, cancellationToken);
+            var newCoverTexture = await _resourceTextureLoader.LoadFromAlbumResourceAsync(coverInfo?.Id ?? Id.Empty, cancellationToken);
             if (cancellationToken.IsCancellationRequested) return;
-            if (texture == null) return;
+            if (newCoverTexture == null) return;
+
+            var previousCoverTexture = _currentCoverTexture;
+            _currentCoverTexture = newCoverTexture;
 
             await GtkDispatch.InvokeIdleAsync(() =>
             {
-                _view?.LoadCover(texture);
+                _view?.LoadCover(newCoverTexture);
             }, cancellationToken);
+            
+            previousCoverTexture?.Dispose();
         }
         catch (OperationCanceledException)
         {

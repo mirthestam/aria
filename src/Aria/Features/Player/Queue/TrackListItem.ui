@@ -20,12 +20,6 @@
               </object>
             </child>
             <child>
-              <object class="GtkPopoverMenu" id="popover-menu">
-                <property name="halign">start</property>
-                <property name="has-arrow">false</property>
-              </object>
-            </child>
-            <child>
               <object class="AdwClamp">
                 <property name="maximum-size">48</property>
                 <property name="valign">center</property>

@@ -26,28 +26,52 @@ public partial class BackendConnection(
     
     public override async Task ConnectAsync(CancellationToken cancellationToken = default)
     {
-        client.ConnectionChanged += (a, b) =>
-        {
-            BackendConnectionState state;
-            if (client.IsConnected)
-                state = BackendConnectionState.Connected;
-            else if (client.IsConnecting)
-                state = BackendConnectionState.Connecting;
-            else
-                state = BackendConnectionState.Disconnected;
+        // Defensive: make ConnectAsync idempotent (no handler stacking on reconnect)
+        UnbindClientEvents();
 
-            OnConnectionStateChanged(state);
-        };
-
-        client.IdleResponseReceived += SessionOnIdleResponseReceived;
-        client.StatusChanged += SessionOnStatusChanged;
+        BindClientEvents();
 
         await client.ConnectAsync(cancellationToken).ConfigureAwait(false);
     }
 
     public override async Task DisconnectAsync()
     {
-        await client.DisconnectAsync().ConfigureAwait(false);
+        try
+        {
+            await client.DisconnectAsync().ConfigureAwait(false);
+        }
+        finally
+        {
+            // Always unbind, even if disconnect fails/throws
+            UnbindClientEvents();
+        }
+    }
+
+    private void BindClientEvents()
+    {
+        client.ConnectionChanged += OnClientOnConnectionChanged;
+        client.IdleResponseReceived += SessionOnIdleResponseReceived;
+        client.StatusChanged += SessionOnStatusChanged;
+    }
+
+    private void UnbindClientEvents()
+    {
+        client.ConnectionChanged -= OnClientOnConnectionChanged;
+        client.IdleResponseReceived -= SessionOnIdleResponseReceived;
+        client.StatusChanged -= SessionOnStatusChanged;
+    }
+
+    private void OnClientOnConnectionChanged(object? a, EventArgs b)
+    {
+        BackendConnectionState state;
+        if (client.IsConnected)
+            state = BackendConnectionState.Connected;
+        else if (client.IsConnecting)
+            state = BackendConnectionState.Connecting;
+        else
+            state = BackendConnectionState.Disconnected;
+
+        OnConnectionStateChanged(state);
     }
 
     private async void SessionOnStatusChanged(object? sender, StatusChangedEventArgs e)
@@ -67,8 +91,8 @@ public partial class BackendConnection(
     {
         var subsystems = e.Message;
 
-        if (!subsystems.Contains("playlist") &&  !subsystems.Contains("player") && !subsystems.Contains("mixer") && !subsystems.Contains("output") &&
-            !subsystems.Contains("options") && !subsystems.Contains("update")) return;
+        if (!subsystems.Contains("playlist") && !subsystems.Contains("player") && !subsystems.Contains("mixer") &&
+            !subsystems.Contains("output") && !subsystems.Contains("options") && !subsystems.Contains("update")) return;
 
         if (subsystems.Contains("playlist"))
         {
@@ -77,7 +101,7 @@ public partial class BackendConnection(
 
         if (subsystems.Contains("update"))
             library.ServerUpdated();
-        
+
         _ = client.UpdateStatusAsync(ConnectionType.Idle);
     }
 

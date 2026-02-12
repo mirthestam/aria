@@ -60,8 +60,18 @@ public partial class AlbumsPage
             dragSource.OnDragBegin -= AlbumOnOnDragBegin;
             dragSource.OnPrepare -= AlbumOnPrepare;            
         }
-        _albumDragSources.Clear();       
+        _albumDragSources.Clear();
         
+        // Dispose models (and their owned textures) before removing them from the store
+        var n = (int)_listStore.GetNItems();
+        for (var i = n - 1; i >= 0; i--)
+        {
+            var obj = _listStore.GetObject((uint)i);
+            if (obj is not AlbumsAlbumModel model) continue;
+
+            model.CoverTexture = null;
+            model.Dispose();
+        }        
         _listStore.RemoveAll();        
     }
     
@@ -78,6 +88,6 @@ public partial class AlbumsPage
         var listItem = (ListItem)args.Object;
         var modelItem = (AlbumsAlbumModel)listItem.GetItem()!;
         var widget = (AlbumsAlbumListItem)listItem.GetChild()!;
-        widget.Initialize(modelItem);
+        widget.Bind(modelItem);
     }
 }

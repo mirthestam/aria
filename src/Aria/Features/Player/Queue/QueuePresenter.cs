@@ -40,7 +40,18 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
         {
             _view?.TogglePage(Queue.QueuePages.Empty);
             _view?.RefreshTracks([]);
-        });        
+        }).ConfigureAwait(false);
+
+        foreach (var model in _modelsByQueueTrackId.Values)
+        {
+            // Triggers disposal of the unmanaged texture via the property setter
+            model.CoverTexture = null;
+            
+            // Release managed wrapper ref (GObject) held by our cache
+            model.Dispose();            
+        }
+        
+        _modelsByQueueTrackId.Clear();       
     }        
 
     public QueuePresenter(IMessenger messenger, IAria aria, ILogger<QueuePresenter> logger, ResourceTextureLoader resourceTextureLoader)
@@ -153,7 +164,7 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
 
             var tracks = await _aria.Queue.GetTracksAsync().ConfigureAwait(false);
 
-            // Build ordered model list by reusing existing models where possible.
+            // Build the ordered model list by reusing existing models where possible.
             var newOrderedModels = new List<QueueTrackModel>();
             var seenIds = new HashSet<Id>();
 
@@ -162,11 +173,6 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
                 ct.ThrowIfCancellationRequested();
 
                 var queueTrackId = t.Id;
-                if (queueTrackId == null)
-                {
-                    newOrderedModels.Add(QueueTrackModel.NewFromQueueTrackInfo(t));
-                    continue;
-                }
 
                 seenIds.Add(queueTrackId);
 
@@ -182,12 +188,13 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
 
                 newOrderedModels.Add(model);
             }
-
-            // Purge removed tracks from cache
+            
+            var modelsToDispose = new List<QueueTrackModel>();            
             var removedIds = _modelsByQueueTrackId.Keys.Where(id => !seenIds.Contains(id)).ToList();
             foreach (var removedId in removedIds)
             {
-                _modelsByQueueTrackId.Remove(removedId);
+                if (_modelsByQueueTrackId.TryGetValue(removedId, out var removedModel))
+                    modelsToDispose.Add(removedModel);                
             }
 
             ct.ThrowIfCancellationRequested();
@@ -197,7 +204,19 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
                 _view?.RefreshTracks(newOrderedModels);
                 _view?.TogglePage(_aria.Queue.Length != 0 ? Queue.QueuePages.Tracks : Queue.QueuePages.Empty);
             }, ct).ConfigureAwait(false);
-
+            
+            // Now it's safe to remove + dispose removed models (GTK has dropped refs)
+            foreach (var removedId in removedIds)
+            {
+                _modelsByQueueTrackId.Remove(removedId);
+            }
+            
+            foreach (var obsoleteModel in modelsToDispose)
+            {
+                obsoleteModel.CoverTexture = null;
+                obsoleteModel.Dispose();
+            }
+            
             await ProcessArtworkAsync(newOrderedModels, ct);
         }
         catch (OperationCanceledException)

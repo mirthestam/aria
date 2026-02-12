@@ -22,20 +22,22 @@ public partial class AlbumModel : INotifyPropertyChanged
     public Texture? CoverTexture
     {
         get;
-        set => SetField(ref field, value);
-    }
+        set
+        {
+            if (ReferenceEquals(field, value)) return;
 
+            // This model owns the texture once assigned.
+            field?.Dispose();
+
+            field = value;
+            OnPropertyChanged();
+        }
+    }
+    
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    private void SetField<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-    {
-        if (EqualityComparer<T>.Default.Equals(field, value)) return;
-        field = value;
-        OnPropertyChanged(propertyName);
     }
 }

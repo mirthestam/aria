@@ -35,4 +35,31 @@ public static class GtkDispatch
 
         return tcs.Task;
     }
+    
+    /// <summary>
+    /// Fire-and-forget: run an action on the GTK main loop (idle) without awaiting completion.
+    /// Exceptions are swallowed (by default) because there's no caller to observe them.
+    /// </summary>
+    public static void InvokeIdle(Action action, CancellationToken cancellationToken = default)
+    {
+        if (cancellationToken.IsCancellationRequested)
+            return;
+
+        GLib.Functions.IdleAdd(0, () =>
+        {
+            if (cancellationToken.IsCancellationRequested)
+                return false;
+
+            try
+            {
+                action();
+            }
+            catch
+            {
+                // Intentionally ignored: no observer in fire-and-forget mode.
+            }
+
+            return false;
+        });
+    }    
 }

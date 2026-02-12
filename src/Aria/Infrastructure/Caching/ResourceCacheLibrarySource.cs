@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using GdkPixbuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -125,7 +126,11 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
             try
             {
                 TryDelete(fileName);
-                File.Move(tmp, fileName);
+                if (!TryCreateThumbnailPng(await File.ReadAllBytesAsync(tmp, cancellationToken), 128, 128, fileName))
+                {
+                    throw new Exception("Failed to create thumbnail");
+                }
+
                 LogCacheWriteSuccess(resourceId, bytesWritten, fileName);
             }
             catch (Exception e)
@@ -133,6 +138,10 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
                 TryDelete(tmp);
                 LogCacheWriteFailed(e, resourceId, fileName);
                 throw;
+            }
+            finally
+            {
+                TryDelete(tmp);                
             }
 
             return new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.Read, bufferSize: 64 * 1024,
@@ -144,6 +153,29 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
         }
     }
 
+    private static bool TryCreateThumbnailPng(byte[] inputBytes, int maxWidth, int maxHeight, string fileName)
+    {
+        try
+        {
+            using var loader = PixbufLoader.NewWithProperties([]);
+                
+            loader.Write(inputBytes);
+            loader.Close();
+            
+            var pixelBuffer = loader.GetPixbuf();
+            if (pixelBuffer == null) return false;
+            
+            if (pixelBuffer.Width <= 0 || pixelBuffer.Height <= 0) return false;
+            
+            var scaledPixelBuffer = pixelBuffer.ScaleSimple(maxWidth, maxHeight, InterpType.Bilinear);
+            return scaledPixelBuffer != null && scaledPixelBuffer.Savev(fileName, "png", [], []);
+        }
+        catch
+        {
+            return false;
+        }
+    }    
+    
     private bool TryOpenIfValid(string fileName, out Stream stream)
     {
         stream = Stream.Null;

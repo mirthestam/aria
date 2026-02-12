@@ -32,7 +32,21 @@ public partial class BrowserPage
     public SearchPage SearchPage => _searchPage;
     public NavigationSplitView NavigationSplitView => _libraryNavigationSplitView;
     public PlaylistsPage LibraryPlaylistsPage => _libraryPlaylistsPage;
-    
+
+    partial void Initialize()
+    {
+        _libraryNavigationView.OnPopped += LibraryNavigationViewOnOnPopped;
+    }
+
+    private void LibraryNavigationViewOnOnPopped(NavigationView sender, NavigationView.PoppedSignalArgs args)
+    {
+        if (args.Page is AlbumPage albumPage)
+        {
+            albumPage.Dispose();
+        }
+    }
+
+
     public void StartSearch()
     {
         if (_browserNavigationView.VisiblePageTag == SearchPageName) return;
@@ -53,9 +67,9 @@ public partial class BrowserPage
         _libraryArtistsPage.Unselect();
         _browserNavigationView.Pop();
         _libraryNavigationView.ReplaceWithTags(["library-albums"]);
-        _libraryNavigationSplitView.SetShowContent(true);        
+        _libraryNavigationSplitView.SetShowContent(true);
     }
-
+    
     public void ShowPlaylists()
     {
         _libraryArtistsPage.Unselect();
@@ -71,5 +85,7 @@ public partial class BrowserPage
         _libraryNavigationView.Push(page);
         _libraryNavigationSplitView.SetShowContent(true);
         return page;
+        
+        
     }
 }

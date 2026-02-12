@@ -20,8 +20,7 @@ public partial class ArtistPage
 
     private const string EmptyPageName = "empty-stack-page";
     private const string ArtistPageName = "artist-stack-page";
-
-
+    
     [Connect("albums-grid-view")] private GridView _gridView;
     [Connect("artist-stack")] private Stack _artistStack;
 
@@ -93,6 +92,16 @@ public partial class ArtistPage
 
         _albumDragSources.Clear();
 
+        // Dispose models (and their owned textures) before removing them from the store
+        var n = (int)_listStore.GetNItems();
+        for (var i = n - 1; i >= 0; i--)
+        {
+            var obj = _listStore.GetObject((uint)i);
+            if (obj is not AlbumModel model) continue;
+
+            model.CoverTexture = null;
+            model.Dispose();
+        }        
         _listStore.RemoveAll();
     }
     

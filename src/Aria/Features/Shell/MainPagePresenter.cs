@@ -85,14 +85,9 @@ public partial class MainPagePresenter : IRootPresenter<MainPage>
         {
             LogLoadingUiForConnectedBackend();
             
-            _logger.LogWarning("Refreshing player.");
             await _playerPresenter.RefreshAsync(cancellationToken);
-            
-            _logger.LogWarning("Refreshing playerbar.");
-            await _playerBarPresenter.RefreshAsync(cancellationToken);
-            
-            _logger.LogWarning("Refreshing browser.");
-            await _browserHostPresenter.RefreshAsync(cancellationToken);
+            //await _playerBarPresenter.RefreshAsync(cancellationToken);
+            //await _browserHostPresenter.RefreshAsync(cancellationToken);
             
             _logger.LogWarning(cancellationToken.IsCancellationRequested
                 ? "UI refresh was cancelled before completion."
@@ -112,7 +107,7 @@ public partial class MainPagePresenter : IRootPresenter<MainPage>
         }    
     }
 
-    private async Task Reset(CancellationToken cancellationToken = default)
+    private async Task ResetAsync(CancellationToken cancellationToken = default)
     {
         try
         {
@@ -141,7 +136,7 @@ public partial class MainPagePresenter : IRootPresenter<MainPage>
 
     private async Task OnEngineStoppedAsync(CancellationToken cancellationToken = default)
     {
-        await Reset(cancellationToken);
+        await ResetAsync(cancellationToken);
     }
 
     private async Task SequenceTaskAsync(Func<Task> action)
