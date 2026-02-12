@@ -86,8 +86,8 @@ public partial class MainPagePresenter : IRootPresenter<MainPage>
             LogLoadingUiForConnectedBackend();
             
             await _playerPresenter.RefreshAsync(cancellationToken);
-            //await _playerBarPresenter.RefreshAsync(cancellationToken);
-            //await _browserHostPresenter.RefreshAsync(cancellationToken);
+            await _playerBarPresenter.RefreshAsync(cancellationToken);
+            await _browserHostPresenter.RefreshAsync(cancellationToken);
             
             _logger.LogWarning(cancellationToken.IsCancellationRequested
                 ? "UI refresh was cancelled before completion."
