@@ -66,29 +66,29 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         
     }
 
-    public override async Task EnqueueAsync(Info info, int index)
+    public override async Task EnqueueAsync(Info info, uint index)
     {
         switch (info)
         {
             case AlbumTrackInfo albumTrack:
-                await EnqueueAsync([albumTrack.Track], index).ConfigureAwait(false);
+                await EnqueueAsync([albumTrack.Track], (int)index).ConfigureAwait(false);
                 break;
             
             case TrackInfo track:
-                await EnqueueAsync([track], index).ConfigureAwait(false);
+                await EnqueueAsync([track], (int)index).ConfigureAwait(false);
                 break;
 
             case AlbumInfo album:
-                await EnqueueAsync(album.Tracks.Select(t => t.Track), index).ConfigureAwait(false);
+                await EnqueueAsync(album.Tracks.Select(t => t.Track), (int)index).ConfigureAwait(false);
                 break;
             
             case PlaylistInfo playlist:
-                await EnqueueAsync(playlist.Tracks.Select(t => t.Track), index).ConfigureAwait(false);
+                await EnqueueAsync(playlist.Tracks.Select(t => t.Track), (int)index).ConfigureAwait(false);
                 break;
         }
     }
 
-    public override async Task MoveAsync(Id sourceTrackId, int targetPlaylistIndex)
+    public override async Task MoveAsync(Id sourceTrackId, uint targetPlaylistIndex)
     {
         try
         {
@@ -101,7 +101,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
             if (sourceTrack == null) throw new InvalidOperationException("Source track not found");
             if (targetPlaylistIndex > sourceTrack.Position) targetPlaylistIndex--;
 
-            var command = new MoveIdCommand(queueTrackId.Value, targetPlaylistIndex);
+            var command = new MoveIdCommand(queueTrackId.Value, (int)targetPlaylistIndex);
             await client.SendCommandAsync(command).ConfigureAwait(false);
         }
         catch (Exception e)

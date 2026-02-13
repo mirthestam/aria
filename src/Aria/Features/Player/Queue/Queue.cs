@@ -22,14 +22,17 @@ public partial class Queue
 
     [Connect("tracks-list-view")] private ListView _tracksListView;
 
-    private SignalListItemFactory _signalListItemFactory;
-    private ListStore _tracksListStore;
-    private SingleSelection _tracksSelection;
-    private bool _suppressSelectionEvent;
-    
+    private SignalListItemFactory _itemFactory;
+    private ListStore _listStore;
+    private SingleSelection _selection;
+
+    [Connect("gesture-click")] private GestureClick _gestureClick;
+    [Connect("gesture-long-press")] private GestureLongPress _gestureLongPress;
+    [Connect("track-popover-menu")] private PopoverMenu _trackPopoverMenu;
+
     public event EventHandler<EnqueueRequestedEventArgs> EnqueueRequested;
     public event EventHandler<MoveRequestedEventArgs> MoveRequested;
-    public event EventHandler<TrackSelectionChangedEventArgs>? TrackSelectionChanged;
+    public event EventHandler<TrackActivatedEventArgs>? TrackActivated;
 
     partial void Initialize()
     {
@@ -38,25 +41,29 @@ public partial class Queue
 
         TogglePage(QueuePages.Empty);
 
-        _signalListItemFactory = SignalListItemFactory.NewWithProperties([]);
-        _signalListItemFactory.OnSetup += OnSignalListItemFactoryOnOnSetup;
-        _signalListItemFactory.OnBind += OnSignalListItemFactoryOnOnBind;
-
-        _tracksListStore = ListStore.New(QueueTrackModel.GetGType());
-        _tracksSelection = SingleSelection.New(_tracksListStore);
-        _tracksSelection.CanUnselect = true;
-        _tracksSelection.Autoselect = false;
-        _tracksListView.SetFactory(_signalListItemFactory);
-        _tracksListView.SetModel(_tracksSelection);
-
-        _tracksSelection.OnSelectionChanged += (_, _) =>
-        {
-            if (!_suppressSelectionEvent) TrackSelectionChanged?.Invoke(this, new TrackSelectionChangedEventArgs(_tracksSelection.GetSelected()));
-        };
-        
+        InitializeListView();
         InitializeQueueActionGroup();
     }
-    
+
+    private void InitializeListView()
+    {
+        _itemFactory = SignalListItemFactory.NewWithProperties([]);
+        _itemFactory.OnSetup += OnItemFactoryOnOnSetup;
+        _itemFactory.OnBind += OnItemFactoryOnOnBind;
+
+        _listStore = ListStore.New(QueueTrackModel.GetGType());
+        _selection = SingleSelection.New(_listStore);
+        _selection.CanUnselect = true;
+        _selection.Autoselect = false;
+        _tracksListView.SetFactory(_itemFactory);
+        _tracksListView.SetModel(_selection);
+
+        _tracksListView.SingleClickActivate = true; // TODO: Move to .UI
+        _tracksListView.OnActivate += TracksListViewOnOnActivate;
+        _gestureClick.OnPressed += GestureClickOnOnPressed;
+        _gestureLongPress.OnPressed += GestureLongPressOnOnPressed;
+    }
+
     public void TogglePage(QueuePages page)
     {
         var pageName = page switch
@@ -71,32 +78,22 @@ public partial class Queue
 
     public void SelectTrackIndex(int? index)
     {
-        _suppressSelectionEvent = true;
-        try
+        if (index == null) _selection.UnselectAll();
+        else
         {
-            if (index == null) _tracksSelection.UnselectAll();
-            else
-            {
-                var currentSelected = _tracksSelection.GetSelected();
+            var currentSelected = _selection.GetSelected();
+            
+            if (currentSelected == (uint)index) return;
 
-                
-                
-                if (currentSelected == (uint)index) return;
-                
-                _tracksSelection.SelectItem((uint)index, true);
-                
-                if (currentSelected != GtkConstants.GtkInvalidListPosition)
-                {
-                    _tracksListView.ScrollTo((uint)index, ListScrollFlags.Focus, null);
-                }                
+            _selection.SelectItem((uint)index, true);
+
+            if (currentSelected != GtkConstants.GtkInvalidListPosition)
+            {
+                _tracksListView.ScrollTo((uint)index, ListScrollFlags.Focus, null);
             }
         }
-        finally
-        {
-            _suppressSelectionEvent = false;
-        }
     }
-    
+
     public void RefreshTracks(IEnumerable<QueueTrackModel> tracks)
     {
         // We assume the caller (presenter) reuses QueueTrackModel instances where possible.
@@ -111,10 +108,10 @@ public partial class Queue
         {
             var desiredItem = desired[i];
 
-            var currentCount = (int)_tracksListStore.GetNItems();
+            var currentCount = (int)_listStore.GetNItems();
             if (i < currentCount)
             {
-                var currentItemObj = _tracksListStore.GetItem((uint)i);
+                var currentItemObj = _listStore.GetItem((uint)i);
                 if (ReferenceEquals(currentItemObj, desiredItem))
                     continue;
 
@@ -122,7 +119,7 @@ public partial class Queue
                 var foundIndex = -1;
                 for (var j = i + 1; j < currentCount; j++)
                 {
-                    var obj = _tracksListStore.GetItem((uint)j);
+                    var obj = _listStore.GetItem((uint)j);
                     if (ReferenceEquals(obj, desiredItem))
                     {
                         foundIndex = j;
@@ -133,30 +130,30 @@ public partial class Queue
                 if (foundIndex >= 0)
                 {
                     // Move: remove at foundIndex, insert at i
-                    _tracksListStore.Remove((uint)foundIndex);
-                    _tracksListStore.Insert((uint)i, desiredItem);
+                    _listStore.Remove((uint)foundIndex);
+                    _listStore.Insert((uint)i, desiredItem);
                 }
                 else
                 {
                     // Insert: new item at i
-                    _tracksListStore.Insert((uint)i, desiredItem);
+                    _listStore.Insert((uint)i, desiredItem);
                 }
             }
             else
             {
                 // Append remaining new items
-                _tracksListStore.Append(desiredItem);
+                _listStore.Append(desiredItem);
             }
         }
 
         // Remove any extra items at the end
-        for (var i = (int)_tracksListStore.GetNItems() - 1; i >= desiredCount; i--)
+        for (var i = (int)_listStore.GetNItems() - 1; i >= desiredCount; i--)
         {
-            _tracksListStore.Remove((uint)i);
+            _listStore.Remove((uint)i);
         }
     }
-    
-    private void OnSignalListItemFactoryOnOnSetup(SignalListItemFactory _, SignalListItemFactory.SetupSignalArgs args)
+
+    private void OnItemFactoryOnOnSetup(SignalListItemFactory _, SignalListItemFactory.SetupSignalArgs args)
     {
         var item = (ListItem)args.Object;
         var child = TrackListItem.NewWithProperties([]);
@@ -165,9 +162,9 @@ public partial class Queue
         SetupDragDropForItem(child);
 
         item.SetChild(child);
-    }    
-    
-    private static void OnSignalListItemFactoryOnOnBind(SignalListItemFactory _, SignalListItemFactory.BindSignalArgs args)
+    }
+
+    private static void OnItemFactoryOnOnBind(SignalListItemFactory _, SignalListItemFactory.BindSignalArgs args)
     {
         var listItem = (ListItem)args.Object;
         var modelItem = (QueueTrackModel)listItem.GetItem()!;

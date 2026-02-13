@@ -1,8 +1,5 @@
 using Adw;
-using Aria.Core.Library;
 using Aria.Infrastructure;
-using Gdk;
-using GLib;
 using GObject;
 using Gtk;
 using ListStore = Gio.ListStore;

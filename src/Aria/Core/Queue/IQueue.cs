@@ -38,9 +38,9 @@ public interface IQueue
     public Task EnqueueAsync(Info item, EnqueueAction action);
     public Task EnqueueAsync(IEnumerable<Info> items, EnqueueAction action);
     
-    public Task EnqueueAsync(Info item, int index);
+    public Task EnqueueAsync(Info item, uint index);
 
-    public Task MoveAsync(Id sourceTrackId, int targetPlaylistIndex);
+    public Task MoveAsync(Id sourceTrackId, uint targetPlaylistIndex);
 
     public Task ClearAsync();
     

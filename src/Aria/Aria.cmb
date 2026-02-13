@@ -36,8 +36,8 @@
 ]]></content>
   </ui>
   <ui filename="../Aria.App/Resources/shortcuts-dialog.ui" sha256="e702598f983dd038081264450bdfc5c722acf4e19392b7052e10079059765c30"/>
-  <ui template-class="AriaFeaturesPlayerQueueQueue" filename="Features/Player/Queue/Queue.ui" sha256="572ebf42b115498e5e5719286684af5d4004bbc4b4a62f33fbbf309d24e7c595"/>
-  <ui template-class="AriaFeaturesPlayerQueueTrackListItem" filename="Features/Player/Queue/TrackListItem.ui" sha256="2670bfebfc8993658234f032dcb4907f492ec509b62c9c330a12449b5f2b0bc6"/>
+  <ui template-class="AriaFeaturesPlayerQueueQueue" filename="Features/Player/Queue/Queue.ui" sha256="590ebf38775e3627463f420f9b4950a2a9f05883555bd8eb8eed2b08593dd43b"/>
+  <ui template-class="AriaFeaturesPlayerQueueTrackListItem" filename="Features/Player/Queue/TrackListItem.ui" sha256="b87d5b6c7eb5bde36729889c11a9c49b76ed42c7300eecba5bdd68c83859ad6e"/>
   <ui template-class="AriaFeaturesDetailsTrackDetailsDialog" filename="Features/Details/TrackDetailsDialog.ui" sha256="267213fd314edfff05df1f14f5d55ed7fae33f0ca58aec73b0263d3f5c21fb3e"/>
   <ui template-class="AriaFeaturesBrowserPlaylistsPlaylistsPage" filename="Features/Browser/Playlists/PlaylistsPage.ui" sha256="40750c7f7f3e0084b2a6642cfb1a51ca470b24e203bea9fb5d419decb0b38dde"/>
   <ui template-class="AriaFeaturesBrowserPlaylistsPlaylistNameCell" filename="Features/Browser/Playlists/PlaylistNameCell.ui" sha256="b0fd45d5587c7dd58a7cf85c9cdda3ab16b26cad1e95db606995f004fe97a0b8"/>

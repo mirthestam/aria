@@ -34,9 +34,9 @@ public abstract class BaseQueue : IQueueSource
     
     public virtual Task EnqueueAsync(IEnumerable<Info> items, EnqueueAction action) => Task.CompletedTask;
 
-    public virtual Task EnqueueAsync(Info item, int index) => Task.CompletedTask;
+    public virtual Task EnqueueAsync(Info item, uint index) => Task.CompletedTask;
 
-    public virtual Task MoveAsync(Id sourceTrackId, int targetPlaylistIndex) => Task.CompletedTask;
+    public virtual Task MoveAsync(Id sourceTrackId, uint targetPlaylistIndex) => Task.CompletedTask;
 
     public virtual Task ClearAsync() => Task.CompletedTask;
     

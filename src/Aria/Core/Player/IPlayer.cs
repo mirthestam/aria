@@ -33,7 +33,7 @@ public interface IPlayer
     /// <summary>
     /// Starts playback of the current index in the queue.
     /// </summary>
-    Task PlayAsync(int index);
+    Task PlayAsync(uint index);
 
     /// <summary>
     /// Pauses the playback if the player is currently playing.

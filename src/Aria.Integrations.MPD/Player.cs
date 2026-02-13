@@ -8,7 +8,7 @@ namespace Aria.Backends.MPD;
 
 public class Player(Client client) : BasePlayer
 {
-    public override async Task PlayAsync(int index) => await client.SendCommandAsync(new PlayCommand(index)).ConfigureAwait(false);
+    public override async Task PlayAsync(uint index) => await client.SendCommandAsync(new PlayCommand((int)index)).ConfigureAwait(false); // Dirty cas but playlist won't go negative.
     public override async Task PauseAsync() => await client.SendCommandAsync(new PauseResumeCommand(true)).ConfigureAwait(false);
     public override async Task ResumeAsync() => await client.SendCommandAsync(new PauseResumeCommand(false)).ConfigureAwait(false);
     public override async Task NextAsync() => await client.SendCommandAsync(new NextCommand()).ConfigureAwait(false);

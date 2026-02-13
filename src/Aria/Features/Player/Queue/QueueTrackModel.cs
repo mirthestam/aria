@@ -57,7 +57,7 @@ public partial class QueueTrackModel : INotifyPropertyChanged
         Position = queueTrack.Position;    
     }
     
-    public int Position { get; set; }
+    public uint Position { get; set; }
     
     public Id QueueTrackId { get; set; }
     

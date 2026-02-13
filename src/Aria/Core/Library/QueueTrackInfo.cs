@@ -12,7 +12,7 @@ public record QueueTrackInfo
     /// <summary>
     /// The position of the track in the queue.
     /// </summary>
-    public required int Position { get; init;}
+    public required uint Position { get; init;}
     
     /// <summary>
     /// Represents a track within an album, containing metadata and associated details.

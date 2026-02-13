@@ -15,11 +15,6 @@
         <child>
           <object class="GtkBox">
             <child>
-              <object class="GtkGestureClick" id="gesture-click">
-                <property name="button">3</property>
-              </object>
-            </child>
-            <child>
               <object class="AdwClamp">
                 <property name="maximum-size">48</property>
                 <property name="valign">center</property>

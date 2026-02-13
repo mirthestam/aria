@@ -7,7 +7,7 @@ namespace Aria.Infrastructure.Extraction;
 
 public sealed class ParsedTags
 {
-    public int? QueuePosition { get; set; }
+    public uint? QueuePosition { get; set; }
 
     public string FileName { get; set; } = "";
     public string Date { get; set; } = "";
@@ -101,7 +101,7 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
 
         var queueTrackInfo = new QueueTrackInfo
         {
-            Id = null,
+            Id = Id.Undetermined,
             Position = parsed.QueuePosition.Value,
             Track = trackInfo
         };
@@ -206,7 +206,7 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
         {
             if (tag.Name.Equals(PicardTagNames.QueueTags.Position, StringComparison.OrdinalIgnoreCase))
             {
-                if (int.TryParse(tag.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var pos))
+                if (uint.TryParse(tag.Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var pos))
                     parsed.QueuePosition = pos;
                 continue;
             }

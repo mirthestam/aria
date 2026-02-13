@@ -67,7 +67,7 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
     public void Attach(Queue view)
     {
         _view = view;
-        _view.TrackSelectionChanged += ViewOnTrackSelectionChanged;
+        _view.TrackActivated += ViewOnTrackActivated;
         _view.EnqueueRequested += ViewOnEnqueueRequested;
         _view.MoveRequested += ViewOnMoveRequested;
         _view.TogglePage(Queue.QueuePages.Empty);
@@ -147,9 +147,10 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
 
     }
 
-    private void ViewOnTrackSelectionChanged(object? sender, TrackSelectionChangedEventArgs e)
+    private void ViewOnTrackActivated(object? sender, TrackActivatedEventArgs e)
     {
-        _aria.Player.PlayAsync((int)e.SelectedIndex);
+        // Player needs the index on the queue
+        _aria.Player.PlayAsync(e.SelectedIndex);
     }
 
     private async Task RefreshTracksAsync(CancellationToken externalCancellationToken = default)

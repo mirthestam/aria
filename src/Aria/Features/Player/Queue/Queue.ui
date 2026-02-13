@@ -19,6 +19,22 @@
                     <property name="css-classes">navigation-sidebar
 playlist</property>
                     <property name="tab-behavior">item</property>
+                    <child>
+                      <object class="GtkPopoverMenu" id="track-popover-menu">
+                        <property name="halign">start</property>
+                        <property name="has-arrow">false</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkGestureLongPress" id="gesture-long-press">
+                        <property name="touch-only">True</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkGestureClick" id="gesture-click">
+                        <property name="button">3</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
               </object>
