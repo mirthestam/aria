@@ -51,9 +51,45 @@
           </object>
         </property>
         <child type="top">
-          <object class="AdwHeaderBar"/>
+          <object class="AdwHeaderBar">
+            <child type="end">
+              <object class="GtkMenuButton" id="sorting-menu-button">
+                <property name="active">False</property>
+                <property name="css-classes">flat
+popup</property>
+                <property name="icon-name">view-sort-symbolic</property>
+                <property name="menu-model">albums-sort-menu</property>
+                <property name="visible">True</property>
+              </object>
+            </child>
+          </object>
         </child>
       </object>
     </child>
   </template>
+  <menu id="albums-sort-menu">
+    <section id="main-section">
+      <attribute name="label">Sort By</attribute>
+      <item>
+        <attribute name="action">albums.sorting</attribute>
+        <attribute name="label">Title (A-Z)</attribute>
+        <attribute name="target">Title</attribute>
+      </item>
+      <item>
+        <attribute name="action">albums.sorting</attribute>
+        <attribute name="label">Title (Z-A)</attribute>
+        <attribute name="target">TitleDescending</attribute>
+      </item>
+      <item>
+        <attribute name="action">albums.sorting</attribute>
+        <attribute name="label">Released (Newest First)</attribute>
+        <attribute name="target">ReleaseDateDescending</attribute>
+      </item>
+      <item>
+        <attribute name="action">albums.sorting</attribute>
+        <attribute name="label">Released (Oldest First)</attribute>
+        <attribute name="target">ReleaseDate</attribute>
+      </item>
+    </section>
+  </menu>
 </interface>

@@ -17,22 +17,29 @@ public partial class AlbumsPage
     
     private void InitializeActions()
     {
+        const string albumsGroup = "albums";
+        var albumsActionGroup = SimpleActionGroup.New();
+        _sorterAction = SimpleAction.NewStateful("sorting", VariantType.String, Variant.NewString("Title"));
+        albumsActionGroup.AddAction(_sorterAction);
+        InsertActionGroup(albumsGroup, albumsActionGroup);        
+        
         const string group = "album";
         const string showAlbum = "show-album";
         const string enqueueReplace = "enqueue-replace";
         const string enqueueNext = "enqueue-next";
         const string enqueueEnd = "enqueue-end";
         
-        var queueActionGroup = SimpleActionGroup.New();
-        queueActionGroup.AddAction(_albumShowAction = SimpleAction.New(showAlbum, null));
-        queueActionGroup.AddAction(_enqueueReplaceAction = SimpleAction.New(enqueueReplace, null));
-        queueActionGroup.AddAction(_enqueueNextAction = SimpleAction.New(enqueueNext, null));
-        queueActionGroup.AddAction(_enqueueEndAction = SimpleAction.New(enqueueEnd, null));
+        var albumActionGroup = SimpleActionGroup.New();
+        albumActionGroup.AddAction(_albumShowAction = SimpleAction.New(showAlbum, null));
+        albumActionGroup.AddAction(_enqueueReplaceAction = SimpleAction.New(enqueueReplace, null));
+        albumActionGroup.AddAction(_enqueueNextAction = SimpleAction.New(enqueueNext, null));
+        albumActionGroup.AddAction(_enqueueEndAction = SimpleAction.New(enqueueEnd, null));
+        
         _albumShowAction.OnActivate += AlbumShowActionOnOnActivate;
         _enqueueReplaceAction.OnActivate += EnqueueReplaceActionOnOnActivate;
         _enqueueNextAction.OnActivate += EnqueueNextActionOnOnActivate;
         _enqueueEndAction.OnActivate += EnqueueEndActionOnOnActivate;
-        InsertActionGroup(group, queueActionGroup);
+        InsertActionGroup(group, albumActionGroup);
 
         var defaultAction = IQueue.DefaultEnqueueAction switch
         {
@@ -82,7 +89,7 @@ public partial class AlbumsPage
         
         var selected = _singleSelection.GetSelected();
         if (selected == GtkConstants.GtkInvalidListPosition) return;
-        _contextMenuItem = (AlbumsAlbumModel) _listStore.GetObject(selected)!;
+        _contextMenuItem = (AlbumsAlbumModel) _listModel.GetObject(selected)!;
         
         var rect = new Rectangle
         {

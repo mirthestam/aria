@@ -18,6 +18,12 @@ public partial class ArtistPage
 
     private void InitializeActions()
     {
+        const string albumsGroup = "albums";
+        var albumsActionGroup = SimpleActionGroup.New();
+        _sorterAction = SimpleAction.NewStateful("sorting", VariantType.String, Variant.NewString("Title"));
+        albumsActionGroup.AddAction(_sorterAction);
+        InsertActionGroup(albumsGroup, albumsActionGroup);        
+        
         const string group = "album";
         const string showAlbum = "show-album";
         const string showAlbumForArtist = "show-album-for-artist";

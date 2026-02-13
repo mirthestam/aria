@@ -30,7 +30,7 @@ public partial class ArtistsPage
     
     // Sorting
     private CustomSorter _sorter;                                     
-    private SortListModel _sortedListModel;                           
+    private SortListModel _sortedListModel;
     
     // Selection
     private SingleSelection _selectionModel;                          
@@ -41,8 +41,8 @@ public partial class ArtistsPage
     
     partial void Initialize()
     {
-        InitializeArtistsMenu();
-        InitializeArtistsList();        
+        InitializeArtistsList();
+        InitializeActions();
     }
 
     public void SetActiveFilter(ArtistsFilter filter)
@@ -90,11 +90,12 @@ public partial class ArtistsPage
         // Filter
         _filter = CustomFilter.New(ShouldFilter);
         _filteredListModel = FilterListModel.New(_listModel, _filter);
+        _filterAction = SimpleAction.NewStateful("filter", VariantType.String, Variant.NewString("Artists"));        
         _filterAction.OnChangeState += FilterActionOnOnChangeState;        
 
         // Sorting
-        CompareDataFuncT<ArtistModel> func = SortArtistModel;
-        _sorter = CustomSorter.New(func);
+        CompareDataFuncT<ArtistModel> sortArtistModel = SortArtistModel;
+        _sorter = CustomSorter.New(sortArtistModel);
         _sortedListModel = SortListModel.New(_filteredListModel, _sorter);
         
         // Selection
@@ -163,10 +164,9 @@ public partial class ArtistsPage
         };
     }
     
-    private void InitializeArtistsMenu()
+    private void InitializeActions()
     {
         var actionGroup = SimpleActionGroup.New();
-        _filterAction = SimpleAction.NewStateful("filter", VariantType.String, Variant.NewString("Artists"));
         actionGroup.AddAction(_filterAction);
         InsertActionGroup("artists", actionGroup);
         _artistsMenuButton.InsertActionGroup("artists", actionGroup);

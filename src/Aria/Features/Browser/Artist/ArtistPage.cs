@@ -2,6 +2,8 @@ using Adw;
 using Aria.Core.Library;
 using Aria.Infrastructure;
 using Gdk;
+using Gio;
+using GLib;
 using GObject;
 using Gtk;
 using ListStore = Gio.ListStore;
@@ -18,9 +20,17 @@ public partial class ArtistPage
         Empty
     }
 
+    public enum AlbumSorting
+    {
+        Title,
+        TitleDescending,
+        ReleaseDate,
+        ReleaseDateDescending
+    }
+
     private const string EmptyPageName = "empty-stack-page";
     private const string ArtistPageName = "artist-stack-page";
-    
+
     [Connect("albums-grid-view")] private GridView _gridView;
     [Connect("artist-stack")] private Stack _artistStack;
 
@@ -28,22 +38,43 @@ public partial class ArtistPage
     [Connect("gesture-long-press")] private GestureLongPress _gestureLongPress;
     [Connect("album-popover-menu")] private PopoverMenu _albumPopoverMenu;
 
+    // Raw storage
+    private ListStore _listModel;
+
+    // Sorting
+    private CustomSorter _sorter;
+    private SimpleAction _sorterAction;
+    private SortListModel _sortedListModel;
+    private AlbumSorting _sorting = AlbumSorting.Title;
+
+    // Selection
+    private SingleSelection _singleSelection;
+
+    // Presentation
+    private SignalListItemFactory _signalListItemFactory;
+
     private ArtistInfo _artist;
 
-    private ListStore _listStore;
-    private SingleSelection _singleSelection;
-    private SignalListItemFactory _signalListItemFactory;
-    
     private AlbumModel? _contextMenuItem;
 
     public event Action<AlbumInfo, ArtistInfo>? AlbumSelected;
 
     partial void Initialize()
     {
-        InitializeGridView();
         InitializeActions();
+        InitializeGridView();
     }
-    
+
+    public void SetActiveSorting(AlbumSorting filter)
+    {
+        _sorting = filter;
+
+        _sorterAction.SetState(Variant.NewString(filter.ToString()));
+
+        // Tell the actual sorter our preference has changed
+        _sorter.Changed(SorterChange.Different);
+    }
+
     public void TogglePage(ArtistPages page)
     {
         var pageName = page switch
@@ -63,15 +94,27 @@ public partial class ArtistPage
         _artist = artistInfo;
         SetTitle(artistInfo.Name);
 
-        foreach (var album in albumModels) _listStore.Append(album);
+        foreach (var album in albumModels) _listModel.Append(album);
     }
 
     private void InitializeGridView()
     {
+        // Raw Data
+        _listModel = ListStore.New(AlbumModel.GetGType());
+
+        // Sorting
+        CompareDataFuncT<AlbumModel> sortAlbum = SortAlbum;
+        _sorter = CustomSorter.New(sortAlbum);
+        _sortedListModel = SortListModel.New(_listModel, _sorter);
+        _sorterAction.OnChangeState += SorterActionOnOnChangeState;
+
+        // Selection
+        _singleSelection = SingleSelection.New(_sortedListModel);
+
+        // Presentation
         _signalListItemFactory = SignalListItemFactory.NewWithProperties([]);
 
-        _listStore = ListStore.New(AlbumModel.GetGType());
-        _singleSelection = SingleSelection.New(_listStore);
+
         _gridView.SetFactory(_signalListItemFactory);
         _gridView.SetModel(_singleSelection);
 
@@ -80,11 +123,48 @@ public partial class ArtistPage
 
         _gridView.SingleClickActivate = true; // TODO: Move to .UI
         _gridView.OnActivate += GridViewOnOnActivate;
-        
+
         _gestureClick.OnPressed += GestureClickOnOnPressed;
         _gestureLongPress.OnPressed += GestureLongPressOnOnPressed;
     }
-    
+
+    private int SortAlbum(AlbumModel a, AlbumModel b)
+    {
+        switch (_sorting)
+        {
+            default:
+            case AlbumSorting.Title:
+                return string.Compare(a.Album.Title, b.Album.Title, StringComparison.OrdinalIgnoreCase) switch
+                {
+                    < 0 => -1,
+                    > 0 => 1,
+                    _ => 0
+                };
+
+            case AlbumSorting.TitleDescending:
+                return string.Compare(a.Album.Title, b.Album.Title, StringComparison.OrdinalIgnoreCase) switch
+                {
+                    < 0 => 1,
+                    > 0 => -1,
+                    _ => 0
+                };
+            case AlbumSorting.ReleaseDate:
+                return a.Album.ReleaseDate?.CompareTo(b.Album.ReleaseDate) ?? 0;
+
+            case AlbumSorting.ReleaseDateDescending:
+                return b.Album.ReleaseDate?.CompareTo(a.Album.ReleaseDate) ?? 0;
+        }
+    }
+
+    private void SorterActionOnOnChangeState(SimpleAction sender, SimpleAction.ChangeStateSignalArgs args)
+    {
+        var value = args.Value?.GetString(out _);
+        var sorting = Enum.TryParse<AlbumSorting>(value, out var parsed)
+            ? parsed
+            : AlbumSorting.Title;
+        SetActiveSorting(sorting);
+    }
+
     private void Clear()
     {
         foreach (var dragSource in _albumDragSources)
@@ -96,16 +176,17 @@ public partial class ArtistPage
         _albumDragSources.Clear();
 
         // Dispose models (and their owned textures) before removing them from the store
-        var n = (int)_listStore.GetNItems();
+        var n = (int)_listModel.GetNItems();
         for (var i = n - 1; i >= 0; i--)
         {
-            var obj = _listStore.GetObject((uint)i);
+            var obj = _listModel.GetObject((uint)i);
             if (obj is not AlbumModel model) continue;
 
             model.CoverTexture = null;
             model.Dispose();
-        }        
-        _listStore.RemoveAll();
+        }
+
+        _listModel.RemoveAll();
     }
 
     private void ShowContextMenu(double x, double y)
@@ -122,7 +203,7 @@ public partial class ArtistPage
 
         var selected = _singleSelection.GetSelected();
         if (selected == GtkConstants.GtkInvalidListPosition) return;
-        _contextMenuItem = (AlbumModel)_listStore.GetObject(selected)!;
+        _contextMenuItem = (AlbumModel)_listModel.GetObject(selected)!;
 
         var rect = new Rectangle
         {
@@ -133,14 +214,14 @@ public partial class ArtistPage
         _albumPopoverMenu.SetPointingTo(rect);
 
         if (!_albumPopoverMenu.Visible)
-            _albumPopoverMenu.Popup();        
+            _albumPopoverMenu.Popup();
     }
-    
+
     private void GestureLongPressOnOnPressed(GestureLongPress sender, GestureLongPress.PressedSignalArgs args)
     {
         ShowContextMenu(args.X, args.Y);
     }
-    
+
     private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
     {
         ShowContextMenu(args.X, args.Y);

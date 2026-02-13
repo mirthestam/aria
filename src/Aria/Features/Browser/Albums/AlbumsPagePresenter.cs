@@ -32,6 +32,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
     public void Attach(AlbumsPage view)
     {
         _view = view;
+        _view.SetActiveSorting(AlbumsPage.AlbumSorting.Title);  // Configurable default in the future?
     }
     
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
