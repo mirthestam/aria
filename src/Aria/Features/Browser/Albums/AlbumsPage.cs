@@ -16,7 +16,8 @@ public partial class AlbumsPage
     [Connect("albums-grid-view")] private GridView _gridView;
     [Connect("artist-stack")] private Stack _artistStack;
 
-    [Connect("gesture-click")] private GestureClick _gestureClick;    
+    [Connect("gesture-click")] private GestureClick _gestureClick;
+    [Connect("gesture-long-press")] private GestureLongPress _gestureLongPress;
     [Connect("album-popover-menu")] private PopoverMenu _albumPopoverMenu;
     
     private ListStore _listStore;
@@ -51,6 +52,7 @@ public partial class AlbumsPage
         _gridView.SingleClickActivate = true; // TODO: Move to .UI
         _gridView.OnActivate += GridViewOnOnActivate;
         _gestureClick.OnPressed += GestureClickOnOnPressed;
+        _gestureLongPress.OnPressed += GestureLongPressOnOnPressed;
     }
     
     private void Clear()

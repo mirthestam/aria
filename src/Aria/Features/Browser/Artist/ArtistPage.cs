@@ -25,6 +25,7 @@ public partial class ArtistPage
     [Connect("artist-stack")] private Stack _artistStack;
 
     [Connect("gesture-click")] private GestureClick _gestureClick;
+    [Connect("gesture-long-press")] private GestureLongPress _gestureLongPress;
     [Connect("album-popover-menu")] private PopoverMenu _albumPopoverMenu;
 
     private ArtistInfo _artist;
@@ -79,7 +80,9 @@ public partial class ArtistPage
 
         _gridView.SingleClickActivate = true; // TODO: Move to .UI
         _gridView.OnActivate += GridViewOnOnActivate;
+        
         _gestureClick.OnPressed += GestureClickOnOnPressed;
+        _gestureLongPress.OnPressed += GestureLongPressOnOnPressed;
     }
     
     private void Clear()
@@ -104,8 +107,8 @@ public partial class ArtistPage
         }        
         _listStore.RemoveAll();
     }
-    
-    private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
+
+    private void ShowContextMenu(double x, double y)
     {
         // The grid is in single click activate mode.
         // That means that hover changes the selection.
@@ -123,14 +126,24 @@ public partial class ArtistPage
 
         var rect = new Rectangle
         {
-            X = (int)Math.Round(args.X),
-            Y = (int)Math.Round(args.Y),
+            X = (int)Math.Round(x),
+            Y = (int)Math.Round(y),
         };
 
         _albumPopoverMenu.SetPointingTo(rect);
 
         if (!_albumPopoverMenu.Visible)
-            _albumPopoverMenu.Popup();
+            _albumPopoverMenu.Popup();        
+    }
+    
+    private void GestureLongPressOnOnPressed(GestureLongPress sender, GestureLongPress.PressedSignalArgs args)
+    {
+        ShowContextMenu(args.X, args.Y);
+    }
+    
+    private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
+    {
+        ShowContextMenu(args.X, args.Y);
     }
 
     private static void OnSignalListItemFactoryOnOnBind(SignalListItemFactory _,

@@ -49,6 +49,11 @@
                             <property name="title" translatable="yes">Modified</property>
                           </object>
                         </child>
+                        <child>
+                          <object class="GtkGestureLongPress" id="gesture-long-press">
+                            <property name="touch-only">True</property>
+                          </object>
+                        </child>
                       </object>
                     </property>
                     <property name="hscrollbar-policy">never</property>

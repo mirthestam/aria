@@ -141,10 +141,16 @@ public partial class TrackGroup
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueDefault.Action}", parameterArray);
     }
 
-    private void TrackGestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
+    private void LongPressGestureOnOnPressed(GestureLongPress sender, GestureLongPress.PressedSignalArgs args)
     {
-        _contextMenuRow = (AlbumTrackRow)sender.Widget!;
+        var row = (AlbumTrackRow)sender.Widget!;
+        ShowContextMenu(row, args.X, args.Y);
+    }
 
+    private void ShowContextMenu(AlbumTrackRow row, double x, double y)
+    {
+        _contextMenuRow = row;
+        
         // Calculate the popover menu position by transforming coordinates:
         // Since the popover menu is attached to the parent and shared across rows,
         // we need to combine all three coordinate spaces to get the absolute position.
@@ -153,14 +159,20 @@ public partial class TrackGroup
 
         var rect = new Rectangle
         {
-            X = (int)Math.Round(boxX + rowX + args.X),
-            Y = (int)Math.Round(boxY + rowY + args.Y),
+            X = (int)Math.Round(boxX + rowX + x),
+            Y = (int)Math.Round(boxY + rowY + y),
         };
 
         _trackPopoverMenu.SetPointingTo(rect);
 
         if (!_trackPopoverMenu.Visible)
-            _trackPopoverMenu.Popup();
+            _trackPopoverMenu.Popup();        
+    }
+    
+    private void TrackGestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
+    {
+        var row = (AlbumTrackRow)sender.Widget!;
+        ShowContextMenu(row, args.X, args.Y);
     }
 
     private void GroupEnqueueDefaultActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args) =>

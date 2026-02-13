@@ -103,10 +103,15 @@ public partial class TrackGroup
             row.SetUseMarkup(false);
             row.SetTitle(track.Title);
             
-            var gesture = GestureClick.NewWithProperties([]);
-            gesture.Button = 3;
-            gesture.OnPressed += TrackGestureClickOnOnPressed;
-            row.AddController(gesture);
+            var rightClickGesture = GestureClick.NewWithProperties([]);
+            rightClickGesture.Button = 3;
+            rightClickGesture.OnPressed += TrackGestureClickOnOnPressed;
+            row.AddController(rightClickGesture);
+
+            var longPressGesture = GestureLongPress.NewWithProperties([]);
+            longPressGesture.OnPressed += LongPressGestureOnOnPressed;
+            longPressGesture.TouchOnly = true;
+            row.AddController(longPressGesture);            
             
             var guestArtists = SharedArtistHelper.GetUniqueSongArtists(track, _tracks);
             var subTitleLine = string.Join(", ", guestArtists.Select(a => a.Artist.Name));
@@ -122,7 +127,6 @@ public partial class TrackGroup
             _tracksListBox.Append(row);
         }
     }
-    
 
     private void UpdateHeader()
     {

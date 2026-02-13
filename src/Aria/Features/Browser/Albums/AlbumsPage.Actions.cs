@@ -1,4 +1,3 @@
-using Aria.Core;
 using Aria.Core.Queue;
 using Aria.Infrastructure;
 using Gdk;
@@ -68,8 +67,8 @@ public partial class AlbumsPage
         
         _albumPopoverMenu.SetMenuModel(menu);        
     }    
- 
-    private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
+    
+    private void ShowContextMenu(double x, double y)
     {
         // The grid is in single click activate mode.
         // That means that hover changes the selection.
@@ -87,14 +86,24 @@ public partial class AlbumsPage
         
         var rect = new Rectangle
         {
-            X = (int)Math.Round(args.X),
-            Y = (int)Math.Round(args.Y),
+            X = (int)Math.Round(x),
+            Y = (int)Math.Round(y),
         };
 
         _albumPopoverMenu.SetPointingTo(rect);
 
         if (!_albumPopoverMenu.Visible)
-            _albumPopoverMenu.Popup();
+            _albumPopoverMenu.Popup();        
+    }
+    
+    private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
+    {
+        ShowContextMenu(args.X, args.Y);
+    }
+    
+    private void GestureLongPressOnOnPressed(GestureLongPress sender, GestureLongPress.PressedSignalArgs args)
+    {
+        ShowContextMenu(args.X, args.Y);
     }
     
     private void EnqueueEndActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)

@@ -54,11 +54,6 @@
     <child>
       <object class="GtkListBox" id="tracks-listbox">
         <property name="css-classes">boxed-list</property>
-        <child>
-          <object class="GtkGestureClick" id="track-gesture-click">
-            <property name="button">3</property>
-          </object>
-        </child>
       </object>
     </child>
   </template>

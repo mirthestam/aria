@@ -9,7 +9,8 @@ namespace Aria.Features.Browser.Playlists;
 
 public partial class PlaylistsPage
 {
-    [Connect("gesture-click")] private GestureClick _gestureClick;    
+    [Connect("gesture-click")] private GestureClick _gestureClick;
+    [Connect("gesture-long-press")] private GestureLongPress _gestureLongPress;
     [Connect("playlist-popover-menu")] private PopoverMenu _playlistPopoverMenu;
     [Connect("confirm-playlist-delete")] private AlertDialog _confirmPlaylistDeleteDialog;
     
@@ -142,7 +143,7 @@ public partial class PlaylistsPage
         AddController(controller);
     }
 
-    private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
+    private void ShowContextMenu(double x, double y)
     {
         // The grid is in single click activate mode.
         // That means that hover changes the selection.
@@ -160,13 +161,23 @@ public partial class PlaylistsPage
         
         var rect = new Rectangle
         {
-            X = (int)Math.Round(args.X),
-            Y = (int)Math.Round(args.Y),
+            X = (int)Math.Round(x),
+            Y = (int)Math.Round(y),
         };
 
         _playlistPopoverMenu.SetPointingTo(rect);
 
         if (!_playlistPopoverMenu.Visible)
-            _playlistPopoverMenu.Popup();
+            _playlistPopoverMenu.Popup();        
+    }
+    
+    private void GestureLongPressOnOnPressed(GestureLongPress sender, GestureLongPress.PressedSignalArgs args)
+    {
+        ShowContextMenu(args.X, args.Y);
+    }
+    
+    private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
+    {
+        ShowContextMenu(args.X, args.Y);        
     }    
 }

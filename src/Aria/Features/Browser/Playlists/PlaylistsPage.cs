@@ -89,9 +89,10 @@ public partial class PlaylistsPage
         _columnView.SetModel(_selection);
         _columnView.OnActivate += ColumnViewOnOnActivate;
         
-        _gestureClick.OnPressed += GestureClickOnOnPressed;        
+        _gestureClick.OnPressed += GestureClickOnOnPressed;
+        _gestureLongPress.OnPressed += GestureLongPressOnOnPressed;
     }
-
+    
     private void ColumnViewOnOnActivate(ColumnView sender, ColumnView.ActivateSignalArgs args)
     {
         var activatedObject = _listStore.GetObject(args.Position);
