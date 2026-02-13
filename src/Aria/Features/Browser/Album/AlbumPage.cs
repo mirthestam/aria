@@ -139,7 +139,6 @@ public partial class AlbumPage
         _trackGroups.Clear();
         
         base.Dispose();
-        RunDispose();        
     }
 
     public void SetCover(Texture texture)

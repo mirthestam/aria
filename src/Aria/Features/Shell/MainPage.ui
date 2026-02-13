@@ -44,6 +44,7 @@
                         <property name="id">browser-layout-slot</property>
                       </object>
                     </property>
+                    <property name="margin-bottom">47</property>
                   </object>
                 </property>
                 <property name="sheet">
