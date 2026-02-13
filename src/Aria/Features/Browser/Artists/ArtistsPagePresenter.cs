@@ -4,8 +4,6 @@ using Aria.Core.Library;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
-using Gio;
-using GLib;
 using Microsoft.Extensions.Logging;
 using Task = System.Threading.Tasks.Task;
 
@@ -17,13 +15,9 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
     private readonly IMessenger _messenger;
     private readonly IAria _aria;
     
-    private const  ArtistsFilter DefaultFilter = ArtistsFilter.Artists;
-    private const ArtistNameDisplay DefaultDisplayName = ArtistNameDisplay.Name;
-
     private CancellationTokenSource? _refreshCancellationTokenSource;
     private ArtistsPage? _view;
-    private ArtistsFilter _activeFilter = ArtistsFilter.Main;
-
+    
     public ArtistsPagePresenter(ILogger<ArtistsPagePresenter> logger, IMessenger messenger, IAria aria)
     {
         _logger = logger;
@@ -43,8 +37,8 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
         try
         {
             AbortRefresh();
-            _view?.SetActiveFilter(_activeFilter);
-            _view?.RefreshArtists([], DefaultDisplayName);
+            _view?.SetActiveFilter(ArtistsFilter.Main);
+            _view?.RefreshArtists([]);
         }
         catch (Exception e)
         {
@@ -60,27 +54,15 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
     public void Attach(ArtistsPage view)
     {
         _view = view;
-        _view.ArtistSelected += artistInfo =>
-        {
-            var parameter = Variant.NewString(artistInfo.Id.ToString());
-            _view.ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowArtist.Action}", parameter);
-        };
-        _view.SetActiveFilter(_activeFilter);
-        
-        _view.ArtistsFilterAction.OnChangeState += ArtistsFilterActionOnOnChangeState;
+        _view.SetActiveFilter(ArtistsFilter.Main); // Configurable default in the future?
     }
 
-    private void ArtistsFilterActionOnOnChangeState(SimpleAction sender, SimpleAction.ChangeStateSignalArgs args)
+    public async Task SelectArtist(Id artistId)
     {
-        var value = args.Value?.GetString(out _);
-        _activeFilter = Enum.TryParse<ArtistsFilter>(value, out var parsed)
-            ? parsed
-            : DefaultFilter;
-        _view?.SetActiveFilter(_activeFilter);
-        
-        _ = RefreshArtistsAsync();
-    }
-
+        // This artist must be selected in the sidebar.
+        await GtkDispatch.InvokeIdleAsync(() => _view?.SelectArtist(artistId));
+    }    
+    
     private void AbortRefresh()
     {
         _refreshCancellationTokenSource?.Cancel();
@@ -98,27 +80,14 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
         
         try
         {
-            var (sort, displayField) = _activeFilter switch
-            {
-                // For now, only use this for the composer view.
-                ArtistsFilter.Composers => (ArtistSort.ByNameSort, ArtistNameDisplay.NameSort),
-                _ => (ArtistSort.ByName, ArtistNameDisplay.Name)
-            };
-
-            var query = new ArtistQuery
-            {
-                RequiredRoles = ToRequiredRoles(_activeFilter),
-                Sort = sort
-            };
-            
-            var artists = await _aria.Library.GetArtistsAsync(query, cancellationToken).ConfigureAwait(false);
+            var artists = await _aria.Library.GetArtistsAsync(cancellationToken).ConfigureAwait(false);
 
             if (_view != null)
             {
                 await GtkDispatch.InvokeIdleAsync(() =>
                 {
                     if (cancellationToken.IsCancellationRequested) return;
-                    _view.RefreshArtists(artists, displayField);
+                    _view.RefreshArtists(artists);
                 }, cancellationToken).ConfigureAwait(false);                        
             }
 
@@ -134,18 +103,6 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
         }
     }
 
-    private static ArtistRoles? ToRequiredRoles(ArtistsFilter filter) =>
-        filter switch
-        {
-            ArtistsFilter.Main => ArtistRoles.Main,
-            ArtistsFilter.Artists => null,
-            ArtistsFilter.Composers => ArtistRoles.Composer,
-            ArtistsFilter.Conductors => ArtistRoles.Conductor,
-            ArtistsFilter.Ensembles => ArtistRoles.Ensemble,
-            ArtistsFilter.Performers => ArtistRoles.Performer,
-            _ => null
-        };
-    
     [LoggerMessage(LogLevel.Error, "Could not load artists")]
     partial void LogCouldNotLoadArtists(Exception e);
 
@@ -157,10 +114,4 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
 
     [LoggerMessage(LogLevel.Error, "Failed to reset artists page")]
     partial void LogFailedToResetArtistsPage(Exception e);
-
-    public async Task SelectArtist(Id artistId)
-    {
-        // This artist is must be selected in the sidebar.
-        _view.SelectArtist(artistId);
-    }
 }

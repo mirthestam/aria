@@ -47,7 +47,7 @@ public class Program
         return Host.CreateDefaultBuilder(args)
             .ConfigureLogging(logging =>
             {
-                logging.SetMinimumLevel(LogLevel.Debug);
+                logging.SetMinimumLevel(LogLevel.Information);
                 logging.AddSimpleConsole(options =>
                 {
                     options.TimestampFormat = "[HH:mm:ss] ";
