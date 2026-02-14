@@ -74,7 +74,7 @@ public partial class Player
         _playbackControls.SetProgress(progress);
     }
 
-    public void SetPlaylistInfo(int? orderCurrentIndex, int queueLength)
+    public void SetPlaylistInfo(uint? orderCurrentIndex, uint queueLength)
     {
         _playbackControls.SetPlaylistInfo(orderCurrentIndex, queueLength);
     }

@@ -6,12 +6,20 @@
 
 /* Styles selected playlist rows using a semi-transparent accent color.
    The playlist inherits from 'navigation-sidebar', which causes the color information to be lost.*/
-.playlist > row:selected {
+/*.playlist > row:selected {*/
+/*    background-color: color-mix(in srgb, var(--accent-bg-color) 30%, transparent);*/
+/*}*/
+
+/*.playlist > row:selected:hover {*/
+/*    background-color: color-mix(in srgb, var(--accent-bg-color) 40%, transparent);*/
+/*}*/
+
+.playing {
     background-color: color-mix(in srgb, var(--accent-bg-color) 30%, transparent);
 }
 
-.playlist > row:selected:hover {
-    background-color: color-mix(in srgb, var(--accent-bg-color) 40%, transparent);
+.foreground {
+    color: var(--view-fg-color);
 }
 
 .artist-link {

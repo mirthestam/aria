@@ -240,7 +240,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
                     {
                         // Need to escape filenames here.
                         // I should modify the command library to automatically escape all commands
-                        commandList.Add(new AddCommand(Client.Escape(track.FileName!), Order.CurrentIndex + 1 ?? 0));
+                        commandList.Add(new AddCommand(Client.Escape(track.FileName!), (int)(Order.CurrentIndex + 1 ?? 0)));
                     }
 
                     break;
@@ -321,7 +321,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
             // We will NOT update the ID; as this would case the player to
             // reload the playlist it had loaded at the connection.
             Id = newPlaylistId;
-            Length = e.PlaylistLength;
+            Length = (uint)e.PlaylistLength;
             flags |= QueueStateChangedFlags.Id;
             flags |= QueueStateChangedFlags.PlaybackOrder;
         }
@@ -337,7 +337,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
             // Order = PlaybackOrder.Default;
 
             Id = newPlaylistId;
-            Length = e.PlaylistLength;
+            Length = (uint)e.PlaylistLength;
         }
 
         // Order
@@ -345,7 +345,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
         {
             Order = new PlaybackOrder
             {
-                CurrentIndex = e.Song,
+                CurrentIndex = (uint?)e.Song,
                 HasNext = e.NextSongId > 0
             };
             flags |= QueueStateChangedFlags.PlaybackOrder;

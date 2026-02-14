@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Core.Player;
 using Gdk;
 using GObject;
 using Object = GObject.Object;
@@ -72,6 +73,17 @@ public partial class QueueTrackModel : INotifyPropertyChanged
     public string ComposersText { get; set; }
     
     public string DurationText { get; set; }
+
+    public PlaybackState Playing
+    {
+        get;
+        set
+        {
+            if (field == value) return;
+            field = value;
+            OnPropertyChanged();
+        }        
+    }
     
     public Texture? CoverTexture
     {

@@ -19,13 +19,17 @@
                 <property name="maximum-size">48</property>
                 <property name="valign">center</property>
                 <child>
-                  <object class="GtkPicture" id="cover-picture">
-                    <property name="css-classes">cover</property>
-                    <property name="height-request">48</property>
+                  <object class="GtkOverlay">
+                    <property name="child">
+                      <object class="GtkPicture" id="cover-picture">
+                        <property name="css-classes">cover</property>
+                        <property name="height-request">48</property>
+                        <property name="width-request">48</property>
+                      </object>
+                    </property>
                     <property name="margin-bottom">6</property>
                     <property name="margin-end">6</property>
                     <property name="margin-top">6</property>
-                    <property name="width-request">48</property>
                   </object>
                 </child>
               </object>
@@ -36,11 +40,16 @@
                 <property name="orientation">vertical</property>
                 <property name="valign">start</property>
                 <child>
-                  <object class="GtkLabel" id="title-label">
-                    <property name="ellipsize">end</property>
-                    <property name="margin-top">3</property>
-                    <property name="single-line-mode">True</property>
-                    <property name="xalign">0.0</property>
+                  <object class="GtkBox">
+                    <property name="spacing">3</property>
+                    <child>
+                      <object class="GtkLabel" id="title-label">
+                        <property name="ellipsize">end</property>
+                        <property name="margin-top">3</property>
+                        <property name="single-line-mode">True</property>
+                        <property name="xalign">0.0</property>
+                      </object>
+                    </child>
                   </object>
                 </child>
                 <child>

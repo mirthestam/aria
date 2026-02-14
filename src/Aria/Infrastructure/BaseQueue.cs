@@ -10,7 +10,7 @@ public abstract class BaseQueue : IQueueSource
     
     public virtual Id Id { get; protected set; } = Id.Empty;
 
-    public virtual int Length  { get; protected set; }
+    public virtual uint Length  { get; protected set; }
 
     public virtual PlaybackOrder Order { get; protected set; } = PlaybackOrder.Default;
 

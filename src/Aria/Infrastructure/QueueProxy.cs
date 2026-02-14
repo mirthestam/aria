@@ -21,7 +21,7 @@ public class QueueProxy : IQueueSource
     private IQueueSource? _innerQueue;
 
     public Id Id => _innerQueue?.Id ?? null!;
-    public int Length => _innerQueue?.Length ?? 0;
+    public uint Length => _innerQueue?.Length ?? 0;
 
     public PlaybackOrder Order => _innerQueue?.Order ?? PlaybackOrder.Default;
     public ShuffleSettings Shuffle => _innerQueue?.Shuffle ?? ShuffleSettings.Default;

@@ -1,3 +1,4 @@
+using Aria.Core.Player;
 using Aria.Infrastructure;
 using GObject;
 using Gtk;
@@ -25,6 +26,8 @@ public partial class Queue
     private SignalListItemFactory _itemFactory;
     private ListStore _listStore;
     private SingleSelection _selection;
+
+    private uint? _currentTrackIndex;
 
     [Connect("gesture-click")] private GestureClick _gestureClick;
     [Connect("gesture-long-press")] private GestureLongPress _gestureLongPress;
@@ -76,22 +79,33 @@ public partial class Queue
         SetVisibleChildName(pageName);
     }
 
-    public void SelectTrackIndex(int? index)
+    public void CurrentTrackIndex(uint? index, PlaybackState state)
     {
-        if (index == null) _selection.UnselectAll();
-        else
+        // Need to find the current playing track in the ListStore.
+        if (_currentTrackIndex.HasValue)
         {
-            var currentSelected = _selection.GetSelected();
-            
-            if (currentSelected == (uint)index) return;
-
-            _selection.SelectItem((uint)index, true);
-
-            if (currentSelected != GtkConstants.GtkInvalidListPosition)
+            if (_listStore.GetObject(_currentTrackIndex.Value) is QueueTrackModel previousTrack)
             {
-                _tracksListView.ScrollTo((uint)index, ListScrollFlags.Focus, null);
+                previousTrack.Playing = PlaybackState.Unknown;
             }
         }
+
+        // Set the new playing track
+        _currentTrackIndex = index;
+        
+        ChangePlayState(state);
+        
+        if (!_currentTrackIndex.HasValue) return;
+        _tracksListView.ScrollTo(_currentTrackIndex.Value, ListScrollFlags.Focus, null);
+    }
+
+    public void ChangePlayState(PlaybackState state)
+    {
+        if (!_currentTrackIndex.HasValue) return;
+        if (_listStore.GetObject(_currentTrackIndex.Value) is not QueueTrackModel track) return;
+        
+        // Need PlaybackState here from the player
+        track.Playing = state;    
     }
 
     public void RefreshTracks(IEnumerable<QueueTrackModel> tracks)

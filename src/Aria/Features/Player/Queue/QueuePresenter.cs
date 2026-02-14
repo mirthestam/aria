@@ -116,11 +116,7 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
     {
         if (!message.Value.HasFlag(PlayerStateChangedFlags.PlaybackState)) return;
         
-        if (_aria.Player.State == PlaybackState.Stopped)
-        {
-            // TODO: Deselect any track.s
-            //but this might already be part of currentTrack check.
-        }
+        _view?.ChangePlayState(_aria.Player.State);
     }
 
     public async void Receive(QueueStateChangedMessage message)
@@ -136,7 +132,7 @@ public partial class QueuePresenter : IRecipient<QueueStateChangedMessage>, IRec
             {
                 await GtkDispatch.InvokeIdleAsync(() =>
                 {
-                    _view?.SelectTrackIndex(_aria.Queue.Order.CurrentIndex);
+                    _view?.CurrentTrackIndex(_aria.Queue.Order.CurrentIndex, _aria.Player.State);
                 });        
             }
         }

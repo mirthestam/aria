@@ -155,7 +155,7 @@ public partial class PlaybackControls
         }
     }
 
-    public void SetPlaylistInfo(int? playlistCurrentTrackIndex, int playlistLength)
+    public void SetPlaylistInfo(uint? playlistCurrentTrackIndex, uint playlistLength)
     {
         var hasLength = playlistLength > 0;
 

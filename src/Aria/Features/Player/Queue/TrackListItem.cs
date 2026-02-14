@@ -1,8 +1,6 @@
 using System.ComponentModel;
-using Aria.Core;
+using Aria.Core.Player;
 using Aria.Infrastructure;
-using Gdk;
-using Gio;
 using GObject;
 using Gtk;
 
@@ -17,9 +15,10 @@ public partial class TrackListItem
     [Connect("duration-label")] private Label _durationLabel;
     [Connect("subtitle-label")] private Label _subTitleLabel;
     [Connect("title-label")] private Label _titleLabel;
+    // [Connect("playing-picture")] private Picture _playingPicture;
 
     public QueueTrackModel? Model { get; private set; }
-    
+
     public void Bind(QueueTrackModel model)
     {
         if (Model != null)
@@ -38,17 +37,38 @@ public partial class TrackListItem
         _subTitleLabel.Visible = !string.IsNullOrEmpty(model.SubTitleText);
         _composerLabel.Visible = !string.IsNullOrEmpty(model.ComposersText);
         _durationLabel.SetLabel(model.DurationText);
-        
+
         UpdateCoverPicture();
     }
-    
+
     private void UpdateCoverPicture()
     {
         _coverPicture.SetPaintable(Model?.CoverTexture);
     }
 
+    private void UpdatePlaying()
+    {
+        var parent = GetParent();
+
+
+        if (Model?.Playing is null or PlaybackState.Unknown)
+        {
+            //_playingPicture.Visible = false;
+            parent?.RemoveCssClass("playing");
+            return;
+        }
+        
+        parent?.AddCssClass("playing");
+        //_playingPicture.Visible = true;
+    }
+
     private void ModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
+        if (e.PropertyName == nameof(QueueTrackModel.Playing))
+        {
+            GtkDispatch.InvokeIdle(UpdatePlaying);
+        }
+
         if (e.PropertyName != nameof(QueueTrackModel.CoverTexture)) return;
         GtkDispatch.InvokeIdle(UpdateCoverPicture);
     }

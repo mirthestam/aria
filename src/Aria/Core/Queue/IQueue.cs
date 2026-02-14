@@ -13,7 +13,7 @@ public interface IQueue
     public const EnqueueAction DefaultEnqueueAction = EnqueueAction.EnqueueEnd;
     
     public Id Id { get; }
-    public int Length { get; }
+    public uint Length { get; }
 
     PlaybackOrder Order { get; }
     ShuffleSettings Shuffle { get; }
