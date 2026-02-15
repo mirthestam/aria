@@ -24,5 +24,8 @@
 
 .artist-link {
     padding: 2px 4px;
-    font-weight: normal;
+}
+
+.artist-link-common {
+    font-weight: normal;    
 }

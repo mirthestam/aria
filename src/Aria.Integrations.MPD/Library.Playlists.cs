@@ -8,8 +8,6 @@ namespace Aria.Backends.MPD;
 
 public partial class Library
 {
-    private readonly PlaylistParser _playlistParser = new(tagParser);
-    
     // Playlists
     public override async Task<IEnumerable<PlaylistInfo>> GetPlaylistsAsync(CancellationToken cancellationToken = default)
     {
@@ -78,6 +76,6 @@ public partial class Library
         if (!response.IsSuccess) return [];
 
         var tags = response.Content!.Select(kvp => new Tag(kvp.Key, kvp.Value)).ToList();
-        return _playlistParser.GetPlaylist(tags);
+        return mpdTagParser.ParsePlaylist(tags);
     }
 }

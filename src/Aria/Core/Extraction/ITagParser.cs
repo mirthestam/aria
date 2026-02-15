@@ -10,20 +10,22 @@ public interface ITagParser
     /// <summary>
     /// Parses all queue-track-related information from the tags
     /// </summary>
-    QueueTrackInfo ParseQueueTrackInformation(IReadOnlyList<Tag> tags);
+    QueueTrackInfo ParseQueueTrack(IReadOnlyList<Tag> sourceTags);
     
     /// <summary>
     /// Parses all album-track-related information from the tags
     /// </summary>
-    AlbumTrackInfo ParseAlbumTrackInformation(IReadOnlyList<Tag> tags);
+    /// <remarks>
+    /// </remarks>
+    AlbumTrackInfo ParseAlbumTrack(IReadOnlyList<Tag> sourceTags);
     
     /// <summary>
     ///     Parses all album-related information from the tags
     /// </summary>
-    AlbumInfo ParseAlbumInformation(IReadOnlyList<Tag> tags);
+    AlbumInfo ParseAlbum(IReadOnlyList<Tag> sourceTags);
     
     /// <summary>
     /// Is used by the library to determine how to format artists
     /// </summary>
-    ArtistInfo? ParseArtistInformation(string artistName, string? artistNameSort, ArtistRoles roles);
+    ArtistInfo? ParseArtist(string artistName, string? artistNameSort, ArtistRoles roles);
 }

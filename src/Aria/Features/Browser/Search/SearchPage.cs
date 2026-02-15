@@ -102,7 +102,7 @@ public partial class SearchPage
         row.Activatable = true;
         row.UseMarkup = false;
         row.Title = track.Title;
-        row.Subtitle = string.Join(", ", track.CreditsInfo.AlbumArtists.Select(a => a.Name));
+        row.Subtitle = string.Join(", ", track.CreditsInfo.AlbumArtists.Select(a => a.Artist.Name));
 
         // Drag & Drop support
         var dragSource = DragSource.New();
@@ -126,7 +126,7 @@ public partial class SearchPage
         row.Activatable = true;
         row.UseMarkup = false;
         row.Title = album.Title;
-        row.Subtitle = string.Join(", ", album.CreditsInfo.AlbumArtists.Select(a => a.Name));
+        row.Subtitle = string.Join(", ", album.CreditsInfo.AlbumArtists.Select(a => a.Artist.Name));
 
         var image = Image.NewFromIconName("go-next-symbolic");
         row.AddSuffix(image);

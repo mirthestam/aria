@@ -60,6 +60,21 @@ monospace</property>
                 <property name="use-markup">False</property>
               </object>
             </child>
+            <child>
+              <object class="AdwActionRow" id="work-ui-split-row">
+                <property name="css-classes">property
+monospace</property>
+                <property name="title">Shown seperately</property>
+                <property name="use-markup">False</property>
+                <child>
+                  <object class="GtkButton">
+                    <property name="css-classes">flat</property>
+                    <property name="icon-name">info</property>
+                    <property name="tooltip-text">Tracks can be set up so that their work and movement are displayed separately where possible.</property>
+                  </object>
+                </child>
+              </object>
+            </child>
           </object>
         </child>
         <child>
@@ -104,6 +119,13 @@ monospace</property>
                 <property name="css-classes">property
 monospace</property>
                 <property name="title">Number</property>
+                <property name="use-markup">False</property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow" id="group-row">
+                <property name="css-classes">property</property>
+                <property name="title">Group</property>
                 <property name="use-markup">False</property>
               </object>
             </child>

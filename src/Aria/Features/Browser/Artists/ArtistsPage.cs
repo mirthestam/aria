@@ -52,7 +52,7 @@ public partial class ArtistsPage
         var displayName = filter switch
         {
             ArtistsFilter.Artists => "All Artists",
-            ArtistsFilter.Main => "Artists",
+            ArtistsFilter.Featured => "Artists",
             ArtistsFilter.Composers => "Composers",
             ArtistsFilter.Conductors => "Conductors",
             ArtistsFilter.Ensembles => "Ensembles",
@@ -155,7 +155,7 @@ public partial class ArtistsPage
         return _filterState switch
         {
             ArtistsFilter.Artists => true,
-            ArtistsFilter.Main => roles.HasFlag(ArtistRoles.Main),
+            ArtistsFilter.Featured => model.IsFeatured,
             ArtistsFilter.Composers => roles.HasFlag(ArtistRoles.Composer),
             ArtistsFilter.Conductors => roles.HasFlag(ArtistRoles.Conductor),
             ArtistsFilter.Ensembles => roles.HasFlag(ArtistRoles.Ensemble),
@@ -177,7 +177,7 @@ public partial class ArtistsPage
         var value = args.Value?.GetString(out _);
         var filter = Enum.TryParse<ArtistsFilter>(value, out var parsed)
             ? parsed
-            : ArtistsFilter.Main;
+            : ArtistsFilter.Featured;
         SetActiveFilter(filter);
     }
     

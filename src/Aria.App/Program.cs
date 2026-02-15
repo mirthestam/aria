@@ -106,6 +106,7 @@ public class Program
                 x.AddScoped<Backends.MPD.Library>();
                 x.AddScoped<Backends.MPD.Connection.Client>();
                 x.AddScoped<Aria.Backends.MPD.Player>();
+                x.AddScoped<Aria.Backends.MPD.Extraction.MPDTagParser>();
                 x.AddScoped<IIdProvider, Backends.MPD.Extraction.IdProvider>();
             })
             

@@ -37,7 +37,7 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
         try
         {
             AbortRefresh();
-            _view?.SetActiveFilter(ArtistsFilter.Main);
+            _view?.SetActiveFilter(ArtistsFilter.Featured);
             _view?.RefreshArtists([]);
         }
         catch (Exception e)
@@ -54,7 +54,7 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
     public void Attach(ArtistsPage view)
     {
         _view = view;
-        _view.SetActiveFilter(ArtistsFilter.Main); // Configurable default in the future?
+        _view.SetActiveFilter(ArtistsFilter.Featured); // Configurable default in the future?
     }
 
     public async Task SelectArtist(Id artistId)

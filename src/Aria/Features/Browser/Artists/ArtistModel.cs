@@ -12,9 +12,11 @@ public partial class ArtistModel
         var model = NewWithProperties([]);
         model.Artist = artist;
         model.NameDisplay = nameDisplay;
+        model.IsFeatured = artist.IsFeatured;       
         return model;
     }
 
     public ArtistInfo Artist { get; private set; }
     public ArtistNameDisplay NameDisplay { get; private set; }
+    public bool IsFeatured { get; private set; }
 }

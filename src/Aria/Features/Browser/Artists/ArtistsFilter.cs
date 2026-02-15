@@ -3,7 +3,7 @@ namespace Aria.Features.Browser.Artists;
 public enum ArtistsFilter
 {
     Artists,
-    Main,
+    Featured,
     Composers,
     Conductors,
     Ensembles,

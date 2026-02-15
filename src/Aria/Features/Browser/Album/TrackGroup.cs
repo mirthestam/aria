@@ -101,7 +101,10 @@ public partial class TrackGroup
 
             row.AddSuffix(suffixLabel);
             row.SetUseMarkup(false);
-            row.SetTitle(track.Title);
+
+            row.SetTitle(track.Work?.ShowMovement == true
+                ? track.Work.MovementName
+                : track.Title);
             
             var rightClickGesture = GestureClick.NewWithProperties([]);
             rightClickGesture.Button = 3;
@@ -113,7 +116,7 @@ public partial class TrackGroup
             longPressGesture.TouchOnly = true;
             row.AddController(longPressGesture);            
             
-            var guestArtists = SharedArtistHelper.GetUniqueSongArtists(track, _tracks);
+            var guestArtists = CreditsTools.GetTrackSpecificArtists(track, _tracks);
             var subTitleLine = string.Join(", ", guestArtists.Select(a => a.Artist.Name));
 
             row.SetSubtitle(subTitleLine);
@@ -130,13 +133,12 @@ public partial class TrackGroup
 
     private void UpdateHeader()
     {
-        var sharedArtists = SharedArtistHelper.GetSharedArtists(_tracks).ToList();
+        var sharedArtists = CreditsTools.GetCommonArtistsAcrossTracks(_tracks).ToList();
         
         // Remove the shared artists from the album's shared artists list.
         // This way we don't duplicate information from the album header.
         sharedArtists = sharedArtists.Except(_albumSharedArtists).ToList();
         
         _creditBox.UpdateTracksCredits(sharedArtists);
-        _creditBox.UpdateAlbumCredits([]);
     }
 }

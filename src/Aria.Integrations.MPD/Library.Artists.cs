@@ -48,7 +48,7 @@ public partial class Library
 
         using var scope = await client.CreateConnectionScopeAsync(token: cancellationToken).ConfigureAwait(false);
 
-        await FetchAndAddSingles(new ListCommand(MpdTags.AlbumArtist), ArtistRoles.Main, scope).ConfigureAwait(false);
+        await FetchAndAddSingles(new ListCommand(MpdTags.AlbumArtist), ArtistRoles.None, scope, true).ConfigureAwait(false);
         await FetchAndAddSingles(new ListCommand(MpdTags.Artist), ArtistRoles.Performer, scope).ConfigureAwait(false);
         await FetchAndAddSingles(new ListCommand(MpdTags.Composer), ArtistRoles.Composer, scope).ConfigureAwait(false);
         await FetchAndAddSingles(new ListCommand(MpdTags.Performer), ArtistRoles.Performer, scope).ConfigureAwait(false);
@@ -61,23 +61,23 @@ public partial class Library
         return artistMap.Values;
 
         async Task FetchAndAddSingles(IMpcCommand<IEnumerable<string>> command, ArtistRoles role,
-            ConnectionScope connectionScope)
+            ConnectionScope connectionScope, bool featured = false)
         {
             cancellationToken.ThrowIfCancellationRequested();
             var (isSuccess, result) = await connectionScope.SendCommandAsync(command).ConfigureAwait(false);
             if (isSuccess && result != null)
             {
                 foreach (var name in result)
-                    AddOrUpdate(backendArtistName: name, artistNameSort: null, roles: role);
+                    AddOrUpdate(backendArtistName: name, artistNameSort: null, roles: role, featured);
             }
         }
         
-        void AddOrUpdate(string backendArtistName, string? artistNameSort, ArtistRoles roles)
+        void AddOrUpdate(string backendArtistName, string? artistNameSort, ArtistRoles roles, bool featured)
         {
             if (string.IsNullOrWhiteSpace(backendArtistName)) return;
             
             // Parse the info we retrieve.
-            var info = tagParser.ParseArtistInformation(backendArtistName, artistNameSort, roles);
+            var info = tagParser.ParseArtist(backendArtistName, artistNameSort, roles);
             if (info == null) return;
             if (string.IsNullOrWhiteSpace(info.Name)) return;
             
@@ -88,12 +88,17 @@ public partial class Library
                 artistMap[id] = existingArtist with
                 {
                     NameSort = info.NameSort ?? existingArtist.NameSort,
-                    Roles = existingArtist.Roles | info.Roles
+                    Roles = existingArtist.Roles | info.Roles,
+                    IsFeatured = existingArtist.IsFeatured || featured
                 };
             }
             else
             {
-                artistMap[id] = info with { Id = id };
+                artistMap[id] = info with
+                {
+                    Id = id,
+                    IsFeatured = featured
+                };
             }
             
             // Record the backend/original value as an alias for later queries

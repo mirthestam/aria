@@ -26,7 +26,8 @@ public partial class AlbumsAlbumListItem
         Model = model;
         Model.PropertyChanged += ModelOnPropertyChanged;
 
-        var artistsLine = string.Join(", ", model.Album.CreditsInfo.AlbumArtists.Select(a => a.Name));
+        // TODO: I can sort here now with role on priority
+        var artistsLine = string.Join(", ", model.Album.CreditsInfo.AlbumArtists.Select(a => a.Artist.Name));
 
         _titleLabel.SetLabel(model.Album.Title);
         _subTitleLabel.SetLabel(artistsLine);

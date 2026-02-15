@@ -20,12 +20,16 @@ public class AlbumIdTests
                 ReleaseDate = DateTime.Now,
                 CreditsInfo = new AlbumCreditsInfo
                 {
-                    AlbumArtists = new List<ArtistInfo>
+                    AlbumArtists = new List<AlbumArtistInfo>
                     {
                         new()
                         {
-                            Id = expectedArtistId,
-                            Name = "Chopin"
+                            Roles = ArtistRoles.None,
+                            Artist = new()
+                                {
+                                Id = expectedArtistId,
+                                Name = "Chopin"
+                            }
                         }
                     }
                 },

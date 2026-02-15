@@ -13,7 +13,7 @@ namespace Aria.Backends.MPD;
 
 public partial class Library
 {
-    private readonly AlbumsParser _albumsParser = new(tagParser);
+    private readonly MPDTagParser _mpdTagParser = new(tagParser);
     
     // Albums
     public override async Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default)
@@ -32,7 +32,7 @@ public partial class Library
         if (!response.IsSuccess) return null;
 
         var tags = response.Content!.Select(x => new Tag(x.Key, x.Value));
-        var albums = _albumsParser.GetAlbums(tags.ToList()).ToList();
+        var albums = _mpdTagParser.ParseAlbums(tags.ToList()).ToList();
 
         switch (albums.Count)
         {
@@ -71,7 +71,7 @@ public partial class Library
 
         // This is CPU-bound parsing. Since ConfigureAwait(false) was used earlier,
         // this code is assumed to be running on a background thread.
-        return _albumsParser.GetAlbums(allTags);
+        return _mpdTagParser.ParseAlbums(allTags);
     }
     
     public override async Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(Id artistId,
@@ -110,7 +110,7 @@ public partial class Library
             .ToList();
 
 
-        return _albumsParser.GetAlbums(allTags);
+        return _mpdTagParser.ParseAlbums(allTags);
     }
     
     private async Task<AlbumTrackInfo?> GetAlbumTrackAsync(Id trackId, CancellationToken cancellationToken)
@@ -125,7 +125,7 @@ public partial class Library
         var tags = response.Content!.Select(x => new Tag(x.Key, x.Value));
         
         // Parse the information
-        var albums = _albumsParser.GetAlbums(tags.ToList()).ToList();
+        var albums = _mpdTagParser.ParseAlbums(tags.ToList()).ToList();
 
         if (albums.Count != 1) return null;
         return albums[0].Tracks.Count != 1 ? null : albums[0].Tracks.FirstOrDefault();

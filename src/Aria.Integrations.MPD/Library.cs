@@ -10,7 +10,7 @@ using MpcNET.Types.Filters;
 
 namespace Aria.Backends.MPD;
 
-public partial class Library(Client client, ITagParser tagParser, ILogger<Library> logger) : BaseLibrary
+public partial class Library(Client client, ITagParser tagParser, MPDTagParser mpdTagParser, ILogger<Library> logger) : BaseLibrary
 {
     public void ServerUpdated()
     {
@@ -57,7 +57,7 @@ public partial class Library(Client client, ITagParser tagParser, ILogger<Librar
             if (!result.IsSuccess) return existingResults;
             
             var tags = result.Content!.Select(x => new Tag(x.Key, x.Value)).ToList();
-            var albums = _albumsParser.GetAlbums(tags).ToList();
+            var albums = _mpdTagParser.ParseAlbums(tags).ToList();
 
             var foundAlbums = new List<AlbumInfo>();
             var artists = new List<ArtistInfo>();
@@ -77,9 +77,9 @@ public partial class Library(Client client, ITagParser tagParser, ILogger<Librar
                 }
 
                 foreach (var albumArtist in album.CreditsInfo.AlbumArtists.Where(a =>
-                             a.Name.Contains(query, StringComparison.OrdinalIgnoreCase)))
+                             a.Artist.Name.Contains(query, StringComparison.OrdinalIgnoreCase)))
                 {
-                    AddArtist(artists, albumArtist, albumArtist.Roles);
+                    AddArtist(artists, albumArtist.Artist, albumArtist.Roles);
                 }
 
                 foreach (var track in album.Tracks)

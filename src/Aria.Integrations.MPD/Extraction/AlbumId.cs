@@ -33,7 +33,7 @@ public class AlbumId : Id.TypedId<string>
         var title = (context.Album.Title).Trim();
         
         var artistIds = context.Album.CreditsInfo.AlbumArtists
-            .Select(a => a.Id)
+            .Select(a => a.Artist.Id)
             .OfType<ArtistId>()
             .OrderBy(id => id.ToString(), StringComparer.Ordinal)
             .ToArray();

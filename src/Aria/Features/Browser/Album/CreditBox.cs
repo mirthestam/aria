@@ -12,31 +12,19 @@ namespace Aria.Features.Browser.Album;
 [Template<AssemblyResource>("Aria.Features.Browser.Album.CreditBox.ui")]
 public partial class CreditBox
 {
-    [Connect("main-box")] private Box _mainBox;
+    [Connect("main-box")] private Box _featuringBox;
     [Connect("composers-box")] private Box _composersBox;
     [Connect("arranged-box")] private Box _arrangedBox;
     [Connect("conductors-box")] private Box _conductorsBox;
     [Connect("performers-box")] private Box _performersBox;
     [Connect("solists-box")] private Box _solistsBox;
 
-    [Connect("main-label")] private Label _mainLabel;
+    [Connect("main-label")] private Label _featuringLabel;
     [Connect("composers-label")] private Label _composersLabel;
     [Connect("arranged-label")] private Label _arrangedLabel;
     [Connect("conductors-label")] private Label _conductorsLabel;
     [Connect("performers-label")] private Label _performersLabel;
     [Connect("solists-label")] private Label _solistsLabel;
-
-    public void UpdateAlbumCredits(IList<ArtistInfo> artists)
-    {
-        // Wrap them in Track artists with the 'main' flag
-        var trackArtists = artists.Select(a => new TrackArtistInfo
-        {
-            Artist = a,
-            Roles = ArtistRoles.Main
-        }).ToList();
-
-        FillArtistBox(_mainBox, _mainLabel, trackArtists, ArtistRoles.Main);
-    }
 
     public void UpdateTracksCredits(IList<TrackArtistInfo> artists)
     {
@@ -48,9 +36,11 @@ public partial class CreditBox
         FillArtistBox(_arrangedBox, _arrangedLabel, artists, ArtistRoles.Arranger);
         FillArtistBox(_solistsBox, _solistsLabel, artists, ArtistRoles.Soloist);
         FillArtistBox(_performersBox, _performersLabel, artists, ArtistRoles.Ensemble | ArtistRoles.Performer);
+        FillArtistBox(_featuringBox, _featuringLabel, artists, ArtistRoles.Unknown, true);
     }
 
-    private void FillArtistBox(Box container, Label label, IList<TrackArtistInfo> artists, ArtistRoles roleFilter)
+    private void FillArtistBox(Box container, Label label, IList<TrackArtistInfo> artists, ArtistRoles roleFilter,
+        bool exact = false)
     {
         while (container.GetFirstChild() != null)
         {
@@ -58,26 +48,30 @@ public partial class CreditBox
         }
 
         var filteredArtists = artists
-            .OrderBy(a => a.Artist.Name)
+            .OrderByDescending(a => a.IsFeatured)
+            .ThenBy(a => a.Artist.Name)
             .ThenBy(a => (a.Roles & ArtistRoles.Composer) == 0) // In combined lists, prio composer over others
-            .ThenBy(a => (a.Roles & ArtistRoles.Ensemble) == 0) // And then ensembles
-            .Where(a => (a.Roles & roleFilter) != 0).ToList();
+            .ThenBy(a => (a.Roles & ArtistRoles.Soloist) == 0) // And then ensembles
+            .ThenBy(a => (a.Roles & ArtistRoles.Ensemble) == 0); // And then ensembles
 
-        label.Visible = filteredArtists.Count > 0;
-        container.Visible = filteredArtists.Count > 0;
+        var artistList = filteredArtists.Where(a => exact ? a.Roles == roleFilter : (a.Roles & roleFilter) != 0)
+            .ToList();
+
+        label.Visible = artistList.Count > 0;
+        container.Visible = artistList.Count > 0;
 
         const int moreThreshold = 3;
         const int moreMinimum = 3;
 
         var added = 0;
-        foreach (var artist in filteredArtists)
+        foreach (var artist in artistList)
         {
             added++;
 
-            if (added == moreThreshold + 1 && filteredArtists.Count - moreThreshold > moreMinimum)
+            if (added == moreThreshold + 1 && artistList.Count - moreThreshold > moreMinimum)
             {
                 var parentContainer = container;
-                var expander = Expander.New("More (" + (filteredArtists.Count - moreThreshold) + ")");
+                var expander = Expander.New("More (" + (artistList.Count - moreThreshold) + ")");
                 container = New(Orientation.Vertical, 2);
                 expander.SetChild(container);
                 parentContainer.Append(expander);
@@ -90,7 +84,7 @@ public partial class CreditBox
     private static Box CreateArtistBox(TrackArtistInfo artist)
     {
         var box = New(Orientation.Horizontal, 2);
-        box.Append(CreateArtistButton(artist.Artist));
+        box.Append(CreateArtistButton(artist));
         if (artist.AdditionalInformation == null) return box;
 
         var additionalInfoLabel = Label.New($"({artist.AdditionalInformation})");
@@ -100,19 +94,21 @@ public partial class CreditBox
         return box;
     }
 
-    private static Button CreateArtistButton(ArtistInfo artist)
+    private static Button CreateArtistButton(TrackArtistInfo artist)
     {
         // Format the button
-        var displayText = artist.Name;
+        var displayText = artist.Artist.Name;
         var button = Button.NewWithLabel(displayText);
         //button.AddCssClass("link");
         button.AddCssClass("flat");
         button.AddCssClass("artist-link");
         button.AddCssClass("accent");
+        
+        if (!artist.IsFeatured) button.AddCssClass("artist-link-common");
 
         // Configure the action
         button.SetActionName($"{AppActions.Browser.Key}.{AppActions.Browser.ShowArtist.Action}");
-        var value = Variant.NewString(artist.Id.ToString());
+        var value = Variant.NewString(artist.Artist.Id.ToString());
         button.SetActionTargetValue(value);
 
         return button;

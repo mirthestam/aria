@@ -14,7 +14,7 @@ using PlaylistInfoCommand = Aria.Backends.MPD.Connection.Commands.PlaylistInfoCo
 
 namespace Aria.Backends.MPD;
 
-public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : BaseQueue
+public class Queue(Client client, ITagParser parser, MPDTagParser mpdTagParser, ILogger<Queue> logger) : BaseQueue
 {
     public override async Task<IEnumerable<QueueTrackInfo>> GetTracksAsync()
     {
@@ -24,7 +24,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
 
         var tags = tagPairs.Select(kvp => new Tag(kvp.Key, kvp.Value)).ToList();
 
-        return parser.ParseQueueTracksInformation(tags);
+        return mpdTagParser.ParseQueue(tags);
     }
     
     public override Task EnqueueAsync(Info info, EnqueueAction action)
@@ -367,7 +367,7 @@ public class Queue(Client client, ITagParser parser, ILogger<Queue> logger) : Ba
             }
             else
             {
-                var trackInfo = parser.ParseQueueTrackInformation(tags);
+                var trackInfo = parser.ParseQueueTrack(tags);
                 if (trackInfo.Track.FileName != null)
                 {
                     // This logic is duplicate with logic in the library.

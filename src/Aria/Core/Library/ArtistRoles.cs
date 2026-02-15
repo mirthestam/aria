@@ -52,13 +52,9 @@ public enum ArtistRoles
     /// <seealso cref="ArtistRoles.Performer" />
     /// ///
     Soloist = 1 << 5,
-
+    
     /// <summary>
-    /// Denotes the primary or central artist responsible for a performance or recording.
-    /// This is what one usually considers the 'artists' of an album.
+    /// Role for an artist where the actual role is unknown but he has hone
     /// </summary>
-    /// <example>John Williams (Composer and Conductor for a film score)</example>
-    /// <example>Yo-Yo Ma (Cellist as the central artist on a concert tour)</example>
-    /// <remarks>This role identifies the artist with the most significant contribution or primary recognition in a work.</remarks>
-    Main = 1 << 6
+    Unknown = 1 << 6
 }

@@ -2,10 +2,10 @@ namespace Aria.Infrastructure.Extraction;
 
 
 /// <summary>
-/// Constants for names of tags as used by the Picare tagger
+/// Constants for names of tags as used by the Picard tagger
 /// https://picard-docs.musicbrainz.org/en/index.html
 /// </summary>
-public static class PicardTagNames
+public static class PicardTags
 {
     public static class AlbumTags
     {
@@ -60,7 +60,6 @@ public static class PicardTagNames
 
     public static class QueueTags
     {
-        public const string Id = "id";
         public const string Position = "pos";
     }
 }

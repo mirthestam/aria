@@ -1,5 +1,6 @@
 using Aria.Core.Extraction;
 using Aria.Infrastructure.Extraction;
+using MpcNET.Tags;
 
 namespace Aria.Backends.MPD.Extraction;
 
@@ -15,7 +16,7 @@ public class QueueTrackId(int id) : Id.TypedId<int>(id, Key)
 
     public static Id FromContext(QueueTrackBaseIdentificationContext context)
     {
-        var idString = context.Tags.First(t => t.Name.Equals(PicardTagNames.QueueTags.Id, StringComparison.InvariantCultureIgnoreCase)).Value;
+        var idString = context.Tags.First(t => t.Name.Equals(MPDTagNames.QueueTags.Id, StringComparison.InvariantCultureIgnoreCase)).Value;
         var id = int.Parse(idString);
         return new QueueTrackId(id);
     }

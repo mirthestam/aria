@@ -1,6 +1,5 @@
 using Adw;
 using Aria.Core.Library;
-using Aria.Features.Browser.Search;
 using Aria.Infrastructure;
 using GLib;
 using GObject;
@@ -22,11 +21,14 @@ public partial class TrackDetailsDialog
     [Connect("track-duration-row")] private ActionRow _trackDurationRow;
     [Connect("track-volume-row")] private ActionRow _trackVolumeRow;
     [Connect("track-number-row")] private ActionRow _trackNumberRow;
+    [Connect("group-row")] private ActionRow _trackGroupRow;
+    
     
     [Connect("work-group")] private PreferencesGroup _workPreferencesGroup;    
     [Connect("work-name-row")] private ActionRow _workNameRow;
     [Connect("work-movement-row")] private ActionRow _workMovementRow;
     [Connect("work-movement-number-row")] private ActionRow _workMovementNumberRow;
+    [Connect("work-ui-split-row")] private ActionRow _workGroupingRow;
     
     [Connect("details-group")] private PreferencesGroup _detailsPreferencesGroup;    
     [Connect("file-row")] private ActionRow _fileRow;    
@@ -53,6 +55,7 @@ public partial class TrackDetailsDialog
         _trackDurationRow.SetSubtitle(track.Track.Duration.ToString(@"mm\:ss"));
         _trackVolumeRow.SetSubtitle(track.VolumeName ?? "");
         _trackNumberRow.SetSubtitle(track.TrackNumber != null ? track.TrackNumber.Value.ToString() : "");
+        _trackGroupRow.SetSubtitle(track.Group?.Header ?? "None");
         
         // Only show work information if we have a work
         // Some tracks only have movement information. But, for Aria, that does not make sense
@@ -61,6 +64,7 @@ public partial class TrackDetailsDialog
         _workNameRow.SetSubtitle(track.Track.Work?.Work ?? "");
         _workMovementRow.SetSubtitle(track.Track.Work?.MovementName ?? "");
         _workMovementNumberRow.SetSubtitle(track.Track.Work?.MovementNumber ?? "");
+        _workGroupingRow.SetSubtitle(track.Track.Work?.ShowMovement == true  ? "Yes" : "No");
         
         _artistsPreferencesGroup.Visible = track.Track.CreditsInfo.Artists.Count > 0;
         
@@ -88,21 +92,21 @@ public partial class TrackDetailsDialog
         }
         
         var albumArtists = albumInfo.CreditsInfo.AlbumArtists
-            .Where(aa => track.Track.CreditsInfo.Artists.All(a => aa.Id != a.Artist.Id)).ToList();
+            .Where(aa => track.Track.CreditsInfo.Artists.All(a => aa.Artist.Id != a.Artist.Id)).ToList();
         _albumArtistsPreferencesGroup.Visible = albumArtists.Any();
         
         foreach (var albumArtist in albumArtists)
         {
             // Skip artists already shown above
-            if (track.Track.CreditsInfo.Artists.Any(a => a.Artist.Id == albumArtist.Id)) continue;
+            if (track.Track.CreditsInfo.Artists.Any(a => a.Artist.Id == albumArtist.Artist.Id)) continue;
             
             var artistRow = ActionRow.New();
             artistRow.AddCssClass("property");
-            artistRow.Subtitle = albumArtist.Name;
+            artistRow.Subtitle = albumArtist.Artist.Name;
             artistRow.Title = RolesFormatting.Format(albumArtist.Roles);
             artistRow.Activatable = true;
             artistRow.SetActionName("details.show-artist");
-            artistRow.SetActionTargetValue(Variant.NewString(albumArtist.Id.ToString()));
+            artistRow.SetActionTargetValue(Variant.NewString(albumArtist.Artist.Id.ToString()));
             
             var image = Image.NewFromIconName("go-next-symbolic");
             artistRow.AddSuffix(image);            

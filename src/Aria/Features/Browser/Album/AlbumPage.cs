@@ -84,6 +84,20 @@ public partial class AlbumPage
             var trackGroupKey = track.Group?.Key;
             var trackGroupHeader = track.Group?.Header;
 
+            // This changes grouping to the Work.
+            // The problem here is, that the works are multi level.
+            // And this would result in a group per _part_ of a movement.
+            // There is a fix for this in picard which has recursive groups.
+            // But then to enable this, we should have a setting.
+            
+            // if (track.Track.Work?.ShowMovement == true)
+            // {
+            //     // This track needs to be grouped by its work and movement,
+            //     // Instead of its defined group.
+            //     trackGroupKey = track.Track.Work.MovementNumber;
+            //     trackGroupHeader = track.Track.Work.MovementName;
+            // }
+            
             // group boundary?
             if (currentGroupKey != trackGroupKey && currentGroupTracks.Count > 0)
             {
@@ -148,10 +162,36 @@ public partial class AlbumPage
 
     private void UpdateHeader()
     {
-        var artists = _album.CreditsInfo.AlbumArtists.ToList();
-        _creditBox.UpdateAlbumCredits(artists);
+        // Artists that appear on any track are displayed in the header.
+        // Otherwise, they are only shown within their respective groups.
+        // AlbumsArtists without any tracks are also included in this header.
         
-        _sharedArtists = SharedArtistHelper.GetSharedArtists(_album.Tracks).ToList();
+        var sharedArtists = CreditsTools.GetCommonArtistsAcrossTracks(_album.Tracks).ToList();
+        var sharedArtistIds = sharedArtists.Select(a => a.Artist.Id).ToHashSet();
+
+        var allTrackArtistIds = _album.Tracks
+            .SelectMany(t => t.Track.CreditsInfo.Artists.Select(a => a.Artist.Id))
+            .ToHashSet();
+
+        var filteredAlbumArtists = _album.CreditsInfo.AlbumArtists
+            .Where(a => sharedArtistIds.Contains(a.Artist.Id) || !allTrackArtistIds.Contains(a.Artist.Id));
+
+        _sharedArtists = sharedArtists.Union(filteredAlbumArtists.Select(a =>
+        {
+            // Move album artists over to track artists. If a role of an album is not present,
+            // Just make it unknown to appear in the credits box.
+            var roles = a.Roles;
+            if (roles == ArtistRoles.None)
+            {
+                roles = ArtistRoles.Unknown;
+            }
+            return new TrackArtistInfo
+            {
+                Artist = a.Artist,
+                Roles = roles,
+                IsFeatured = true
+            };
+        })).ToList();
         
         _creditBox.UpdateTracksCredits(_sharedArtists);
         

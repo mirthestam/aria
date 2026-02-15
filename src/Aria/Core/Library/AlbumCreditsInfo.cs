@@ -12,5 +12,5 @@ public record AlbumCreditsInfo
     /// <summary>
     ///     The Album Artists. The same for all tracks on this album
     /// </summary>
-    public IReadOnlyList<ArtistInfo> AlbumArtists { get; init; } = [];
+    public IReadOnlyList<AlbumArtistInfo> AlbumArtists { get; init; } = [];
 }

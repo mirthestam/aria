@@ -19,4 +19,10 @@ public sealed record ArtistInfo : Info
     ///     composed by Chopin. Therefore, as an artist, he is both a performer and a composer.
     /// </example>
     public ArtistRoles Roles { get; init; }
+    
+    /// <summary>
+    /// Denotes the primary or central artist responsible on a performance or recording.
+    /// This is what one usually considers the 'artists' of an album.
+    /// </summary>
+    public bool IsFeatured { get; init; }    
 }
