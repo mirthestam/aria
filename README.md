@@ -6,9 +6,6 @@ A remote control app for MPD and MPD-based players like Volumio that lets you br
 
 ## Building
 
-> This project is under heavy development and is not yet ready for use. It may not compile and could require unavailable
-> dependencies.
-
 1. Glone this repo recursive with `git clone --recurse-submodules`
 2. Navigate to the cloned directory
 
@@ -41,9 +38,7 @@ These projects inspired Aria:
 
  - [Cantata](https://github.com/CDrummond/cantata) (Craig Drummond)
  - [Euphonica](https://github.com/htkhiem/euphonica) (Huỳnh Thiện Khiêm)
- - [LMS-Material](https://github.com/CDrummond/lms-material)  (Craig Drummond)
  - [Plattenalbum](https://github.com/SoongNoonien/plattenalbum) (Martin Wagner)
- - [Stylophone](https://github.com/Difegue/Stylophone) (Difegue)
 
 This project uses the following open source libraries:
 
