@@ -21,6 +21,11 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _gates = new();
 
     public event EventHandler? Updated;
+    
+    public Task InspectLibraryAsync(CancellationToken ct = default)
+    {
+        return _inner.InspectLibraryAsync(ct);
+    }
 
     public QueryCacheLibrarySource(ILibrarySource inner, TimeSpan slidingWindow)
     {

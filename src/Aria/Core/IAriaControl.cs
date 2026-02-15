@@ -14,4 +14,6 @@ public interface IAriaControl
     public Id Parse(string id);    
     
     event EventHandler<EngineStateChangedEventArgs>? StateChanged;
+    
+    public Task RunInspectionAsync();
 }

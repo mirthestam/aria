@@ -22,9 +22,19 @@ public partial class BrowserPagePresenter
     private SimpleAction _showPlaylistsAction;
 
     private SimpleAction _showTrackAction;
+
+    private SimpleAction _runLibraryDiagnosticsAction;
     
     private void InitializeActions(AttachContext context)
     {
+        var diagnosticsActionGroup = SimpleActionGroup.New();
+        diagnosticsActionGroup.AddAction(_runLibraryDiagnosticsAction = SimpleAction.New(AppActions.Diagnostics.InspectLibrary.Action, null));
+        context.SetAccelsForAction($"{AppActions.Diagnostics.Key}.{AppActions.Diagnostics.InspectLibrary.Action}",
+            [AppActions.Diagnostics.InspectLibrary.Accelerator]);        
+        context.InsertAppActionGroup(AppActions.Diagnostics.Key, diagnosticsActionGroup);
+        
+        _runLibraryDiagnosticsAction.OnActivate += RunLibraryDiagnosticsActionOnOnActivate;
+        
         var browserActionGroup = SimpleActionGroup.New();
 
         browserActionGroup.AddAction(_searchAction = SimpleAction.New(AppActions.Browser.Search.Action, null));
@@ -54,6 +64,18 @@ public partial class BrowserPagePresenter
         _showAlbumForArtistAction.OnActivate += ShowAlbumForArtistActionOnOnActivate;
         _showTrackAction.OnActivate += ShowTrackActionOnOnActivate;
         _showPlaylistsAction.OnActivate += ShowPlaylistsActionOnOnActivate;
+    }
+
+    private async void RunLibraryDiagnosticsActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            await _ariaControl.RunInspectionAsync();
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+        }
     }
 
     private async void ShowTrackActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)

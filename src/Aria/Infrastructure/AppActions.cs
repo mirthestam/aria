@@ -54,4 +54,10 @@ public static class AppActions
         public static readonly AppAction Next = new("next", "<Control>period");
         public static readonly AppAction Previous = new("previous", "<Control>comma");
     }
+
+    public static class Diagnostics
+    {
+        public static readonly string Key = "aria-diagnostics";
+        public static readonly AppAction InspectLibrary = new("inspect-library", "<Control><Alt>i");        
+    }
 }

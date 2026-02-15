@@ -16,5 +16,6 @@ public interface IQueueSource : IQueue
 
 public interface ILibrarySource : ILibrary
 {
-    event EventHandler? Updated;    
+    event EventHandler? Updated;
+    Task InspectLibraryAsync(CancellationToken ct = default);
 }

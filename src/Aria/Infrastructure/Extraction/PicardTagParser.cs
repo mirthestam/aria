@@ -1,6 +1,5 @@
 using System.Globalization;
 using Aria.Core.Extraction;
-using Aria.Core.Library;
 
 namespace Aria.Infrastructure.Extraction;
 

@@ -1,5 +1,6 @@
 using Aria.Core.Extraction;
 using Aria.Infrastructure;
+using Aria.Infrastructure.Inspection;
 
 namespace Aria.Core.Connection;
 
@@ -17,5 +18,5 @@ public interface IBackendConnection : IDisposable
 
     Task DisconnectAsync();
     
-    public event Action<BackendConnectionState>? ConnectionStateChanged;    
+    public event Action<BackendConnectionState>? ConnectionStateChanged;
 }

@@ -1,8 +1,7 @@
 using Aria.Core.Connection;
 using Aria.Core.Extraction;
-using Aria.Core.Library;
 using Aria.Infrastructure.Connection;
-using CommunityToolkit.Mvvm.Messaging;
+using Aria.Infrastructure.Inspection;
 using Microsoft.Extensions.Logging;
 
 namespace Aria.Backends.MPD.Connection;
@@ -46,7 +45,7 @@ public partial class BackendConnection(
             UnbindClientEvents();
         }
     }
-
+    
     private void BindClientEvents()
     {
         client.ConnectionChanged += OnClientOnConnectionChanged;

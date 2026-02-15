@@ -14,7 +14,7 @@ public partial class PicardTagParser
 
         return ParseAlbum(tags, credits);
     }
-
+    
     public AlbumTrackInfo ParseAlbumTrack(IReadOnlyList<Tag> sourceTags)
     {
         var tags = ParseTags(sourceTags);

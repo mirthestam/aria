@@ -3,14 +3,74 @@ using Aria.Backends.MPD.Extraction;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Infrastructure;
+using Aria.Infrastructure.Extraction;
+using Aria.Infrastructure.Inspection;
 using Microsoft.Extensions.Logging;
+using MpcNET.Commands.Database;
 using MpcNET.Tags;
 using MpcNET.Types;
 using MpcNET.Types.Filters;
 
 namespace Aria.Backends.MPD;
 
-public partial class Library(Client client, ITagParser tagParser, MPDTagParser mpdTagParser, ILogger<Library> logger) : BaseLibrary
+public partial class Library
+{
+    // Inspection
+    public override async Task InspectLibraryAsync(CancellationToken ct = default)
+    {
+        using var scope = await client.CreateConnectionScopeAsync(token: ct);
+
+        logger.LogInformation("Starting library inspection. ");
+        
+        // get tracks
+        var listAllCommand = new ListAllCommand();
+        var listAllResponse = await scope.SendCommandAsync(listAllCommand).ConfigureAwait(false);
+        if (!listAllResponse.IsSuccess) return;
+        
+        foreach (var dir in listAllResponse.Content!)
+        {
+            logger.LogDebug("Inspecting directory: " + dir.Name);
+            ct.ThrowIfCancellationRequested();
+            
+            foreach (var file in dir.Files)
+            {
+                ct.ThrowIfCancellationRequested();
+                
+                var command = new Aria.Backends.MPD.Connection.Commands.FindCommand(new FilterFile(file.Path, FilterOperator.Equal));
+                var response = await scope.SendCommandAsync(command).ConfigureAwait(false);
+                if (!response.IsSuccess) continue;
+                var tags = response.Content!.Select(x => new Tag(x.Key, x.Value)).ToList();
+                
+                // We do NOT have a full album here, only album info based upon this file.
+                // So we cannot do inspections yet on FULL albums
+                
+                var inspectedAlbum = tagInspector.InspectAlbum(tags);
+
+                foreach (var diagnostic in inspectedAlbum.Diagnostics)
+                {
+                    var message = $": File: {file.Path}: {diagnostic.Message}";
+                    
+                    switch (diagnostic.Level)
+                    {
+                        case Severity.Info:
+                            logger.LogInformation(message);
+                            break;
+                        case Severity.Warning:
+                            logger.LogWarning(message);
+                            break;
+                        case Severity.Problem:
+                            logger.LogError(message);
+                            break;
+                    }
+                }
+            }
+        }
+        
+        logger.LogInformation("Library Inspection completed.");
+    }
+}
+
+public partial class Library(Client client, ITagParser tagParser, ITagInspector tagInspector, MPDTagParser mpdTagParser, ILogger<Library> logger) : BaseLibrary
 {
     public void ServerUpdated()
     {

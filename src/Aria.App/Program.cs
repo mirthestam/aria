@@ -23,6 +23,7 @@ using Aria.Hosting;
 using Aria.Hosting.Extensions;
 using Aria.Infrastructure;
 using Aria.Infrastructure.Extraction;
+using Aria.Infrastructure.Inspection;
 using CommunityToolkit.Mvvm.Messaging;
 using Gio;
 using Microsoft.Extensions.DependencyInjection;
@@ -70,6 +71,7 @@ public class Program
                 x.AddSingleton<IConnectionProfileProvider, ConnectionProfileProvider>();
                 x.AddSingleton<ResourceTextureLoader>();
                 x.AddTransient<ITagParser, PicardTagParser>();
+                x.AddTransient<ITagInspector, PicardTagInspector>();
                 x.AddSingleton<IPresenterFactory, PresenterFactory>();                
                 
                 x.AddSingleton<MainWindowPresenter>();

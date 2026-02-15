@@ -267,6 +267,11 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
         remove => _innerLibrary.Updated -= value;
     }
 
+    public Task InspectLibraryAsync(CancellationToken ct = default)
+    {
+        return _innerLibrary.InspectLibraryAsync(ct);
+    }
+
     [LoggerMessage(LogLevel.Information, "Album resource cache initialized at '{cacheDir}', TTL={ttl}")]
     private partial void LogCacheInitialized(string cacheDir, string ttl);
 

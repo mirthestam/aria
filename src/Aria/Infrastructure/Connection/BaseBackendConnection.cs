@@ -9,7 +9,7 @@ public abstract class BaseBackendConnection(
     ILibrarySource library,
     IIdProvider idProvider) : IBackendConnection
 {
-    public event Action<BackendConnectionState>? ConnectionStateChanged;    
+    public event Action<BackendConnectionState>? ConnectionStateChanged;
     
     public IPlayerSource Player => player;
     public IQueueSource Queue => queue;

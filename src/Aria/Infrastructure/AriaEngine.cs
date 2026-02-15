@@ -22,6 +22,11 @@ public class AriaEngine(
 
     public event EventHandler<EngineStateChangedEventArgs>? StateChanged;
     
+    public async Task RunInspectionAsync()
+    {
+        await _libraryProxy.InspectLibraryAsync();
+    }
+
     public EngineState State { get; private set; } = EngineState.Stopped;
 
     private ScopedBackendConnection? _backendScope;

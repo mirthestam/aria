@@ -11,6 +11,11 @@ public class LibraryProxy : ILibrarySource
     private ILibrarySource? _innerLibrary;
 
     public event EventHandler? Updated;
+    
+    public Task InspectLibraryAsync(CancellationToken ct = default)
+    {
+        return _innerLibrary?.InspectLibraryAsync(ct) ?? Task.CompletedTask;
+    }
 
     public Task<IEnumerable<ArtistInfo>> GetArtistsAsync(ArtistQuery query, CancellationToken cancellationToken = default)
     {

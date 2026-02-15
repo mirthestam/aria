@@ -6,7 +6,7 @@ namespace Aria.Infrastructure;
 public abstract class BaseLibrary : ILibrarySource 
 {
     public virtual event EventHandler? Updated;
-
+    public abstract Task InspectLibraryAsync(CancellationToken ct = default);
     public abstract Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(CancellationToken cancellationToken = default);
     public abstract Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(Id artistId, CancellationToken cancellationToken = default);
     public abstract Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default);

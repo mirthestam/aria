@@ -54,10 +54,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Infrastructure\Extraction\Picard\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Reference Include="MpcNET">
         <HintPath>..\..\..\..\..\.nuget\packages\mpcnet\1.6.6\lib\netstandard2.0\MpcNET.dll</HintPath>
       </Reference>
