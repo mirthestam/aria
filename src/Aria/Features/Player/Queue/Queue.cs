@@ -29,8 +29,9 @@ public partial class Queue
 
     private uint? _currentTrackIndex;
 
-    [Connect("gesture-click")] private GestureClick _gestureClick;
-    [Connect("gesture-long-press")] private GestureLongPress _gestureLongPress;
+    [Connect("queue-gesture-click")] private GestureClick _queueGestureClick;
+    [Connect("queue-gesture-long-press")] private GestureLongPress _queueGestureLongPress;
+    [Connect("queue-popover-menu")] private PopoverMenu _queuePopoverMenu;
     [Connect("track-popover-menu")] private PopoverMenu _trackPopoverMenu;
 
     public event EventHandler<EnqueueRequestedEventArgs> EnqueueRequested;
@@ -53,6 +54,7 @@ public partial class Queue
         _itemFactory = SignalListItemFactory.NewWithProperties([]);
         _itemFactory.OnSetup += OnItemFactoryOnOnSetup;
         _itemFactory.OnBind += OnItemFactoryOnOnBind;
+        _itemFactory.OnTeardown += ItemFactoryOnOnTeardown;
 
         _listStore = ListStore.New(QueueTrackModel.GetGType());
         _selection = SingleSelection.New(_listStore);
@@ -61,12 +63,12 @@ public partial class Queue
         _tracksListView.SetFactory(_itemFactory);
         _tracksListView.SetModel(_selection);
 
-        _tracksListView.SingleClickActivate = true; // TODO: Move to .UI
         _tracksListView.OnActivate += TracksListViewOnOnActivate;
-        _gestureClick.OnPressed += GestureClickOnOnPressed;
-        _gestureLongPress.OnPressed += GestureLongPressOnOnPressed;
+        
+        _queueGestureClick.OnReleased += GridQueueGestureClickOnReleased;
+        _queueGestureLongPress.OnPressed += GridQueueGestureLongPressOnPressed; 
     }
-
+    
     public void TogglePage(QueuePages page)
     {
         var pageName = page switch
@@ -92,9 +94,9 @@ public partial class Queue
 
         // Set the new playing track
         _currentTrackIndex = index;
-        
+
         ChangePlayState(state);
-        
+
         if (!_currentTrackIndex.HasValue) return;
         _tracksListView.ScrollTo(_currentTrackIndex.Value, ListScrollFlags.Focus, null);
     }
@@ -103,9 +105,9 @@ public partial class Queue
     {
         if (!_currentTrackIndex.HasValue) return;
         if (_listStore.GetObject(_currentTrackIndex.Value) is not QueueTrackModel track) return;
-        
+
         // Need PlaybackState here from the player
-        track.Playing = state;    
+        track.Playing = state;
     }
 
     public void RefreshTracks(IEnumerable<QueueTrackModel> tracks)
@@ -172,10 +174,23 @@ public partial class Queue
         var item = (ListItem)args.Object;
         var child = TrackListItem.NewWithProperties([]);
 
+        // Gestures
+        child.GestureClick.OnReleased += TrackGestureClickOnOnReleased;
+        child.GestureLongPress.OnPressed += TrackGestureLongPressOnOnPressed;
+
         // Drag source
         SetupDragDropForItem(child);
 
         item.SetChild(child);
+    }
+
+    private void ItemFactoryOnOnTeardown(SignalListItemFactory sender, SignalListItemFactory.TeardownSignalArgs args)
+    {
+        var item = (ListItem)args.Object;
+        if (item.Child is not TrackListItem child) return;
+
+        child.GestureClick.OnReleased -= TrackGestureClickOnOnReleased;
+        child.GestureLongPress.OnPressed -= TrackGestureLongPressOnOnPressed;
     }
 
     private static void OnItemFactoryOnOnBind(SignalListItemFactory _, SignalListItemFactory.BindSignalArgs args)

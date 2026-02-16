@@ -1,5 +1,7 @@
 using Adw;
+using Aria.Features.Browser.Shared;
 using Aria.Infrastructure;
+using Gdk;
 using Gio;
 using GLib;
 using GObject;
@@ -22,9 +24,6 @@ public partial class AlbumsPage
     
     [Connect("albums-grid-view")] private GridView _gridView;
     [Connect("artist-stack")] private Stack _artistStack;
-
-    [Connect("gesture-click")] private GestureClick _gestureClick;
-    [Connect("gesture-long-press")] private GestureLongPress _gestureLongPress;
     [Connect("album-popover-menu")] private PopoverMenu _albumPopoverMenu;
     
     // Raw Storage
@@ -37,12 +36,10 @@ public partial class AlbumsPage
     private AlbumSorting _sorting = AlbumSorting.Title;    
     
     // Selection
-    private SingleSelection _singleSelection;
+    private SingleSelection _selection;
     
     // Presentation
     private SignalListItemFactory _itemFactory;
-    
-    private AlbumsAlbumModel? _contextMenuItem;
     
     partial void Initialize()
     {
@@ -50,7 +47,7 @@ public partial class AlbumsPage
         InitializeGridView();
     }
 
-    public void ShowAlbums(IReadOnlyList<AlbumsAlbumModel> models)
+    public void ShowAlbums(IReadOnlyList<AlbumModel> models)
     {
         Clear();
         foreach (var model in models) _listModel.Append(model);
@@ -59,31 +56,29 @@ public partial class AlbumsPage
     private void InitializeGridView()
     {
         // Raw Data
-        _listModel = ListStore.New(AlbumsAlbumModel.GetGType());
+        _listModel = ListStore.New(AlbumModel.GetGType());
         
         // Sorting
-        CompareDataFuncT<AlbumsAlbumModel> sortAlbum = SortAlbum;
+        CompareDataFuncT<AlbumModel> sortAlbum = SortAlbum;
         _sorter = CustomSorter.New(sortAlbum);
         _sortedListModel = SortListModel.New(_listModel, _sorter);
         _sorterAction.OnChangeState += SorterActionOnOnChangeState;
         
         // Selection
-        _singleSelection = SingleSelection.New(_sortedListModel);
+        _selection = SingleSelection.New(_sortedListModel);
         
         // Presentation
         _itemFactory =SignalListItemFactory.NewWithProperties([]);
         _itemFactory.OnSetup += OnItemFactoryOnOnSetup;
+        _itemFactory.OnTeardown += ItemFactoryOnOnTeardown;
         _itemFactory.OnBind += OnItemFactoryOnOnBind;
         
         _gridView.SetFactory(_itemFactory);
-        _gridView.SetModel(_singleSelection);
+        _gridView.SetModel(_selection);
         
-        _gridView.SingleClickActivate = true; // TODO: Move to .UI
         _gridView.OnActivate += GridViewOnOnActivate;
-        _gestureClick.OnPressed += GestureClickOnOnPressed;
-        _gestureLongPress.OnPressed += GestureLongPressOnOnPressed;
     }
-
+    
     private void SorterActionOnOnChangeState(SimpleAction sender, SimpleAction.ChangeStateSignalArgs args)
     {
         var value = args.Value?.GetString(out _);
@@ -93,7 +88,7 @@ public partial class AlbumsPage
         SetActiveSorting(sorting);
     }
 
-    private int SortAlbum(AlbumsAlbumModel a, AlbumsAlbumModel b)
+    private int SortAlbum(AlbumModel a, AlbumModel b)
     {
         switch (_sorting)
         {
@@ -133,19 +128,12 @@ public partial class AlbumsPage
     
     private void Clear()
     {
-        foreach (var dragSource in _albumDragSources)
-        {
-            dragSource.OnDragBegin -= AlbumOnOnDragBegin;
-            dragSource.OnPrepare -= AlbumOnPrepare;            
-        }
-        _albumDragSources.Clear();
-        
         // Dispose models (and their owned textures) before removing them from the store
         var n = (int)_listModel.GetNItems();
         for (var i = n - 1; i >= 0; i--)
         {
             var obj = _listModel.GetObject((uint)i);
-            if (obj is not AlbumsAlbumModel model) continue;
+            if (obj is not AlbumModel model) continue;
 
             model.CoverTexture = null;
             model.Dispose();
@@ -153,9 +141,82 @@ public partial class AlbumsPage
         _listModel.RemoveAll();        
     }
     
+    private void ShowAlbumContextMenu(AlbumListItem listItem, double x, double y)
+    {
+        var selected = _selection.GetSelected();
+        if (selected == GtkConstants.GtkInvalidListPosition) return;
+        
+        var pointInItem = new Graphene.Point { X = (float)x, Y = (float)y };        
+        
+        if (!listItem.ComputePoint(_gridView, pointInItem, out var pointInListView))
+            return;
+        
+        var rect = new Rectangle();
+        rect.X = (int)Math.Round(pointInListView.X);
+        rect.Y = (int)Math.Round(pointInListView.Y);
+        rect.Width = 1;
+        rect.Height = 1;
+        
+        _albumPopoverMenu.SetPointingTo(rect);
+
+        if (!_albumPopoverMenu.Visible)
+            _albumPopoverMenu.Popup();        
+    }
+    
+    private void GestureClickOnOnReleased(GestureClick sender, GestureClick.ReleasedSignalArgs args)
+    {
+        if (sender.Widget is not AlbumListItem listItem) return;
+        _listModel.Find(listItem.Model!, out var position);
+        if (!_selection.IsSelected(position)) _selection.SelectItem(position, true);        
+
+        var button = sender.GetCurrentButton();
+        switch (button)
+        {
+            case Gdk.Constants.BUTTON_PRIMARY:
+                ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", Variant.NewString(listItem.Model!.Album.Id.ToString()));
+                break;
+            
+            case Gdk.Constants.BUTTON_SECONDARY:
+                ShowAlbumContextMenu(listItem, args.X, args.Y);                
+                break;
+        }
+    }
+    
+    private void GestureLongPressOnOnPressed(GestureLongPress sender, GestureLongPress.PressedSignalArgs args)
+    {
+        if (sender.Widget is not AlbumListItem listItem) return;
+        _listModel.Find(listItem.Model!, out var position);
+        
+        if (!_selection.IsSelected(position)) _selection.SelectItem(position, true);
+        
+        ShowAlbumContextMenu(listItem, args.X, args.Y);
+    }
+    
+    private void OnItemFactoryOnOnSetup(SignalListItemFactory factory, SignalListItemFactory.SetupSignalArgs args)
+    {
+        var item = (ListItem)args.Object;
+        var child = AlbumListItem.NewWithProperties([]);
+        
+        // Gestures
+        child.GestureClick.OnReleased += GestureClickOnOnReleased;
+        child.GestureLongPress.OnPressed += GestureLongPressOnOnPressed;
+        
+        item.SetChild(child);
+    }
+
+    private void ItemFactoryOnOnTeardown(SignalListItemFactory sender, SignalListItemFactory.TeardownSignalArgs args)
+    {
+        var item = (ListItem)args.Object;
+        if (item.Child is not AlbumListItem child) return;
+        
+        // Gestures
+        child.GestureClick.OnReleased -= GestureClickOnOnReleased;
+        child.GestureLongPress.OnPressed -= GestureLongPressOnOnPressed;
+    }
+    
     private void GridViewOnOnActivate(GridView sender, GridView.ActivateSignalArgs args)
     {
-        if (_singleSelection.SelectedItem is not AlbumsAlbumModel selectedModel) return;
+        if (_selection.SelectedItem is not AlbumModel selectedModel) return;
 
         var parameter = selectedModel.Album.Id.ToVariant(); 
         ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", parameter);        
@@ -164,8 +225,8 @@ public partial class AlbumsPage
     private static void OnItemFactoryOnOnBind(SignalListItemFactory _, SignalListItemFactory.BindSignalArgs args)
     {
         var listItem = (ListItem)args.Object;
-        var modelItem = (AlbumsAlbumModel)listItem.GetItem()!;
-        var widget = (AlbumsAlbumListItem)listItem.GetChild()!;
+        var modelItem = (AlbumModel)listItem.GetItem()!;
+        var widget = (AlbumListItem)listItem.GetChild()!;
         widget.Bind(modelItem);
     }
 }

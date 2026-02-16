@@ -1,4 +1,3 @@
-using Aria.Core;
 using Aria.Infrastructure;
 using Gdk;
 using Gio;
@@ -13,8 +12,6 @@ public partial class Queue
     private SimpleAction? _queueDeleteSelectionAction;
     private SimpleAction? _queueShowAlbumAction;
     private SimpleAction? _queueShowTrackAction;
-    
-    private QueueTrackModel? _contextMenuItem;    
 
     private new void InsertActionGroup(string name, ActionGroup? actionGroup)
     {
@@ -36,57 +33,112 @@ public partial class Queue
         _queueShowAlbumAction.OnActivate += QueueShowAlbumActionOnOnActivate;
         _queueShowTrackAction.OnActivate += QueueShowTrackActionOnOnActivate;
         InsertActionGroup(group, queueActionGroup);
-
+        
         var controller = ShortcutController.New();
         controller.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("Delete"), NamedAction.New($"{group}.{deleteSelection}")));
         controller.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("<Alt>Return"), NamedAction.New($"{group}.{showTrack}")));        
         controller.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("<Control>Return"), NamedAction.New($"{group}.{showAlbum}")));
         AddController(controller);
+
+        var playlistMenu = Menu.NewWithProperties([]);
+        playlistMenu.AppendItem(MenuItem.New("Clear", $"{AppActions.Queue.Key}.{AppActions.Queue.Clear.Action}"));
         
-         var menu = Menu.NewWithProperties([]);
-         menu.AppendItem(MenuItem.New("Remove", $"{group}.{deleteSelection}"));
-         menu.AppendItem(MenuItem.New("Track Details", $"{group}.{showTrack}"));        
-         menu.AppendItem(MenuItem.New("Show Album", $"{group}.{showAlbum}"));        
-         
-         var playlistSection = Menu.NewWithProperties([]);
-         playlistSection.AppendItem(MenuItem.New("Clear", $"{AppActions.Queue.Key}.{AppActions.Queue.Clear.Action}"));
-         
-         menu.AppendSection(null, playlistSection);
-         
-         _trackPopoverMenu.SetMenuModel(menu);        
+         var trackMenu = Menu.NewWithProperties([]);
+         trackMenu.AppendItem(MenuItem.New("Remove", $"{group}.{deleteSelection}"));
+         trackMenu.AppendItem(MenuItem.New("Track Details", $"{group}.{showTrack}"));        
+         trackMenu.AppendItem(MenuItem.New("Show Album", $"{group}.{showAlbum}"));        
+         trackMenu.AppendSection(null, playlistMenu);
+         _trackPopoverMenu.SetMenuModel(trackMenu);
+
+         var gridMenu = Menu.NewWithProperties([]);
+         gridMenu.AppendSection(null, playlistMenu);
+         _queuePopoverMenu.SetMenuModel(gridMenu);         
     }
 
-    private void ShowContextMenu(double x, double y)
+    private void ShowTrackContextMenu(TrackListItem listItem, double x, double y)
     {
         var selected = _selection.GetSelected();
         if (selected == GtkConstants.GtkInvalidListPosition) return;
-        _contextMenuItem = (QueueTrackModel) _listStore.GetObject(selected)!;
         
-        var rect = new Rectangle
-        {
-            X = (int)Math.Round(x),
-            Y = (int)Math.Round(y)
-        };
+        var pointInItem = new Graphene.Point { X = (float)x, Y = (float)y };
+        
+        if (!listItem.ComputePoint(_tracksListView, pointInItem, out var pointInListView))
+            return;
 
+        var rect = new Rectangle();
+        rect.X = (int)Math.Round(pointInListView.X);
+        rect.Y = (int)Math.Round(pointInListView.Y);
+        rect.Width = 1;
+        rect.Height = 1;
+        
         _trackPopoverMenu.SetPointingTo(rect);
 
         if (!_trackPopoverMenu.Visible)
             _trackPopoverMenu.Popup();        
+    }
+    
+    private void ShowQueueContextMenu(double x, double y)
+    {
+        var rect = new Rectangle();
+        rect.X = (int)Math.Round(x);
+        rect.Y = (int)Math.Round(y);
+        rect.Width = 1;
+        rect.Height = 1;
+        
+        _queuePopoverMenu.SetPointingTo(rect);
+
+        if (!_queuePopoverMenu.Visible)
+            _queuePopoverMenu.Popup();        
     }    
+    
     private void TracksListViewOnOnActivate(ListView sender, ListView.ActivateSignalArgs args)
     {
          if (_selection.SelectedItem is not QueueTrackModel selectedModel) return;
         TrackActivated?.Invoke(this, new TrackActivatedEventArgs(selectedModel.Position));
     }
-
-    private void GestureLongPressOnOnPressed(GestureLongPress sender, GestureLongPress.PressedSignalArgs args)
+    
+    private void TrackGestureLongPressOnOnPressed(GestureLongPress sender, GestureLongPress.PressedSignalArgs args)
     {
-        ShowContextMenu(args.X, args.Y);
+        if (sender.Widget is not TrackListItem listItem) return;
+        var position = listItem.Model!.Position;
+        if (!_selection.IsSelected(position)) _selection.SelectItem(position, true);
+                
+        ShowTrackContextMenu(listItem, args.X, args.Y);                
+    }
+    
+    private void TrackGestureClickOnOnReleased(GestureClick sender, GestureClick.ReleasedSignalArgs args)
+    {
+        if (sender.Widget is not TrackListItem listItem) return;
+        var position = listItem.Model!.Position;
+        if (!_selection.IsSelected(position)) _selection.SelectItem(position, true);        
+
+        var button = sender.GetCurrentButton();
+        switch (button)
+        {
+            case Gdk.Constants.BUTTON_PRIMARY:
+                TrackActivated?.Invoke(this, new TrackActivatedEventArgs(position));
+                break;
+            
+            case Gdk.Constants.BUTTON_SECONDARY:
+                ShowTrackContextMenu(listItem, args.X, args.Y);                
+                break;
+        }
+    }    
+    
+    private void GridQueueGestureLongPressOnPressed(GestureLongPress sender, GestureLongPress.PressedSignalArgs args)
+    {
+        ShowQueueContextMenu(args.X, args.Y);
     }
 
-    private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
+    private void GridQueueGestureClickOnReleased(GestureClick sender, GestureClick.ReleasedSignalArgs args)
     {
-        ShowContextMenu(args.X, args.Y);
+        var button = sender.GetCurrentButton();
+        switch (button)
+        {
+            case Gdk.Constants.BUTTON_SECONDARY:
+                ShowQueueContextMenu(args.X, args.Y);
+                break;
+        }
     }
     
     private void QueueShowTrackActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)

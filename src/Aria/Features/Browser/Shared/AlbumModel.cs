@@ -5,20 +5,20 @@ using Gdk;
 using GObject;
 using Object = GObject.Object;
 
-namespace Aria.Features.Browser.Artist;
+namespace Aria.Features.Browser.Shared;
 
 [Subclass<Object>]
 public partial class AlbumModel : INotifyPropertyChanged
 {
-    public static AlbumModel NewFor(AlbumInfo album)
+    public static AlbumModel NewForAlbum(AlbumInfo album)
     {
         var model = NewWithProperties([]);
         model.Album = album;
         return model;
     }
-    
-    public AlbumInfo Album { get; private set; }
 
+    public AlbumInfo Album { get; private set; }
+    
     public Texture? CoverTexture
     {
         get;
@@ -33,7 +33,7 @@ public partial class AlbumModel : INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
-    
+
     public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)

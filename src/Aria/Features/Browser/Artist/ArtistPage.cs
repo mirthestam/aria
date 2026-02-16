@@ -1,5 +1,6 @@
 using Adw;
 using Aria.Core.Library;
+using Aria.Features.Browser.Shared;
 using Aria.Infrastructure;
 using Gdk;
 using Gio;
@@ -33,9 +34,6 @@ public partial class ArtistPage
 
     [Connect("albums-grid-view")] private GridView _gridView;
     [Connect("artist-stack")] private Stack _artistStack;
-
-    [Connect("gesture-click")] private GestureClick _gestureClick;
-    [Connect("gesture-long-press")] private GestureLongPress _gestureLongPress;
     [Connect("album-popover-menu")] private PopoverMenu _albumPopoverMenu;
 
     // Raw storage
@@ -48,16 +46,12 @@ public partial class ArtistPage
     private AlbumSorting _sorting = AlbumSorting.Title;
 
     // Selection
-    private SingleSelection _singleSelection;
+    private SingleSelection _selection;
 
     // Presentation
-    private SignalListItemFactory _signalListItemFactory;
+    private SignalListItemFactory _itemFactory;
 
     private ArtistInfo _artist;
-
-    private AlbumModel? _contextMenuItem;
-
-    public event Action<AlbumInfo, ArtistInfo>? AlbumSelected;
 
     partial void Initialize()
     {
@@ -109,23 +103,18 @@ public partial class ArtistPage
         _sorterAction.OnChangeState += SorterActionOnOnChangeState;
 
         // Selection
-        _singleSelection = SingleSelection.New(_sortedListModel);
+        _selection = SingleSelection.New(_sortedListModel);
 
         // Presentation
-        _signalListItemFactory = SignalListItemFactory.NewWithProperties([]);
+        _itemFactory = SignalListItemFactory.NewWithProperties([]);
+        _itemFactory.OnSetup += OnItemFactoryOnOnSetup;
+        _itemFactory.OnTeardown += ItemFactoryOnOnTeardown;
+        _itemFactory.OnBind += OnItemFactoryOnOnBind;
 
+        _gridView.SetFactory(_itemFactory);
+        _gridView.SetModel(_selection);
 
-        _gridView.SetFactory(_signalListItemFactory);
-        _gridView.SetModel(_singleSelection);
-
-        _signalListItemFactory.OnSetup += OnSignalListItemFactoryOnOnSetup;
-        _signalListItemFactory.OnBind += OnSignalListItemFactoryOnOnBind;
-
-        _gridView.SingleClickActivate = true; // TODO: Move to .UI
         _gridView.OnActivate += GridViewOnOnActivate;
-
-        _gestureClick.OnPressed += GestureClickOnOnPressed;
-        _gestureLongPress.OnPressed += GestureLongPressOnOnPressed;
     }
 
     private int SortAlbum(AlbumModel a, AlbumModel b)
@@ -167,14 +156,6 @@ public partial class ArtistPage
 
     private void Clear()
     {
-        foreach (var dragSource in _albumDragSources)
-        {
-            dragSource.OnDragBegin -= AlbumOnDragBegin;
-            dragSource.OnPrepare -= AlbumOnPrepare;
-        }
-
-        _albumDragSources.Clear();
-
         // Dispose models (and their owned textures) before removing them from the store
         var n = (int)_listModel.GetNItems();
         for (var i = n - 1; i >= 0; i--)
@@ -189,27 +170,21 @@ public partial class ArtistPage
         _listModel.RemoveAll();
     }
 
-    private void ShowContextMenu(double x, double y)
+    private void ShowAlbumContextMenu(AlbumListItem listItem, double x, double y)
     {
-        // The grid is in single click activate mode.
-        // That means that hover changes the selection.
-        // The user 'is' able to hover even when the context menu is shown.
-        // Therefore, I remember the hovered item at the moment the menu was shown.
-
-        // To be honest, this is probably not the 'correct' approach
-        // as right-clicking outside an item also invokes this logic.
-
-        // But it works, and I have been unable to find out the correct way.
-
-        var selected = _singleSelection.GetSelected();
+        var selected = _selection.GetSelected();
         if (selected == GtkConstants.GtkInvalidListPosition) return;
-        _contextMenuItem = (AlbumModel)_listModel.GetObject(selected)!;
 
-        var rect = new Rectangle
-        {
-            X = (int)Math.Round(x),
-            Y = (int)Math.Round(y),
-        };
+        var pointInItem = new Graphene.Point { X = (float)x, Y = (float)y };
+
+        if (!listItem.ComputePoint(_gridView, pointInItem, out var pointInListView))
+            return;
+
+        var rect = new Rectangle();
+        rect.X = (int)Math.Round(pointInListView.X);
+        rect.Y = (int)Math.Round(pointInListView.Y);
+        rect.Width = 1;
+        rect.Height = 1;
 
         _albumPopoverMenu.SetPointingTo(rect);
 
@@ -217,22 +192,75 @@ public partial class ArtistPage
             _albumPopoverMenu.Popup();
     }
 
+    private void GestureClickOnOnReleased(GestureClick sender, GestureClick.ReleasedSignalArgs args)
+    {
+        if (sender.Widget is not AlbumListItem listItem) return;
+        _listModel.Find(listItem.Model!, out var position);
+        if (!_selection.IsSelected(position)) _selection.SelectItem(position, true);
+
+        var button = sender.GetCurrentButton();
+        switch (button)
+        {
+            case Gdk.Constants.BUTTON_PRIMARY:
+                var parameters = Variant.NewArray(VariantType.String, [
+                    listItem.Model!.Album.Id.ToVariant(),
+                    _artist.Id.ToVariant()
+                ]);
+
+                ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbumForArtist.Action}", parameters);
+                break;
+
+            case Gdk.Constants.BUTTON_SECONDARY:
+                ShowAlbumContextMenu(listItem, args.X, args.Y);
+                break;
+        }
+    }
+
     private void GestureLongPressOnOnPressed(GestureLongPress sender, GestureLongPress.PressedSignalArgs args)
     {
-        ShowContextMenu(args.X, args.Y);
+        if (sender.Widget is not AlbumListItem listItem) return;
+        _listModel.Find(listItem.Model!, out var position);
+
+        if (!_selection.IsSelected(position)) _selection.SelectItem(position, true);
+
+        ShowAlbumContextMenu(listItem, args.X, args.Y);
     }
 
-    private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
+    private void OnItemFactoryOnOnSetup(SignalListItemFactory factory, SignalListItemFactory.SetupSignalArgs args)
     {
-        ShowContextMenu(args.X, args.Y);
+        var item = (ListItem)args.Object;
+        var child = AlbumListItem.NewWithProperties([]);
+
+        // Gestures
+        child.GestureClick.OnReleased += GestureClickOnOnReleased;
+        child.GestureLongPress.OnPressed += GestureLongPressOnOnPressed;
+        
+        item.SetChild(child);
     }
 
-    private static void OnSignalListItemFactoryOnOnBind(SignalListItemFactory _,
-        SignalListItemFactory.BindSignalArgs args)
+    private void ItemFactoryOnOnTeardown(SignalListItemFactory sender, SignalListItemFactory.TeardownSignalArgs args)
+    {
+        var item = (ListItem)args.Object;
+        if (item.Child is not AlbumListItem child) return;
+
+        // Gestures
+        child.GestureClick.OnReleased -= GestureClickOnOnReleased;
+        child.GestureLongPress.OnPressed -= GestureLongPressOnOnPressed;
+    }
+
+    private void GridViewOnOnActivate(GridView sender, GridView.ActivateSignalArgs args)
+    {
+        if (_selection.SelectedItem is not AlbumModel selectedModel) return;
+
+        var parameter = selectedModel.Album.Id.ToVariant();
+        ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", parameter);
+    }
+
+    private static void OnItemFactoryOnOnBind(SignalListItemFactory _, SignalListItemFactory.BindSignalArgs args)
     {
         var listItem = (ListItem)args.Object;
         var modelItem = (AlbumModel)listItem.GetItem()!;
         var widget = (AlbumListItem)listItem.GetChild()!;
-        widget.Initialize(modelItem);
+        widget.Bind(modelItem);
     }
 }

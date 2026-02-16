@@ -75,64 +75,43 @@ public partial class AlbumsPage
         _albumPopoverMenu.SetMenuModel(menu);        
     }    
     
-    private void ShowContextMenu(double x, double y)
-    {
-        // The grid is in single click activate mode.
-        // That means that hover changes the selection.
-        // The user 'is' able to hover even when the context menu is shown.
-        // Therefore, I remember the hovered item at the moment the menu was shown.
-        
-        // To be honest, this is probably not the 'correct' approach
-        // as right-clicking outside an item also invokes this logic.
-        
-        // But it works, and I have been unable to find out the correct way.
-        
-        var selected = _singleSelection.GetSelected();
-        if (selected == GtkConstants.GtkInvalidListPosition) return;
-        _contextMenuItem = (AlbumsAlbumModel) _listModel.GetObject(selected)!;
-        
-        var rect = new Rectangle
-        {
-            X = (int)Math.Round(x),
-            Y = (int)Math.Round(y),
-        };
-
-        _albumPopoverMenu.SetPointingTo(rect);
-
-        if (!_albumPopoverMenu.Visible)
-            _albumPopoverMenu.Popup();        
-    }
-    
-    private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
-    {
-        ShowContextMenu(args.X, args.Y);
-    }
-    
-    private void GestureLongPressOnOnPressed(GestureLongPress sender, GestureLongPress.PressedSignalArgs args)
-    {
-        ShowContextMenu(args.X, args.Y);
-    }
-    
     private void EnqueueEndActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argumentArray = _contextMenuItem!.Album.Id.ToVariantArray();
+        var selected = _selection.GetSelected();
+        if (selected == GtkConstants.GtkInvalidListPosition) return;
+        var item = (Shared.AlbumModel) _listModel.GetObject(selected)!;
+
+        var argumentArray = item.Album.Id.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueEnd.Action}", argumentArray);
     }
 
     private void EnqueueNextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argumentArray = _contextMenuItem!.Album.Id.ToVariantArray();
+        var selected = _selection.GetSelected();
+        if (selected == GtkConstants.GtkInvalidListPosition) return;
+        var item = (Shared.AlbumModel) _listModel.GetObject(selected)!;
+
+        var argumentArray = item.Album.Id.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueNext.Action}", argumentArray);
     }
 
     private void EnqueueReplaceActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argumentArray = _contextMenuItem!.Album.Id.ToVariantArray();
+        var selected = _selection.GetSelected();
+        if (selected == GtkConstants.GtkInvalidListPosition) return;
+        var item = (Shared.AlbumModel) _listModel.GetObject(selected)!;
+
+        var argumentArray = item.Album.Id.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueReplace.Action}", argumentArray);
     }
 
     private void AlbumShowActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", Variant.NewString(_contextMenuItem!.Album.Id.ToString()));        
+        var selected = _selection.GetSelected();
+        if (selected == GtkConstants.GtkInvalidListPosition) return;
+        var item = (Shared.AlbumModel) _listModel.GetObject(selected)!;
+
+        var argument = item.Album.Id.ToVariant();
+        ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", argument);        
     }
 }

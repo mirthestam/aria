@@ -20,7 +20,6 @@
                         <property name="css-classes">navigation-sidebar</property>
                         <property name="max-columns">40</property>
                         <property name="min-columns">1</property>
-                        <property name="single-click-activate">False</property>
                         <property name="tab-behavior">item</property>
                         <property name="vexpand">True</property>
                         <child>

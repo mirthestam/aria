@@ -15,14 +15,12 @@
     </ItemGroup>
 
     <ItemGroup>
-        <EmbeddedResource Include="Features\Browser\Albums\AlbumsAlbumListItem.ui" />
         <EmbeddedResource Include="Features\Browser\Albums\AlbumsPage.ui" />
         <EmbeddedResource Include="Features\Browser\Album\AlbumPage.ui"/>
         <EmbeddedResource Include="Features\Browser\Album\CreditBox.ui" />
         <EmbeddedResource Include="Features\Browser\Album\TrackGroup.ui" />
         <EmbeddedResource Include="Features\Browser\Artists\ArtistListItem.ui"/>
         <EmbeddedResource Include="Features\Browser\Artists\ArtistsPage.ui"/>
-        <EmbeddedResource Include="Features\Browser\Artist\AlbumListItem.ui"/>
         <EmbeddedResource Include="Features\Browser\Artist\ArtistPage.ui"/>
         <EmbeddedResource Include="Features\Browser\Artist\EmptyPage.ui"/>
         <EmbeddedResource Include="Features\Browser\BrowserHost.ui" />
@@ -32,6 +30,7 @@
         <EmbeddedResource Include="Features\Browser\Playlists\PlaylistsEmptyPage.ui" />
         <EmbeddedResource Include="Features\Browser\Playlists\PlaylistsPage.ui" />
         <EmbeddedResource Include="Features\Browser\Search\SearchPage.ui" />
+        <EmbeddedResource Include="Features\Browser\Shared\AlbumListItem.ui" />
         <EmbeddedResource Include="Features\Details\TrackDetailsDialog.ui" />
         <EmbeddedResource Include="Features\PlayerBar\PlayerBar.ui"/>
         <EmbeddedResource Include="Features\Player\PlaybackControls.ui"/>

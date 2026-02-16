@@ -1,10 +1,10 @@
 using Aria.Core;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Features.Browser.Shared;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
-using GLib;
 using Microsoft.Extensions.Logging;
 
 namespace Aria.Features.Browser.Artist;
@@ -23,12 +23,6 @@ public partial class ArtistPagePresenter(
     {
         _view = view;
         _view.TogglePage(ArtistPage.ArtistPages.Empty);
-        _view.AlbumSelected += (albumInfo, artistInfo) =>
-        {
-            var arguments = new[] { albumInfo.Id.ToString(), artistInfo.Id.ToString() };
-            var argument = Variant.NewArray(VariantType.String, arguments.Select(Variant.NewString).ToArray());
-            _view.ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbumForArtist.Action}", argument);
-        };
     }    
     
     public async Task ResetAsync()
@@ -58,7 +52,7 @@ public partial class ArtistPagePresenter(
             if (artist == null) throw new InvalidOperationException("Artist not found");
 
             var albums = (await aria.Library.GetAlbumsAsync(artistId, ct)).ToList();
-            var albumModels = albums.Select(AlbumModel.NewFor)
+            var albumModels = albums.Select(AlbumModel.NewForAlbum)
                 .OrderBy(a => a.Album.Title)
                 .ToList();
 

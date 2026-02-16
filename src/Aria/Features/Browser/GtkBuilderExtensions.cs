@@ -3,6 +3,7 @@ using Aria.Features.Browser.Artist;
 using Aria.Features.Browser.Artists;
 using Aria.Features.Browser.Playlists;
 using Aria.Features.Browser.Search;
+using Aria.Features.Browser.Shared;
 using Aria.Hosting;
 
 namespace Aria.Features.Browser;
@@ -13,14 +14,16 @@ public static class GtkBuilderExtensions
     {
         public void WithBrowserGTypes()
         {
+            // Shared
+            builder.WithGType<AlbumListItem>();
+            builder.WithGType<AlbumModel>();            
+            
             // Album
             builder.WithGType<AlbumPage>();       
             builder.WithGType<TrackGroup>();
             builder.WithGType<CreditBox>();            
             
             // Albums
-            builder.WithGType<Albums.AlbumsAlbumListItem>();
-            builder.WithGType<Albums.AlbumsAlbumModel>();
             builder.WithGType<Albums.AlbumsPage>();            
             
             // Artist

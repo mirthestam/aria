@@ -71,7 +71,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
         {
             var albums = await _aria.Library.GetAlbumsAsync(cancellationToken).ConfigureAwait(false);
             
-            var albumModels = albums.Select(AlbumsAlbumModel.NewForAlbumInfo)
+            var albumModels = albums.Select(Shared.AlbumModel.NewForAlbum)
                 .OrderBy(a => a.Album.Title)
                 .ToList();
             cancellationToken.ThrowIfCancellationRequested();
@@ -95,7 +95,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
         }
     }
 
-    private async Task ProcessArtworkAsync(IEnumerable<AlbumsAlbumModel> models, CancellationToken ct)
+    private async Task ProcessArtworkAsync(IEnumerable<Shared.AlbumModel> models, CancellationToken ct)
     {
         LogLoadingAlbumsArtwork();
         var options = new ParallelOptions
@@ -121,7 +121,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
         }
     }
 
-    private async Task LoadArtForModelAsync(AlbumsAlbumModel model, CancellationToken ct = default)
+    private async Task LoadArtForModelAsync(Shared.AlbumModel model, CancellationToken ct = default)
     {
         var artId = model.Album.Assets.FirstOrDefault(r => r.Type == AssetType.FrontCover)?.Id;
         if (artId == null) return;

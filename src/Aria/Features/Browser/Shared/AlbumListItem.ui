@@ -4,10 +4,25 @@
   <!-- interface-name MainWindow.ui -->
   <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.4"/>
-  <template class="AriaFeaturesBrowserArtistAlbumListItem" parent="GtkBox">
+  <template class="AriaFeaturesBrowserSharedAlbumListItem" parent="GtkBox">
     <property name="halign">center</property>
     <property name="orientation">horizontal</property>
     <property name="spacing">0</property>
+    <child>
+      <object class="GtkDragSource" id="drag-source">
+        <property name="actions">copy</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkGestureLongPress" id="gesture-long-press">
+        <property name="touch-only">True</property>
+      </object>
+    </child>
+    <child>
+      <object class="GtkGestureClick" id="gesture-click">
+        <property name="button">0</property>
+      </object>
+    </child>
     <child>
       <object class="GtkBox">
         <property name="hexpand">False</property>
@@ -33,7 +48,7 @@
         <child>
           <object class="GtkLabel" id="subtitle-label">
             <property name="css-classes">dimmed
-              caption</property>
+caption</property>
             <property name="ellipsize">end</property>
             <property name="single-line-mode">False</property>
           </object>

@@ -16,9 +16,15 @@ public partial class TrackListItem
     [Connect("subtitle-label")] private Label _subTitleLabel;
     [Connect("title-label")] private Label _titleLabel;
     // [Connect("playing-picture")] private Picture _playingPicture;
-
+    
+    [Connect("gesture-click")] GestureClick _gestureClick;
+    [Connect("gesture-long-press")] GestureLongPress _gestureLongPress;
+    
+    public GestureClick GestureClick => _gestureClick;
+    public GestureLongPress GestureLongPress => _gestureLongPress;
+    
     public QueueTrackModel? Model { get; private set; }
-
+    
     public void Bind(QueueTrackModel model)
     {
         if (Model != null)

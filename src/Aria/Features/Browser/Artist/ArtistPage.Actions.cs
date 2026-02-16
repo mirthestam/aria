@@ -1,5 +1,6 @@
 using Aria.Core;
 using Aria.Core.Queue;
+using Aria.Features.Browser.Shared;
 using Aria.Infrastructure;
 using Gio;
 using GLib;
@@ -81,42 +82,60 @@ public partial class ArtistPage
 
         _albumPopoverMenu.SetMenuModel(menu);
     }
-    
+
     private void EnqueueEndActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueEnd.Action}", _contextMenuItem!.Album.Id.ToVariantArray());
+        var selected = _selection.GetSelected();
+        if (selected == GtkConstants.GtkInvalidListPosition) return;
+        var item = (AlbumModel) _listModel.GetObject(selected)!;
+
+        var argumentArray = item.Album.Id.ToVariantArray();
+        ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueEnd.Action}", argumentArray);
     }
 
     private void EnqueueNextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueNext.Action}", _contextMenuItem!.Album.Id.ToVariantArray());
+        var selected = _selection.GetSelected();
+        if (selected == GtkConstants.GtkInvalidListPosition) return;
+        var item = (AlbumModel) _listModel.GetObject(selected)!;
+
+        var argumentArray = item.Album.Id.ToVariantArray();
+        ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueNext.Action}", argumentArray);
     }
 
     private void EnqueueReplaceActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueReplace.Action}", _contextMenuItem!.Album.Id.ToVariantArray());
+        var selected = _selection.GetSelected();
+        if (selected == GtkConstants.GtkInvalidListPosition) return;
+        var item = (AlbumModel) _listModel.GetObject(selected)!;
+
+        var argumentArray = item.Album.Id.ToVariantArray();
+        ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueReplace.Action}", argumentArray);
     }
 
     private void AlbumShowActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}",
-            _contextMenuItem!.Album.Id.ToVariant());
-    }
+        var selected = _selection.GetSelected();
+        if (selected == GtkConstants.GtkInvalidListPosition) return;
+        var item = (AlbumModel) _listModel.GetObject(selected)!;
+
+        var argument = item.Album.Id.ToVariant();
+        ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", argument);        
+    }    
 
     private void AlbumShowForArtistActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
+        var selected = _selection.GetSelected();
+        if (selected == GtkConstants.GtkInvalidListPosition) return;
+        var item = (AlbumModel) _listModel.GetObject(selected)!;
+
+        var argument = item.Album.Id.ToVariant();        
+        
         var parameters = Variant.NewArray(VariantType.String, [
-            _contextMenuItem!.Album.Id.ToVariant(),
+            argument,
             _artist.Id.ToVariant()
         ]);
 
         ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbumForArtist.Action}", parameters);
-    }
-
-    private void GridViewOnOnActivate(GridView sender, GridView.ActivateSignalArgs args)
-    {
-        if (_singleSelection.SelectedItem is not AlbumModel selectedModel) return;
-
-        AlbumSelected?.Invoke(selectedModel.Album, _artist);
     }
 }

@@ -26,13 +26,19 @@ playlist</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkGestureLongPress" id="gesture-long-press">
+                      <object class="GtkPopoverMenu" id="queue-popover-menu">
+                        <property name="halign">start</property>
+                        <property name="has-arrow">false</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkGestureLongPress" id="queue-gesture-long-press">
                         <property name="touch-only">True</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkGestureClick" id="gesture-click">
-                        <property name="button">3</property>
+                      <object class="GtkGestureClick" id="queue-gesture-click">
+                        <property name="button">0</property>
                       </object>
                     </child>
                   </object>
