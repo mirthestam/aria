@@ -32,22 +32,30 @@ public partial class AlbumListItem
 
     public void Bind(AlbumModel model)
     {
-        if (Model != null)
+        try
         {
-            _coverPicture.SetPaintable(null);            
-            Model.PropertyChanged -= ModelOnPropertyChanged;
-        }
+            if (Model != null)
+            {
+                _coverPicture.SetPaintable(null);            
+                Model.PropertyChanged -= ModelOnPropertyChanged;
+            }
 
-        Model = model;
-        Model.PropertyChanged += ModelOnPropertyChanged;
-
-        // TODO: I can sort here now with role on priority
-        var artistsLine = string.Join(", ", model.Album.CreditsInfo.AlbumArtists.Select(a => a.Artist.Name));
-
-        _titleLabel.SetLabel(model.Album.Title);
-        _subTitleLabel.SetLabel(artistsLine);
+            Model = model;
+            Model.PropertyChanged += ModelOnPropertyChanged;
         
-        UpdateCoverPicture();
+            // TODO: I can sort here now with role on priority
+            var artistsLine = string.Join(", ", model.Album.CreditsInfo.AlbumArtists.Select(a => a.Artist.Name));
+
+            _titleLabel.SetLabel(model.Album.Title);
+            _subTitleLabel.SetLabel(artistsLine);
+        
+            UpdateCoverPicture();
+        }
+        catch (Exception e)
+        {
+            // TODO: Logger, but this is a list item so i should not expose Album here.
+            Console.WriteLine(e);
+        }
     }
     
     private void ModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)

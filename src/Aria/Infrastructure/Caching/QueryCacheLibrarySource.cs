@@ -68,6 +68,11 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
         return _inner.DeletePlaylistAsync(id, cancellationToken);
     }
 
+    public Task BeginRefreshAsync()
+    {
+        return _inner.BeginRefreshAsync();
+    }
+
     public async Task<AlbumInfo?> GetAlbumAsync(Id albumId, CancellationToken cancellationToken = default)
     {
         var key = $"id:{albumId}";

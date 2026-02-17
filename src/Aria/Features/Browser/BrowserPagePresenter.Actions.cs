@@ -24,6 +24,8 @@ public partial class BrowserPagePresenter
     private SimpleAction _showTrackAction;
 
     private SimpleAction _runLibraryDiagnosticsAction;
+
+    private SimpleAction _updateLibraryAction;
     
     private void InitializeActions(AttachContext context)
     {
@@ -49,12 +51,16 @@ public partial class BrowserPagePresenter
                 GLib.VariantType.NewArray(GLib.VariantType.String)));
         browserActionGroup.AddAction(_showTrackAction =
             SimpleAction.New(AppActions.Browser.ShowTrack.Action, GLib.VariantType.String));
+        browserActionGroup.AddAction(_updateLibraryAction =
+            SimpleAction.New(AppActions.Browser.Update.Action, null));
         context.SetAccelsForAction($"{AppActions.Browser.Key}.{AppActions.Browser.Search.Action}",
             [AppActions.Browser.Search.Accelerator]);
         context.SetAccelsForAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAllAlbums.Action}",
             [AppActions.Browser.ShowAllAlbums.Accelerator]);
         context.SetAccelsForAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAllPlaylists.Action}",
             [AppActions.Browser.ShowAllPlaylists.Accelerator]);        
+        context.SetAccelsForAction($"{AppActions.Browser.Key}.{AppActions.Browser.Update.Action}",
+            [AppActions.Browser.Update.Accelerator]);        
         context.InsertAppActionGroup(AppActions.Browser.Key, browserActionGroup);
 
         _searchAction.OnActivate += SearchActionOnOnActivate;
@@ -64,6 +70,20 @@ public partial class BrowserPagePresenter
         _showAlbumForArtistAction.OnActivate += ShowAlbumForArtistActionOnOnActivate;
         _showTrackAction.OnActivate += ShowTrackActionOnOnActivate;
         _showPlaylistsAction.OnActivate += ShowPlaylistsActionOnOnActivate;
+        _updateLibraryAction.OnActivate += UpdateLibraryActionOnOnActivate;
+    }
+
+    private async void UpdateLibraryActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            _messenger.Send(new ShowToastMessage("Your Music Player is refreshing your library."));
+            await _aria.Library.BeginRefreshAsync();
+        }
+        catch
+        {
+            // OK
+        }
     }
 
     private async void RunLibraryDiagnosticsActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)

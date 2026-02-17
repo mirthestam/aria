@@ -24,6 +24,8 @@ public abstract class BaseLibrary : ILibrarySource
 
     public abstract Task DeletePlaylistAsync(Id id, CancellationToken cancellationToken = default);
 
+    public virtual Task BeginRefreshAsync() => Task.CompletedTask;
+
     public virtual async Task<Stream> GetAlbumResourceStreamAsync(Id id, CancellationToken ct)
     {
         return await GetDefaultAlbumResourceStreamAsync(ct).ConfigureAwait(false);

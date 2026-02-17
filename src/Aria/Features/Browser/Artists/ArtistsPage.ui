@@ -113,6 +113,10 @@ popup</property>
         <attribute name="action">win.disconnect</attribute>
         <attribute name="label">_Disconnect</attribute>
       </item>
+      <item>
+        <attribute name="action">aria-browser.refresh-library</attribute>
+        <attribute name="label">Refresh Library</attribute>
+      </item>
     </section>
     <section id="main-section">
       <item>

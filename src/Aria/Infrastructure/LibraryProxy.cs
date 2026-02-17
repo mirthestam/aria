@@ -77,6 +77,11 @@ public class LibraryProxy : ILibrarySource
         return _innerLibrary?.DeletePlaylistAsync(id, cancellationToken) ?? Task.CompletedTask;
     }
 
+    public Task BeginRefreshAsync()
+    {
+        return _innerLibrary?.BeginRefreshAsync() ?? Task.CompletedTask;
+    }
+
     internal void Attach(ILibrarySource library)
     {
         _innerLibrary = library;

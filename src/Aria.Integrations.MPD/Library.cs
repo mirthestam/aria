@@ -178,4 +178,10 @@ public partial class Library(Client client, ITagParser tagParser, ITagInspector 
             }
         }
     }
+
+    public override async Task BeginRefreshAsync()
+    {
+        var command = new UpdateCommand();
+        await client.SendCommandAsync(command).ConfigureAwait(false);
+    }
 }

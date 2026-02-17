@@ -24,6 +24,7 @@ public static class AppActions
         public static readonly AppAction ShowArtist = new("show-artist");        
         public static readonly AppAction ShowTrack = new("show-track");
         public static readonly AppAction ShowPlaylist = new("show-playlist");
+        public static readonly AppAction Update = new("refresh-library", "<Control>r");        
     }
 
     public static class Queue
