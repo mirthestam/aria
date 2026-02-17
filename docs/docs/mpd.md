@@ -11,7 +11,7 @@ MPD looks complex, but this minimal setup only takes a few steps, after which yo
 
 MPD has a lot of advanced functions that are out of scope for this documentation. For that, please read the [MPD User's Manual](https://mpd.readthedocs.io/en/latest/user.html).
 
-I recommend to install MPD using your distribution's package manager. For this Example, I am going to use Arch Linux.
+I recommend to install MPD using your distribution's package manager.
 
 ```bash
 # Arch Linux
@@ -26,8 +26,8 @@ We are going to setup MPD to run automatically as a daemon for your current user
 First, we will create the required folders to store MPD's configuration.
 These folders follow the Linux XDG standard:
 
- - ~/.config/mpd → configuration
- - ~/.local/share/mpd → database, playlists, and state files
+ - `~/.config/mpd` → configuration
+ - `~/.local/share/mpd` → database, playlists, and state files
 
 ```bash
 mkdir -p ~/.config/mpd
@@ -63,7 +63,7 @@ loginctl enable-linger $USER
 ```
 
 
-Test your server by running the next command. It should not cause any errors. 
+Test your server by running the `status` command using `mpc`.  
 
 ```bash
 mpc status
@@ -92,5 +92,5 @@ If not, you can use the `Add Player` button to manually provide information how 
 
 ## Troubleshooting
 
-**MPD won't start**
+### MPD won't start
 Take a look at the log using `journalctl --user -u mpd -e`

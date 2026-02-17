@@ -12,27 +12,6 @@ public partial class PicardTagParser(IIdProvider idProvider) : ITagParser
     ///     A tag parser that follows tags as defined by the default configuration of MusicBrainz Picard
     ///     https://mpd.readthedocs.io/en/latest/protocol.html#tags
     /// </summary>
-
-    /* About Album Artists
-     https://community.metabrainz.org/t/multiple-album-artists/532302/13
-     Picard has no default 'albumartists' multi-list. Also, for 'albumartist'  join phrases do not seem to be standardized.
-
-     This script, as proposed in the topic above, converts it to a multi list. MPD supports this multi list. Therefore,
-     we now CAN handle them.
-
-     $setmulti(albumartist,%_albumartists%)
-     $setmulti(albumartistsort,%_albumartists_sort%)
-
-
-    If you want to be able to see ensembles in the artists list,
-    you'll need to use the calssic tool to map 'ensemble_names' field to 'ensemble'.
-    Do note, this is a single field.
-
-    // Ik heb nog afwijkende namen in album artist.
-    https://github.com/rdswift/picard-plugins/blob/2.0_RDS_Plugins/plugins/additional_artists_variables/docs/README.md
-    die plugin proberen, EN dan documenteren
-     */
-    
     private static PicardTagInfo ParseTags(IReadOnlyList<Tag> tags)
     {
         var parsed = new PicardTagInfo();

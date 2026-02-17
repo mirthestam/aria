@@ -27,9 +27,6 @@
         <Content Include="..\..\bundle.sh">
           <Link>Scripts\bundle.sh</Link>
         </Content>
-        <Content Include="..\..\DOCS.md">
-          <Link>DOCS.md</Link>
-        </Content>
         <Content Include="..\..\LICENSE">
             <Link>LICENSE</Link>
         </Content>
