@@ -31,6 +31,7 @@ This software aims to follow the [GNOME Human Interface Guidelines](https://deve
 ## Contributing
 Anyone who wants to help is very welcome. If you want to get in contact feel free to chat with us via matrix ([#aria-player:matrix.org](https://matrix.to/#/#aria-player:matrix.org?via=matrix.org))
 Please try to follow the [GNOME Code of Conduct](https://conduct.gnome.org).
+GitHub is a read-only mirror. Please submit pull requests on Codeberg.
 
 ## Thanks
 
