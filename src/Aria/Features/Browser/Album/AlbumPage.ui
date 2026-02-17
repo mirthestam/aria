@@ -94,6 +94,7 @@
                                         <property name="icon-name">filter-symbolic</property>
                                         <property name="selectable">True</property>
                                         <property name="subtitle">Click to show all tracks</property>
+                                        <property name="use-markup">False</property>
                                       </object>
                                     </child>
                                   </object>

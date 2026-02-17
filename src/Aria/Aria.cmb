@@ -39,6 +39,7 @@
   <ui template-class="AriaFeaturesBrowserPlaylistsPlaylistNameCell" filename="Features/Browser/Playlists/PlaylistNameCell.ui" sha256="b0fd45d5587c7dd58a7cf85c9cdda3ab16b26cad1e95db606995f004fe97a0b8"/>
   <ui template-class="AriaFeaturesPlayerQueueTrackListItem" filename="Features/Player/Queue/TrackListItem.ui" sha256="f811dd82c72c3833ef7426ac736ce808444f530a6d98c410575b63b7a2073744"/>
   <ui template-class="AriaFeaturesDetailsTrackDetailsDialog" filename="Features/Details/TrackDetailsDialog.ui" sha256="2400005400723735c86351a58955daa7df2c28e02ba280479c002c5198e4e2a5"/>
+  <ui template-class="AriaFeaturesBrowserSharedAlbumListItem" filename="Features/Browser/Shared/AlbumListItem.ui" sha256="51d602cf1adab02d3cf60ce031b7fe56481354bc079a923d88199d15c18212a1"/>
   <ui template-class="AriaFeaturesBrowserArtistArtistPage" filename="Features/Browser/Artist/ArtistPage.ui" sha256="3c37ae6abc83355a2af0f9695efc764877ffaf0808eea1996cc021d9ce9b3b57">
     <requires>AriaFeaturesBrowserArtistEmptyPage</requires>
   </ui>
@@ -51,7 +52,7 @@
   <ui template-class="AriaFeaturesBrowserAlbumTrackGroup" filename="Features/Browser/Album/TrackGroup.ui" sha256="8a7741414b6e86e9932c663ab2053c09bbe1ff81c337305964f4f1f1aa05e135">
     <requires>AriaFeaturesBrowserAlbumCreditBox</requires>
   </ui>
-  <ui template-class="AriaFeaturesBrowserAlbumAlbumPage" filename="Features/Browser/Album/AlbumPage.ui" sha256="204d65138f2a5441badafb4bedd2cdefccf48063d53bc2115020d549aa725d5f">
+  <ui template-class="AriaFeaturesBrowserAlbumAlbumPage" filename="Features/Browser/Album/AlbumPage.ui" sha256="c2d5f654d512b34ad8ad300ab4b43823a706a442d4a81aa8b5424030b45f0164">
     <requires>AriaFeaturesBrowserAlbumCreditBox</requires>
   </ui>
   <ui template-class="AriaFeaturesPlayerPlaybackControls" filename="Features/Player/PlaybackControls.ui" sha256="9e276bc7623de36f1b5a3dc9d22ddd94719aa4f315425aee0e02f9bc4ab604cb">
@@ -79,5 +80,4 @@
     <requires>AriaFeaturesShellWelcomeWelcomePage</requires>
     <requires>AriaFeaturesShellConnectingPage</requires>
   </ui>
-  <ui template-class="AriaFeaturesBrowserSharedAlbumListItem" filename="Features/Browser/Shared/AlbumListItem.ui" sha256="51d602cf1adab02d3cf60ce031b7fe56481354bc079a923d88199d15c18212a1"/>
 </cambalache-project>
