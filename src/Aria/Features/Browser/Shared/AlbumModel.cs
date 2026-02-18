@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Gdk;
 using GObject;
@@ -12,12 +13,27 @@ public partial class AlbumModel : INotifyPropertyChanged
 {
     public static AlbumModel NewForAlbum(AlbumInfo album)
     {
+        ArgumentNullException.ThrowIfNull(album);
+
         var model = NewWithProperties([]);
-        model.Album = album;
+        model.AlbumId = album.Id;
+        model.Title = album.Title;
+        model.ReleaseDate = album.ReleaseDate;
+        model.CoverArtId = album.Assets.FirstOrDefault(r => r.Type == AssetType.FrontCover)?.Id;
+        model.Credits = string.Join(", ", album.CreditsInfo.AlbumArtists.Select(a => a.Artist.Name));
+        
         return model;
     }
-
-    public AlbumInfo Album { get; private set; }
+    
+    public Id AlbumId { get; private set; }
+    
+    public Id? CoverArtId { get; private set; }
+    
+    public string Title { get; private set; }
+    
+    public string Credits { get; private set; }
+    
+    public DateTime? ReleaseDate { get; private set; }
     
     public Texture? CoverTexture
     {

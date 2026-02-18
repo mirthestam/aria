@@ -83,7 +83,7 @@ public partial class ArtistPage
 
     public void ShowArtist(ArtistInfo artistInfo, IReadOnlyList<AlbumModel> albumModels)
     {
-        Clear();
+        _listModel.RemoveAll();
 
         _artist = artistInfo;
         SetTitle(artistInfo.Name);
@@ -110,6 +110,7 @@ public partial class ArtistPage
         _itemFactory.OnSetup += OnItemFactoryOnOnSetup;
         _itemFactory.OnTeardown += ItemFactoryOnOnTeardown;
         _itemFactory.OnBind += OnItemFactoryOnOnBind;
+        _itemFactory.OnUnbind += ItemFactoryOnOnUnbind;
 
         _gridView.SetFactory(_itemFactory);
         _gridView.SetModel(_selection);
@@ -117,13 +118,14 @@ public partial class ArtistPage
         _gridView.OnActivate += GridViewOnOnActivate;
     }
 
+
     private int SortAlbum(AlbumModel a, AlbumModel b)
     {
         switch (_sorting)
         {
             default:
             case AlbumSorting.Title:
-                return string.Compare(a.Album.Title, b.Album.Title, StringComparison.OrdinalIgnoreCase) switch
+                return string.Compare(a.Title, b.Title, StringComparison.OrdinalIgnoreCase) switch
                 {
                     < 0 => -1,
                     > 0 => 1,
@@ -131,17 +133,17 @@ public partial class ArtistPage
                 };
 
             case AlbumSorting.TitleDescending:
-                return string.Compare(a.Album.Title, b.Album.Title, StringComparison.OrdinalIgnoreCase) switch
+                return string.Compare(a.Title, b.Title, StringComparison.OrdinalIgnoreCase) switch
                 {
                     < 0 => 1,
                     > 0 => -1,
                     _ => 0
                 };
             case AlbumSorting.ReleaseDate:
-                return a.Album.ReleaseDate?.CompareTo(b.Album.ReleaseDate) ?? 0;
+                return a.ReleaseDate?.CompareTo(b.ReleaseDate) ?? 0;
 
             case AlbumSorting.ReleaseDateDescending:
-                return b.Album.ReleaseDate?.CompareTo(a.Album.ReleaseDate) ?? 0;
+                return b.ReleaseDate?.CompareTo(a.ReleaseDate) ?? 0;
         }
     }
 
@@ -153,23 +155,7 @@ public partial class ArtistPage
             : AlbumSorting.Title;
         SetActiveSorting(sorting);
     }
-
-    private void Clear()
-    {
-        // Dispose models (and their owned textures) before removing them from the store
-        var n = (int)_listModel.GetNItems();
-        for (var i = n - 1; i >= 0; i--)
-        {
-            var obj = _listModel.GetObject((uint)i);
-            if (obj is not AlbumModel model) continue;
-
-            model.CoverTexture = null;
-            model.Dispose();
-        }
-
-        _listModel.RemoveAll();
-    }
-
+    
     private void ShowAlbumContextMenu(AlbumListItem listItem, double x, double y)
     {
         var selected = _selection.GetSelected();
@@ -203,7 +189,7 @@ public partial class ArtistPage
         {
             case Gdk.Constants.BUTTON_PRIMARY:
                 var parameters = Variant.NewArray(VariantType.String, [
-                    listItem.Model!.Album.Id.ToVariant(),
+                    listItem.Model!.AlbumId.ToVariant(),
                     _artist.Id.ToVariant()
                 ]);
 
@@ -234,7 +220,7 @@ public partial class ArtistPage
         // Gestures
         child.GestureClick.OnReleased += GestureClickOnOnReleased;
         child.GestureLongPress.OnPressed += GestureLongPressOnOnPressed;
-        
+
         item.SetChild(child);
     }
 
@@ -246,21 +232,42 @@ public partial class ArtistPage
         // Gestures
         child.GestureClick.OnReleased -= GestureClickOnOnReleased;
         child.GestureLongPress.OnPressed -= GestureLongPressOnOnPressed;
+        
+        item.SetChild(null);        
     }
 
     private void GridViewOnOnActivate(GridView sender, GridView.ActivateSignalArgs args)
     {
         if (_selection.SelectedItem is not AlbumModel selectedModel) return;
 
-        var parameter = selectedModel.Album.Id.ToVariant();
+        var parameter = selectedModel.AlbumId.ToVariant();
         ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", parameter);
     }
 
     private static void OnItemFactoryOnOnBind(SignalListItemFactory _, SignalListItemFactory.BindSignalArgs args)
     {
         var listItem = (ListItem)args.Object;
-        var modelItem = (AlbumModel)listItem.GetItem()!;
-        var widget = (AlbumListItem)listItem.GetChild()!;
-        widget.Bind(modelItem);
+        if (listItem.GetItem() is not AlbumModel model)
+        {
+            return;
+        }
+
+        if (listItem.GetChild() is not AlbumListItem albumListItem)
+        {
+            return;
+        }
+
+        albumListItem.Bind(model);
+    }
+    
+    private static void ItemFactoryOnOnUnbind(SignalListItemFactory sender, SignalListItemFactory.UnbindSignalArgs args)
+    {
+        var listItem = (ListItem)args.Object;
+        if (listItem.GetChild() is not AlbumListItem albumListItem)
+        {
+            return;
+        }
+
+        albumListItem.Unbind();
     }
 }

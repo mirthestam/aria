@@ -50,7 +50,6 @@ public partial class MainPagePresenter : IRootPresenter<MainPage>
     
     public MainPage? View { get; private set; }
     
-    
     private void AriaControlOnStateChanged(object? sender, EngineStateChangedEventArgs e)
     {
         switch (e.State)
@@ -89,7 +88,7 @@ public partial class MainPagePresenter : IRootPresenter<MainPage>
             await _playerBarPresenter.RefreshAsync(cancellationToken);
             await _browserHostPresenter.RefreshAsync(cancellationToken);
             
-            _logger.LogWarning(cancellationToken.IsCancellationRequested
+            _logger.LogInformation(cancellationToken.IsCancellationRequested
                 ? "UI refresh was cancelled before completion."
                 : "UI succesfully refreshed.");
         }

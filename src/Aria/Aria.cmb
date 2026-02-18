@@ -46,7 +46,7 @@
   <ui template-class="AriaFeaturesPlayerBarPlayerBar" filename="Features/PlayerBar/PlayerBar.ui" sha256="c3835875502d21048f3dc409c4618e3f334af7229dcf67bc953dced4cb569f65">
     <requires>AriaFeaturesPlayerMediaControls</requires>
   </ui>
-  <ui template-class="AriaFeaturesBrowserBrowserHost" filename="Features/Browser/BrowserHost.ui" sha256="3c17a641e3ca0a4a26353195894a2ab22f8440d93172410e6104a3eededd8908">
+  <ui template-class="AriaFeaturesBrowserBrowserHost" filename="Features/Browser/BrowserHost.ui" sha256="4d06d33d7fbeaf52f33719193e7cb73c9fd3cc06da34d8568cbe75158e49423f">
     <requires>AriaFeaturesBrowserBrowserEmptyPage</requires>
   </ui>
   <ui template-class="AriaFeaturesBrowserAlbumTrackGroup" filename="Features/Browser/Album/TrackGroup.ui" sha256="8a7741414b6e86e9932c663ab2053c09bbe1ff81c337305964f4f1f1aa05e135">

@@ -40,18 +40,21 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
         await LoadAsync(cancellationToken);
     }
 
-    public void Reset()
+    public async Task Reset()
     {
         LogResetting();
-        AbortAndClear();
+        await AbortAndClear();
     }    
     
-    private void AbortAndClear()
+    private async Task AbortAndClear()
     {
         _loadCts?.Cancel();
         _loadCts?.Dispose();
         _loadCts = null;
-        _view?.ShowAlbums([]);
+
+        await GtkDispatch.InvokeIdleAsync(() =>
+            _view?.ShowAlbums([])
+        );
     }
 
     public void Receive(LibraryUpdatedMessage message)
@@ -62,7 +65,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
     private async Task LoadAsync(CancellationToken externalCancellationToken = default)
     {
         LogLoadingAlbums();
-        AbortAndClear();
+        await AbortAndClear();
         
         _loadCts = CancellationTokenSource.CreateLinkedTokenSource(externalCancellationToken);
         var cancellationToken = _loadCts.Token;
@@ -72,7 +75,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
             var albums = await _aria.Library.GetAlbumsAsync(cancellationToken).ConfigureAwait(false);
             
             var albumModels = albums.Select(Shared.AlbumModel.NewForAlbum)
-                .OrderBy(a => a.Album.Title)
+                .OrderBy(a => a.Title)
                 .ToList();
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -123,7 +126,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
 
     private async Task LoadArtForModelAsync(Shared.AlbumModel model, CancellationToken ct = default)
     {
-        var artId = model.Album.Assets.FirstOrDefault(r => r.Type == AssetType.FrontCover)?.Id;
+        var artId = model.CoverArtId;
         if (artId == null) return;
 
         try

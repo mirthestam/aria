@@ -150,8 +150,11 @@ public class AriaEngine(
         // Unbind after disconnecting; otherwise the disconnect event will never be caught.
         connection.ConnectionStateChanged -= BackendOnConnectionStateChanged;
 
-        _backendScope.Dispose();
-        _backendScope = null;
+        if (_backendScope != null)
+        {
+            _backendScope.Dispose();
+            _backendScope = null;            
+        }
         SetState(EngineState.Stopped);
     }
 

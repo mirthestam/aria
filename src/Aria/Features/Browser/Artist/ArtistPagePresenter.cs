@@ -53,7 +53,7 @@ public partial class ArtistPagePresenter(
 
             var albums = (await aria.Library.GetAlbumsAsync(artistId, ct)).ToList();
             var albumModels = albums.Select(AlbumModel.NewForAlbum)
-                .OrderBy(a => a.Album.Title)
+                .OrderBy(a => a.Title)
                 .ToList();
 
             await GtkDispatch.InvokeIdleAsync(() =>
@@ -81,7 +81,7 @@ public partial class ArtistPagePresenter(
 
     private async Task LoadArtForModelAsync(AlbumModel model, CancellationToken ct)
     {
-        var artId = model.Album.Assets.FirstOrDefault(r => r.Type == AssetType.FrontCover)?.Id;
+        var artId = model.CoverArtId;
         if (artId == null) return;
 
         try
@@ -90,7 +90,7 @@ public partial class ArtistPagePresenter(
         }
         catch (Exception e)
         {
-            LogCouldNotLoadAlbumArtForAlbumId(e, model.Album.Id);
+            LogCouldNotLoadAlbumArtForAlbumId(e, model.AlbumId);
         }
     }
 

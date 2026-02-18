@@ -32,22 +32,20 @@ public partial class AlbumListItem
 
     public void Bind(AlbumModel model)
     {
+        ArgumentNullException.ThrowIfNull(model);
+        
         try
         {
             if (Model != null)
             {
-                _coverPicture.SetPaintable(null);            
-                Model.PropertyChanged -= ModelOnPropertyChanged;
+                Unbind();
             }
 
             Model = model;
             Model.PropertyChanged += ModelOnPropertyChanged;
-        
-            // TODO: I can sort here now with role on priority
-            var artistsLine = string.Join(", ", model.Album.CreditsInfo.AlbumArtists.Select(a => a.Artist.Name));
-
-            _titleLabel.SetLabel(model.Album.Title);
-            _subTitleLabel.SetLabel(artistsLine);
+            
+            _titleLabel.SetLabel(model.Title);
+            _subTitleLabel.SetLabel(model.Credits);
         
             UpdateCoverPicture();
         }
@@ -56,6 +54,13 @@ public partial class AlbumListItem
             // TODO: Logger, but this is a list item so i should not expose Album here.
             Console.WriteLine(e);
         }
+    }
+
+    public void Unbind()
+    {
+        _coverPicture.SetPaintable(null);            
+        Model?.PropertyChanged -= ModelOnPropertyChanged;
+        Model = null;
     }
     
     private void ModelOnPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -79,7 +84,7 @@ public partial class AlbumListItem
         coverPicture.AddCssClass("cover");
         coverPicture.CanShrink = true;
         coverPicture.ContentFit = ContentFit.ScaleDown;
-        coverPicture.AlternativeText = widget.Model.Album.Title;
+        coverPicture.AlternativeText = widget.Model.Title;
 
         var clamp = Clamp.New();
         clamp.MaximumSize = 96;
@@ -92,7 +97,7 @@ public partial class AlbumListItem
     private static ContentProvider DragOnPrepare(DragSource sender, DragSource.PrepareSignalArgs args)
     {
         var widget = (AlbumListItem)sender.GetWidget()!;
-        var wrapper = GId.NewForId(widget.Model!.Album.Id);
+        var wrapper = GId.NewForId(widget.Model!.AlbumId);
         var value = new Value(wrapper);
         return ContentProvider.NewForValue(value);
     }    

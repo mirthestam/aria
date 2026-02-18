@@ -89,7 +89,7 @@ public partial class ArtistPage
         if (selected == GtkConstants.GtkInvalidListPosition) return;
         var item = (AlbumModel) _listModel.GetObject(selected)!;
 
-        var argumentArray = item.Album.Id.ToVariantArray();
+        var argumentArray = item.AlbumId.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueEnd.Action}", argumentArray);
     }
 
@@ -99,7 +99,7 @@ public partial class ArtistPage
         if (selected == GtkConstants.GtkInvalidListPosition) return;
         var item = (AlbumModel) _listModel.GetObject(selected)!;
 
-        var argumentArray = item.Album.Id.ToVariantArray();
+        var argumentArray = item.AlbumId.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueNext.Action}", argumentArray);
     }
 
@@ -109,7 +109,7 @@ public partial class ArtistPage
         if (selected == GtkConstants.GtkInvalidListPosition) return;
         var item = (AlbumModel) _listModel.GetObject(selected)!;
 
-        var argumentArray = item.Album.Id.ToVariantArray();
+        var argumentArray = item.AlbumId.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueReplace.Action}", argumentArray);
     }
 
@@ -119,7 +119,7 @@ public partial class ArtistPage
         if (selected == GtkConstants.GtkInvalidListPosition) return;
         var item = (AlbumModel) _listModel.GetObject(selected)!;
 
-        var argument = item.Album.Id.ToVariant();
+        var argument = item.AlbumId.ToVariant();
         ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", argument);        
     }    
 
@@ -129,7 +129,7 @@ public partial class ArtistPage
         if (selected == GtkConstants.GtkInvalidListPosition) return;
         var item = (AlbumModel) _listModel.GetObject(selected)!;
 
-        var argument = item.Album.Id.ToVariant();        
+        var argument = item.AlbumId.ToVariant();        
         
         var parameters = Variant.NewArray(VariantType.String, [
             argument,
