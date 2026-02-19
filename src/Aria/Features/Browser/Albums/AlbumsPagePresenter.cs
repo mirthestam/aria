@@ -1,9 +1,9 @@
 using Aria.Core;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Features.Browser.Shared;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
-using GLib;
 using Microsoft.Extensions.Logging;
 using ResourceTextureLoader = Aria.Infrastructure.ResourceTextureLoader;
 
@@ -32,7 +32,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
     public void Attach(AlbumsPage view)
     {
         _view = view;
-        _view.SetActiveSorting(AlbumsPage.AlbumSorting.Title);  // Configurable default in the future?
+        _view.SetActiveSorting(AlbumsGrid.AlbumSorting.Title);  // Configurable default in the future?
     }
     
     public async Task RefreshAsync(CancellationToken cancellationToken = default)
@@ -74,7 +74,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
         {
             var albums = await _aria.Library.GetAlbumsAsync(cancellationToken).ConfigureAwait(false);
             
-            var albumModels = albums.Select(Shared.AlbumModel.NewForAlbum)
+            var albumModels = albums.Select(AlbumModel.NewForAlbum)
                 .OrderBy(a => a.Title)
                 .ToList();
             cancellationToken.ThrowIfCancellationRequested();
@@ -98,7 +98,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
         }
     }
 
-    private async Task ProcessArtworkAsync(IEnumerable<Shared.AlbumModel> models, CancellationToken ct)
+    private async Task ProcessArtworkAsync(IEnumerable<AlbumModel> models, CancellationToken ct)
     {
         LogLoadingAlbumsArtwork();
         var options = new ParallelOptions
@@ -124,7 +124,7 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
         }
     }
 
-    private async Task LoadArtForModelAsync(Shared.AlbumModel model, CancellationToken ct = default)
+    private async Task LoadArtForModelAsync(AlbumModel model, CancellationToken ct = default)
     {
         var artId = model.CoverArtId;
         if (artId == null) return;

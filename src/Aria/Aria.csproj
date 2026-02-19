@@ -31,6 +31,7 @@
         <EmbeddedResource Include="Features\Browser\Playlists\PlaylistsPage.ui" />
         <EmbeddedResource Include="Features\Browser\Search\SearchPage.ui" />
         <EmbeddedResource Include="Features\Browser\Shared\AlbumListItem.ui" />
+        <EmbeddedResource Include="Features\Browser\Shared\AlbumsGrid.ui" />
         <EmbeddedResource Include="Features\Details\TrackDetailsDialog.ui" />
         <EmbeddedResource Include="Features\PlayerBar\PlayerBar.ui"/>
         <EmbeddedResource Include="Features\Player\PlaybackControls.ui"/>

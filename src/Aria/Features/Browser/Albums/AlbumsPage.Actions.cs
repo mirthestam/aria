@@ -72,14 +72,13 @@ public partial class AlbumsPage
         
         menu.AppendSection(null, enqueueMenu);
         
-        _albumPopoverMenu.SetMenuModel(menu);        
+        _gridView.SetAlbumMenu(menu);
     }    
     
     private void EnqueueEndActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var selected = _selection.GetSelected();
-        if (selected == GtkConstants.GtkInvalidListPosition) return;
-        var item = (Shared.AlbumModel) _listModel.GetObject(selected)!;
+        var item = _gridView.GetSelected();
+        if (item == null) return;
 
         var argumentArray = item.AlbumId.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueEnd.Action}", argumentArray);
@@ -87,9 +86,8 @@ public partial class AlbumsPage
 
     private void EnqueueNextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var selected = _selection.GetSelected();
-        if (selected == GtkConstants.GtkInvalidListPosition) return;
-        var item = (Shared.AlbumModel) _listModel.GetObject(selected)!;
+        var item = _gridView.GetSelected();
+        if (item == null) return;
 
         var argumentArray = item.AlbumId.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueNext.Action}", argumentArray);
@@ -97,9 +95,8 @@ public partial class AlbumsPage
 
     private void EnqueueReplaceActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var selected = _selection.GetSelected();
-        if (selected == GtkConstants.GtkInvalidListPosition) return;
-        var item = (Shared.AlbumModel) _listModel.GetObject(selected)!;
+        var item = _gridView.GetSelected();
+        if (item == null) return;
 
         var argumentArray = item.AlbumId.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueReplace.Action}", argumentArray);
@@ -107,9 +104,8 @@ public partial class AlbumsPage
 
     private void AlbumShowActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var selected = _selection.GetSelected();
-        if (selected == GtkConstants.GtkInvalidListPosition) return;
-        var item = (Shared.AlbumModel) _listModel.GetObject(selected)!;
+        var item = _gridView.GetSelected();
+        if (item == null) return;
 
         var argument = item.AlbumId.ToVariant();
         ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowAlbum.Action}", argument);        

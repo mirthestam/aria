@@ -16,7 +16,8 @@ public static class GtkBuilderExtensions
         {
             // Shared
             builder.WithGType<AlbumListItem>();
-            builder.WithGType<AlbumModel>();            
+            builder.WithGType<AlbumModel>();
+            builder.WithGType<AlbumsGrid>();
             
             // Album
             builder.WithGType<AlbumPage>();       
