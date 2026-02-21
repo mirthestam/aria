@@ -1,8 +1,10 @@
+using Aria.Backends.MPD.Connection.Commands;
+using Aria.Backends.MPD.Connection.Commands.Playlist;
 using Aria.Backends.MPD.Extraction;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
 using MpcNET.Commands.Playlist;
-using ListPlaylistInfoCommand = Aria.Backends.MPD.Connection.Commands.ListPlaylistInfoCommand;
+using ListPlaylistInfoCommand = Aria.Backends.MPD.Connection.Commands.Playlist.ListPlaylistInfoCommand;
 
 namespace Aria.Backends.MPD;
 
@@ -55,6 +57,16 @@ public partial class Library
     {
         var typedPlaylistId = (PlaylistId)id;
         await client.SendCommandAsync(new RmCommand(typedPlaylistId.Value), token: cancellationToken);
+    }
+
+    public override async Task RenamePlaylistAsync(Id id, string newName, CancellationToken cancellationToken = default)
+    {
+        var typedPlaylistId = (PlaylistId)id;
+        var result = await client.SendCommandAsync(new RenameCommand(typedPlaylistId.Value, newName), token: cancellationToken);
+        if (!result.IsSuccess)
+        {
+            // now what
+        }
     }
 
     private static async Task<List<PlaylistInfo>> FetchPlaylistsMetaAsync(Connection.ConnectionScope scope)

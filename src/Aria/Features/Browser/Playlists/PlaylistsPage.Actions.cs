@@ -1,4 +1,5 @@
 using Aria.Core.Extraction;
+using Aria.Core.Library;
 using Aria.Infrastructure;
 using Gdk;
 using Gio;
@@ -7,11 +8,21 @@ using AlertDialog = Adw.AlertDialog;
 
 namespace Aria.Features.Browser.Playlists;
 
+public class RenamePlaylistEventArgs : EventArgs
+{
+    public Id PlaylistId { get; }
+    public string PlaylistName { get; set; } = "";
+    
+    public RenamePlaylistEventArgs(Id playlistId, string newName)
+    {
+        PlaylistId = playlistId;
+        PlaylistName = newName;       
+    }
+}
+
+
 public partial class PlaylistsPage
 {
-    [Connect("gesture-click")] private GestureClick _gestureClick;
-    [Connect("gesture-long-press")] private GestureLongPress _gestureLongPress;
-    [Connect("playlist-popover-menu")] private PopoverMenu _playlistPopoverMenu;
     [Connect("confirm-playlist-delete")] private AlertDialog _confirmPlaylistDeleteDialog;
     
     // Actions
@@ -21,10 +32,12 @@ public partial class PlaylistsPage
     private SimpleAction _enqueueNextAction;
     private SimpleAction _enqueueEndAction;
 
+    private SimpleAction _renameAction;
     private SimpleAction _deleteAction;
 
     private const string Group = "playlist";
     private const string ActionShowItem = "show";
+    private const string ActionRenameItem = "rename";
     private const string ActionDeleteItem = "delete";
     private const string ActionEnqueueDefault = "enqueue-default";        
     private const string ActionEnqueueReplace = "enqueue-replace";
@@ -32,6 +45,7 @@ public partial class PlaylistsPage
     private const string ActionEnqueueEnd = "enqueue-end";
     
     public event EventHandler<Id>? DeleteRequested;    
+    public event EventHandler<RenamePlaylistEventArgs>? RenameRequested;   
     
     private void InitializeActions()
     {
@@ -41,6 +55,7 @@ public partial class PlaylistsPage
         itemActionGroup.AddAction(_enqueueReplaceAction = SimpleAction.New(ActionEnqueueReplace, null));
         itemActionGroup.AddAction(_enqueueNextAction = SimpleAction.New(ActionEnqueueNext, null));
         itemActionGroup.AddAction(_enqueueEndAction = SimpleAction.New(ActionEnqueueEnd, null));
+        itemActionGroup.AddAction(_renameAction = SimpleAction.New(ActionRenameItem, null));       
         itemActionGroup.AddAction(_deleteAction = SimpleAction.New(ActionDeleteItem, null));
         
         _showAction.OnActivate += ShowActionOnOnActivate;
@@ -49,6 +64,7 @@ public partial class PlaylistsPage
         _enqueueNextAction.OnActivate += EnqueueNextActionOnOnActivate;
         _enqueueEndAction.OnActivate += EnqueueEndActionOnOnActivate;
         _deleteAction.OnActivate += DeleteActionOnOnActivate;
+        _renameAction.OnActivate += RenameActionOnOnActivate;
         
         _confirmPlaylistDeleteDialog.OnResponse += ConfirmPlaylistDeleteDialogOnOnResponse;        
         
@@ -56,6 +72,27 @@ public partial class PlaylistsPage
         
         ConfigureShortcuts();
         CreatePlaylistContextMenu();
+    }
+    
+    private async void RenameActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            var playlist = GetSelectedPlaylist();
+            if (playlist == null) return;
+            
+            var dialog = RenamePlaylistDialog.NewWithProperties([]);
+            var result = await dialog.ShowForPlaylistAsync(playlist, NameValidator, this);
+            if (!result) return;
+            
+            var name = dialog.PlaylistName;
+            RenameRequested?.Invoke(this, new RenamePlaylistEventArgs(playlist.PlaylistId, name));
+        }
+        catch 
+        {
+            //OK
+        }
+
     }
 
     private void DeleteActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
@@ -75,43 +112,43 @@ public partial class PlaylistsPage
                 break;
         }
 
-        DeleteRequested?.Invoke(this, _contextMenuItem!.Playlist.Id);
+        DeleteRequested?.Invoke(this, GetSelectedPlaylist()!.PlaylistId);
     }
-
+    
     private void EnqueueEndActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argumentArray = _contextMenuItem!.Playlist.Id.ToVariantArray();
+        var argumentArray = GetSelectedPlaylist()!.PlaylistId.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueEnd.Action}", argumentArray);        
     }
 
     private void EnqueueNextActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argumentArray = _contextMenuItem!.Playlist.Id.ToVariantArray();
+        var argumentArray = GetSelectedPlaylist()!.PlaylistId.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueNext.Action}", argumentArray);
     }
 
     private void EnqueueReplaceActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argumentArray = _contextMenuItem!.Playlist.Id.ToVariantArray();
+        var argumentArray = GetSelectedPlaylist()!.PlaylistId.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueReplace.Action}", argumentArray);
     }
 
     private void EnqueueDefaultActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var argumentArray = _contextMenuItem!.Playlist.Id.ToVariantArray();
+        var argumentArray = GetSelectedPlaylist()!.PlaylistId.ToVariantArray();
         ActivateAction($"{AppActions.Queue.Key}.{AppActions.Queue.EnqueueDefault.Action}", argumentArray);
     }
 
     private void ShowActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {
-        var variant = _contextMenuItem!.Playlist.Id.ToVariant();
-        ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowPlaylist.Action}", variant);
+        var argument = GetSelectedPlaylist()!.PlaylistId.ToVariant();
+        ActivateAction($"{AppActions.Browser.Key}.{AppActions.Browser.ShowPlaylist.Action}", argument);
     }
 
     private void CreatePlaylistContextMenu()
     {
         var menu = Menu.NewWithProperties([]);
-        menu.AppendItem(MenuItem.New("Show Playlist", $"{Group}.{ActionShowItem}"));
+        //menu.AppendItem(MenuItem.New("Show Playlist", $"{Group}.{ActionShowItem}"));
         
         var enqueueMenu = Menu.NewWithProperties([]);
         var replaceQueueItem = MenuItem.New("Play now (Replace queue)", $"{Group}.{ActionEnqueueReplace}");
@@ -127,7 +164,9 @@ public partial class PlaylistsPage
 
         var suffixMenu = Menu.NewWithProperties([]);
         
+        var renameItem = MenuItem.New("Rename", $"{Group}.{ActionRenameItem}");
         var deleteItem = MenuItem.New("Delete", $"{Group}.{ActionDeleteItem}");
+        suffixMenu.AppendItem(renameItem);
         suffixMenu.AppendItem(deleteItem);        
         
         menu.AppendSection(null, suffixMenu);
@@ -138,46 +177,10 @@ public partial class PlaylistsPage
     private void ConfigureShortcuts()
     {
         var controller = ShortcutController.NewWithProperties([]);
+        controller.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("F2"), NamedAction.New($"{Group}.{ActionRenameItem}")));        
         controller.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("Return"), NamedAction.New($"{Group}.{ActionShowItem}")));
         controller.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("<Control>Return"), NamedAction.New($"{Group}.{ActionEnqueueDefault}")));
+        controller.AddShortcut(Shortcut.New(ShortcutTrigger.ParseString("Delete"), NamedAction.New($"{Group}.{ActionDeleteItem}")));
         AddController(controller);
     }
-
-    private void ShowContextMenu(double x, double y)
-    {
-        // The grid is in single click activate mode.
-        // That means that hover changes the selection.
-        // The user 'is' able to hover even when the context menu is shown.
-        // Therefore, I remember the hovered item at the moment the menu was shown.
-        
-        // To be honest, this is probably not the 'correct' approach
-        // as right-clicking outside an item also invokes this logic.
-        
-        // But it works, and I have been unable to find out the correct way.
-        
-        var selected = _selection.GetSelected();
-        if (selected == GtkConstants.GtkInvalidListPosition) return;
-        _contextMenuItem = (PlaylistModel) _listStore.GetObject(selected)!;
-        
-        var rect = new Rectangle
-        {
-            X = (int)Math.Round(x),
-            Y = (int)Math.Round(y),
-        };
-
-        _playlistPopoverMenu.SetPointingTo(rect);
-
-        if (!_playlistPopoverMenu.Visible)
-            _playlistPopoverMenu.Popup();        
-    }
-    
-    private void GestureLongPressOnOnPressed(GestureLongPress sender, GestureLongPress.PressedSignalArgs args)
-    {
-        ShowContextMenu(args.X, args.Y);
-    }
-    
-    private void GestureClickOnOnPressed(GestureClick sender, GestureClick.PressedSignalArgs args)
-    {
-        ShowContextMenu(args.X, args.Y);        
-    }    
 }

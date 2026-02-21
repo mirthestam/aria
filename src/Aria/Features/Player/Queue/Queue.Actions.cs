@@ -12,7 +12,7 @@ public partial class Queue
     private SimpleAction? _queueDeleteSelectionAction;
     private SimpleAction? _queueShowAlbumAction;
     private SimpleAction? _queueShowTrackAction;
-
+    
     private new void InsertActionGroup(string name, ActionGroup? actionGroup)
     {
         base.InsertActionGroup(name, actionGroup);
@@ -25,10 +25,11 @@ public partial class Queue
         const string deleteSelection = "delete-selection";
         const string showAlbum = "show-album";
         const string showTrack = "show-track";
+        
         var queueActionGroup = SimpleActionGroup.New();
         queueActionGroup.AddAction(_queueDeleteSelectionAction = SimpleAction.New(deleteSelection, null));
         queueActionGroup.AddAction(_queueShowAlbumAction = SimpleAction.New(showAlbum, null));
-        queueActionGroup.AddAction(_queueShowTrackAction = SimpleAction.New(showTrack, null));       
+        queueActionGroup.AddAction(_queueShowTrackAction = SimpleAction.New(showTrack, null));
         _queueDeleteSelectionAction.OnActivate += QueueDeleteSelectionActionOnOnActivate;
         _queueShowAlbumAction.OnActivate += QueueShowAlbumActionOnOnActivate;
         _queueShowTrackAction.OnActivate += QueueShowTrackActionOnOnActivate;
@@ -41,6 +42,7 @@ public partial class Queue
         AddController(controller);
 
         var playlistMenu = Menu.NewWithProperties([]);
+        playlistMenu.AppendItem(MenuItem.New("Save As...", $"{AppActions.Queue.Key}.{AppActions.Queue.Save.Action}"));        
         playlistMenu.AppendItem(MenuItem.New("Clear", $"{AppActions.Queue.Key}.{AppActions.Queue.Clear.Action}"));
         
          var trackMenu = Menu.NewWithProperties([]);
@@ -54,11 +56,11 @@ public partial class Queue
          gridMenu.AppendSection(null, playlistMenu);
          _queuePopoverMenu.SetMenuModel(gridMenu);         
     }
-
+    
     private void ShowTrackContextMenu(TrackListItem listItem, double x, double y)
     {
         var selected = _selection.GetSelected();
-        if (selected == GtkConstants.GtkInvalidListPosition) return;
+        if (selected == Gtk.Constants.INVALID_LIST_POSITION) return;
         
         var pointInItem = new Graphene.Point { X = (float)x, Y = (float)y };
         

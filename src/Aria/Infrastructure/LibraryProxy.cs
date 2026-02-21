@@ -1,5 +1,6 @@
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Core.Queue;
 
 namespace Aria.Infrastructure;
 
@@ -10,7 +11,7 @@ public class LibraryProxy : ILibrarySource
 {
     private ILibrarySource? _innerLibrary;
 
-    public event EventHandler? Updated;
+    public event EventHandler<LibraryChangedEventArgs>? Updated;
     
     public Task InspectLibraryAsync(CancellationToken ct = default)
     {
@@ -77,6 +78,11 @@ public class LibraryProxy : ILibrarySource
         return _innerLibrary?.DeletePlaylistAsync(id, cancellationToken) ?? Task.CompletedTask;
     }
 
+    public Task RenamePlaylistAsync(Id id, string newName, CancellationToken cancellationToken = default)
+    {
+        return _innerLibrary?.RenamePlaylistAsync(id, newName, cancellationToken) ?? Task.CompletedTask;
+    }
+
     public Task BeginRefreshAsync()
     {
         return _innerLibrary?.BeginRefreshAsync() ?? Task.CompletedTask;
@@ -94,7 +100,7 @@ public class LibraryProxy : ILibrarySource
         _innerLibrary = null;
     }
 
-    private void InnerLibraryOnUpdated(object? sender, EventArgs e)
+    private void InnerLibraryOnUpdated(object? sender, LibraryChangedEventArgs e)
     {
         Updated?.Invoke(sender, e);
     }

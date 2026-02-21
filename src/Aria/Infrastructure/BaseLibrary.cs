@@ -1,11 +1,12 @@
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Core.Queue;
 
 namespace Aria.Infrastructure;
 
 public abstract class BaseLibrary : ILibrarySource 
 {
-    public virtual event EventHandler? Updated;
+    public virtual event EventHandler<LibraryChangedEventArgs>? Updated;
     public abstract Task InspectLibraryAsync(CancellationToken ct = default);
     public abstract Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(CancellationToken cancellationToken = default);
     public abstract Task<IEnumerable<AlbumInfo>> GetAlbumsAsync(Id artistId, CancellationToken cancellationToken = default);
@@ -23,6 +24,8 @@ public abstract class BaseLibrary : ILibrarySource
     public abstract Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default);
 
     public abstract Task DeletePlaylistAsync(Id id, CancellationToken cancellationToken = default);
+
+    public abstract Task RenamePlaylistAsync(Id id, string newName, CancellationToken cancellationToken = default);
 
     public virtual Task BeginRefreshAsync() => Task.CompletedTask;
 
@@ -49,8 +52,8 @@ public abstract class BaseLibrary : ILibrarySource
         return new MemoryStream(buffer);
     }
     
-    protected void OnUpdated()
+    protected void OnUpdated(LibraryChangedFlags flags)
     {
-        Updated?.Invoke(this, EventArgs.Empty);
+        Updated?.Invoke(this, new LibraryChangedEventArgs(flags));
     }            
 }

@@ -1,17 +1,33 @@
-using System.Linq;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Gdk;
 using GObject;
 using Object = GObject.Object;
 
 namespace Aria.Features.Browser.Playlists;
 
 [Subclass<Object>]
-public partial class PlaylistModel
+public partial class PlaylistModel : INotifyPropertyChanged
 {
     public static PlaylistModel NewForPlaylistInfo(PlaylistInfo playlist)
     {
+        ArgumentNullException.ThrowIfNull(playlist);
+
         var model = NewWithProperties([]);
-        model.Playlist = playlist;
+
+        model.PlaylistId = playlist.Id;
+        model.Name = playlist.Name;
+        model.LastModified = playlist.LastModified;
+
+        if (playlist.Tracks.Count > 0)
+        {
+            // TODO: This should be on playlist Info
+            model.CoverArtId = playlist.Tracks[0]
+                .Track.Assets.FirstOrDefault(r => r.Type == AssetType.FrontCover)
+                ?.Id;
+        }
 
         var topArtists = playlist.Tracks
             .SelectMany(track => track.Track.CreditsInfo.Artists.Select(artist => artist.Artist.Name))
@@ -25,7 +41,35 @@ public partial class PlaylistModel
         return model;
     }
 
-    public PlaylistInfo Playlist { get; private set; }
+    public DateTime LastModified { get; private set; }
+
+    public Id PlaylistId { get; private set; }
+
+    public Id? CoverArtId { get; private set; }
+
+    public string Name { get; private set; }
 
     public string Credits { get; private set; }
+    
+    public Texture? CoverTexture
+    {
+        get;
+        set
+        {
+            if (ReferenceEquals(field, value)) return;
+
+            // This model owns the texture once assigned.
+            field?.Dispose();
+
+            field = value;
+            OnPropertyChanged();
+        }
+    }
+    
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+    {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }    
 }

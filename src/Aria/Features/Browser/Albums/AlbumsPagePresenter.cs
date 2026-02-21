@@ -59,7 +59,10 @@ public partial class AlbumsPagePresenter : IRecipient<LibraryUpdatedMessage>
 
     public void Receive(LibraryUpdatedMessage message)
     {
-        _ = LoadAsync();
+        if (message.Value.HasFlag(LibraryChangedFlags.Library))
+        {
+            _ = LoadAsync();
+        }
     }
 
     private async Task LoadAsync(CancellationToken externalCancellationToken = default)

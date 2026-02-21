@@ -1,5 +1,7 @@
 using Aria.Backends.MPD.Connection;
 using Aria.Backends.MPD.Connection.Commands;
+using Aria.Backends.MPD.Connection.Commands.Playlist;
+using Aria.Backends.MPD.Connection.Commands.Queue;
 using Aria.Backends.MPD.Extraction;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
@@ -8,9 +10,12 @@ using Aria.Infrastructure;
 using Microsoft.Extensions.Logging;
 using MpcNET;
 using MpcNET.Commands.Playback;
+using MpcNET.Commands.Playlist;
 using MpcNET.Commands.Queue;
 using MpcNET.Commands.Reflection;
-using PlaylistInfoCommand = Aria.Backends.MPD.Connection.Commands.PlaylistInfoCommand;
+using ListPlaylistInfoCommand = Aria.Backends.MPD.Connection.Commands.Playlist.ListPlaylistInfoCommand;
+using PlaylistInfoCommand = Aria.Backends.MPD.Connection.Commands.Playlist.PlaylistInfoCommand;
+using SaveCommand = Aria.Backends.MPD.Connection.Commands.Playlist.SaveCommand;
 
 namespace Aria.Backends.MPD;
 
@@ -26,7 +31,7 @@ public class Queue(Client client, ITagParser parser, MPDTagParser mpdTagParser, 
 
         return mpdTagParser.ParseQueue(tags);
     }
-    
+
     public override Task EnqueueAsync(Info info, EnqueueAction action)
     {
         return EnqueueAsync([info], action);
@@ -44,7 +49,7 @@ public class Queue(Client client, ITagParser parser, MPDTagParser mpdTagParser, 
                 case AlbumTrackInfo albumTrack:
                     tracks.Add(albumTrack.Track);
                     break;
-                
+
                 case TrackInfo track:
                     tracks.Add(track);
                     break;
@@ -52,18 +57,17 @@ public class Queue(Client client, ITagParser parser, MPDTagParser mpdTagParser, 
                 case AlbumInfo album:
                     tracks.AddRange(album.Tracks.Select(t => t.Track));
                     break;
-                
+
                 case PlaylistInfo playlist:
                     tracks.AddRange(playlist.Tracks.Select(t => t.Track));
                     break;
-                
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(items), items, null);
-            }            
+            }
         }
-        
+
         await EnqueueAsync(tracks, action).ConfigureAwait(false);
-        
     }
 
     public override async Task EnqueueAsync(Info info, uint index)
@@ -73,7 +77,7 @@ public class Queue(Client client, ITagParser parser, MPDTagParser mpdTagParser, 
             case AlbumTrackInfo albumTrack:
                 await EnqueueAsync([albumTrack.Track], (int)index).ConfigureAwait(false);
                 break;
-            
+
             case TrackInfo track:
                 await EnqueueAsync([track], (int)index).ConfigureAwait(false);
                 break;
@@ -81,7 +85,7 @@ public class Queue(Client client, ITagParser parser, MPDTagParser mpdTagParser, 
             case AlbumInfo album:
                 await EnqueueAsync(album.Tracks.Select(t => t.Track), (int)index).ConfigureAwait(false);
                 break;
-            
+
             case PlaylistInfo playlist:
                 await EnqueueAsync(playlist.Tracks.Select(t => t.Track), (int)index).ConfigureAwait(false);
                 break;
@@ -119,6 +123,27 @@ public class Queue(Client client, ITagParser parser, MPDTagParser mpdTagParser, 
         catch (Exception e)
         {
             logger.LogError(e, "Failed to clear queue");
+        }
+    }
+
+    public override async Task SaveOrAppendToPlaylistAsync(string playlistName)
+    {
+        try
+        {
+            var method = SaveCommand.SaveMethod.Create;
+            var existsCommand = new ListPlaylistInfoCommand(playlistName);
+            var existsResponse = await client.SendCommandAsync(existsCommand).ConfigureAwait(false);
+            if (existsResponse.IsSuccess)
+            {
+                method = SaveCommand.SaveMethod.Replace;
+            }
+
+            var command = new SaveCommand(playlistName, method);
+            await client.SendCommandAsync(command);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Failed to save queue");
         }
     }
 
@@ -161,12 +186,12 @@ public class Queue(Client client, ITagParser parser, MPDTagParser mpdTagParser, 
                     repeat = false;
                     single = false;
                     break;
-                
+
                 case RepeatMode.All:
                     repeat = true;
                     single = false;
                     break;
-                
+
                 case RepeatMode.Single:
                     repeat = true;
                     single = true;
@@ -176,7 +201,7 @@ public class Queue(Client client, ITagParser parser, MPDTagParser mpdTagParser, 
             }
 
             using var scope = await client.CreateConnectionScopeAsync();
-            
+
             await scope.SendCommandAsync(new RepeatCommand(repeat)).ConfigureAwait(false);
             await scope.SendCommandAsync(new SingleCommand(single)).ConfigureAwait(false);
         }
@@ -240,7 +265,8 @@ public class Queue(Client client, ITagParser parser, MPDTagParser mpdTagParser, 
                     {
                         // Need to escape filenames here.
                         // I should modify the command library to automatically escape all commands
-                        commandList.Add(new AddCommand(Client.Escape(track.FileName!), (int)(Order.CurrentIndex + 1 ?? 0)));
+                        commandList.Add(new AddCommand(Client.Escape(track.FileName!),
+                            (int)(Order.CurrentIndex + 1 ?? 0)));
                     }
 
                     break;

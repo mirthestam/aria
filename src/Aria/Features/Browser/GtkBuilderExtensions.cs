@@ -38,7 +38,9 @@ public static class GtkBuilderExtensions
             
             // Playlists
             builder.WithGType<PlaylistsPage>();    
-            builder.WithGType<PlaylistNameCell>();           
+            builder.WithGType<PlaylistNameCell>();
+            builder.WithGType<PlaylistsEmptyPage>();           
+            builder.WithGType<RenamePlaylistDialog>();           
             
             // Search
             builder.WithGType<SearchPage>();            

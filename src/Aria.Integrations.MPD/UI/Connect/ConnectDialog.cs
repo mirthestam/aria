@@ -1,4 +1,5 @@
 using Adw;
+using Aria.Infrastructure;
 using Gio;
 using GObject;
 using Gtk;
@@ -136,8 +137,8 @@ public partial class ConnectDialog
 
     private static void SetErrorState(Widget widget, bool isError)
     {
-        if (isError) widget.AddCssClass("error");
-        else widget.RemoveCssClass("error");
+        if (isError) widget.AddCssClass(AdwStyles.Colors.Error);
+        else widget.RemoveCssClass(AdwStyles.Colors.Error);
     }
 
     private static bool IsValidHostname(string hostname)

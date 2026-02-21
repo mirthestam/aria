@@ -3,6 +3,7 @@ using Aria.Core.Extraction;
 using Aria.Core.Library;
 using Aria.Core.Player;
 using Aria.Core.Queue;
+using Aria.Features.Player.Queue;
 using Aria.Features.Shell;
 using Aria.Infrastructure;
 using CommunityToolkit.Mvvm.Messaging;
@@ -31,6 +32,8 @@ public partial class PlayerPresenter
     private SimpleAction _ariaQueueShuffleAction;
     private SimpleAction _ariaQueueRepeatAction;
     private SimpleAction _ariaQueueConsumeAction;
+    
+    private SimpleAction _ariaQueueSaveAction;
 
     private void InitializeActions(AttachContext context)
     {
@@ -48,6 +51,7 @@ public partial class PlayerPresenter
         
         var queueActionGroup = SimpleActionGroup.New();
         queueActionGroup.AddAction(_ariaQueueClearAction = SimpleAction.New(AppActions.Queue.Clear.Action, null));
+        queueActionGroup.AddAction(_ariaQueueSaveAction = SimpleAction.New(AppActions.Queue.Save.Action, null));
         queueActionGroup.AddAction(_ariaQueueEnqueueDefaultAction = SimpleAction.New(AppActions.Queue.EnqueueDefault.Action, VariantType.NewArray(VariantType.String)));        
         queueActionGroup.AddAction(_ariaQueueEnqueueReplaceAction = SimpleAction.New(AppActions.Queue.EnqueueReplace.Action, VariantType.NewArray(VariantType.String)));
         queueActionGroup.AddAction(_ariaQueueEnqueueNextAction = SimpleAction.New(AppActions.Queue.EnqueueNext.Action, VariantType.NewArray(VariantType.String)));
@@ -59,6 +63,7 @@ public partial class PlayerPresenter
         queueActionGroup.AddAction(_ariaQueueConsumeAction = SimpleAction.NewStateful(AppActions.Queue.Consume.Action, null, Variant.NewBoolean(false)));
         context.InsertAppActionGroup(AppActions.Queue.Key, queueActionGroup);
         
+        context.SetAccelsForAction($"{AppActions.Queue.Key}.{AppActions.Queue.Save.Action}", [AppActions.Queue.Save.Accelerator]);        
         context.SetAccelsForAction($"{AppActions.Queue.Key}.{AppActions.Queue.Clear.Action}", [AppActions.Queue.Clear.Accelerator]);
         context.SetAccelsForAction($"{AppActions.Queue.Key}.{AppActions.Queue.Shuffle.Action}", [AppActions.Queue.Shuffle.Accelerator]);
         context.SetAccelsForAction($"{AppActions.Queue.Key}.{AppActions.Queue.Consume.Action}", [AppActions.Queue.Consume.Accelerator]);
@@ -69,6 +74,7 @@ public partial class PlayerPresenter
         _ariaPlayerStopAction.OnActivate += AriaPlayerStopActionOnOnActivate;
         
         _ariaQueueClearAction.OnActivate += AriaQueueClearActionOnOnActivate;
+        _ariaQueueSaveAction.OnActivate += AriaQueueSaveActionOnOnActivate;
         
         _ariaQueueEnqueueDefaultAction.OnActivate += DefaultAriaQueueEnqueueActionOnOnActivate;
         _ariaQueueEnqueueEndAction.OnActivate += AriaQueueEnqueueEndActionOnOnActivate;
@@ -80,7 +86,7 @@ public partial class PlayerPresenter
         _ariaQueueRepeatAction.OnChangeState += AriaQueueRepeatActionOnOnChangeState;
         _ariaQueueConsumeAction.OnActivate += AriaQueueConsumeActionOnOnActivate;
     }
-
+    
     private async void AriaQueueRepeatActionOnOnChangeState(SimpleAction sender, SimpleAction.ChangeStateSignalArgs args)
     {
         try
@@ -198,6 +204,25 @@ public partial class PlayerPresenter
                 throw new ArgumentOutOfRangeException(nameof(action), action, null);
         }
     }    
+    
+    private async void AriaQueueSaveActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
+    {
+        try
+        {
+            var dialog = SaveQueueDialog.NewWithProperties([]);
+            var result = await dialog.ShowAsync(_playlistNameValidator, View!);
+            if (!result) return;
+            
+            await _aria.Queue.SaveOrAppendToPlaylistAsync(dialog.PlaylistName);
+            _messenger.Send(new ShowToastMessage($"Saved queue as '{dialog.PlaylistName}'."));
+        }
+        catch 
+        {
+            // oK
+        }
+
+    }
+    
     
     private async void AriaQueueClearActionOnOnActivate(SimpleAction sender, SimpleAction.ActivateSignalArgs args)
     {

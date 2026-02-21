@@ -47,10 +47,10 @@ public class AriaEngine(
             if (State != EngineState.Ready) return;
             messenger.Send(new PlayerStateChangedMessage(args.Flags));
         };
-        _libraryProxy.Updated += ( _, _) =>
+        _libraryProxy.Updated += ( _, args) =>
         {
             if (State != EngineState.Ready) return;            
-            messenger.Send(new LibraryUpdatedMessage());
+            messenger.Send(new LibraryUpdatedMessage(args.Flags));
         };
         _queueProxy.StateChanged += (_, args) =>
         {

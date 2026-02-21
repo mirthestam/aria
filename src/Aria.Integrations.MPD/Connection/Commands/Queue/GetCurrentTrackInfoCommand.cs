@@ -1,6 +1,6 @@
 using MpcNET;
 
-namespace Aria.Backends.MPD.Connection.Commands;
+namespace Aria.Backends.MPD.Connection.Commands.Queue;
 
 // ReSharper disable once UnusedType.Global
 public class GetCurrentTrackInfoCommand : IMpcCommand<IEnumerable<KeyValuePair<string,string>>>

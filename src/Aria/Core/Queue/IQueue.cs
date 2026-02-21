@@ -43,6 +43,8 @@ public interface IQueue
     public Task MoveAsync(Id sourceTrackId, uint targetPlaylistIndex);
 
     public Task ClearAsync();
+
+    public Task SaveOrAppendToPlaylistAsync(string playlistName);
     
     /// <summary>
     /// Removes the specified track from the queue.

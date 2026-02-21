@@ -1,4 +1,5 @@
 ﻿using Aria.App.Infrastructure;
+using Aria.Backends.MPD;
 using Aria.Backends.MPD.Connection;
 using Aria.Backends.MPD.UI;
 using Aria.Core;
@@ -48,7 +49,7 @@ public class Program
         return Host.CreateDefaultBuilder(args)
             .ConfigureLogging(logging =>
             {
-                logging.SetMinimumLevel(LogLevel.Information);
+                logging.SetMinimumLevel(LogLevel.Debug);
                 logging.AddSimpleConsole(options =>
                 {
                     options.TimestampFormat = "[HH:mm:ss] ";
@@ -72,7 +73,8 @@ public class Program
                 x.AddSingleton<ResourceTextureLoader>();
                 x.AddTransient<ITagParser, PicardTagParser>();
                 x.AddTransient<ITagInspector, PicardTagInspector>();
-                x.AddSingleton<IPresenterFactory, PresenterFactory>();                
+                x.AddSingleton<IPresenterFactory, PresenterFactory>();
+                x.AddSingleton<IPlaylistNameValidator, PlaylistNameValidator>();
                 
                 x.AddSingleton<MainWindowPresenter>();
                 x.AddSingleton<MainPagePresenter>();
@@ -100,15 +102,15 @@ public class Program
                 x.AddSingleton<PlayerBarPresenter>();
                 
                 // MPD
-                x.AddSingleton<IBackendConnectionFactory, Backends.MPD.Connection.BackendConnectionFactory>();
+                x.AddSingleton<IBackendConnectionFactory, BackendConnectionFactory>();
                 x.AddSingleton<IConnectionProfileFactory, ConnectionProfileFactory>();
                 x.AddSingleton<IConnectDialogPresenter, Backends.MPD.UI.Connect.ConnectDialogPresenter>();                
-                x.AddTransient<Backends.MPD.Connection.BackendConnection>();
+                x.AddTransient<BackendConnection>();
                 x.AddScoped<Backends.MPD.Queue>();
-                x.AddScoped<Backends.MPD.Library>();
-                x.AddScoped<Backends.MPD.Connection.Client>();
-                x.AddScoped<Aria.Backends.MPD.Player>();
-                x.AddScoped<Aria.Backends.MPD.Extraction.MPDTagParser>();
+                x.AddScoped<Library>();
+                x.AddScoped<Client>();
+                x.AddScoped<Backends.MPD.Player>();
+                x.AddScoped<Backends.MPD.Extraction.MPDTagParser>();
                 x.AddScoped<IIdProvider, Backends.MPD.Extraction.IdProvider>();
             })
             

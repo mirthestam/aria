@@ -14,7 +14,8 @@
             <child>
               <object class="GtkStackPage" id="artist-stack-page">
                 <property name="child">
-                  <object class="AriaFeaturesBrowserSharedAlbumsGrid" id="albums-grid-view"/>                </property>
+                  <object class="AriaFeaturesBrowserSharedAlbumsGrid" id="albums-grid-view"/>
+                </property>
                 <property name="name">artist-stack-page</property>
                 <property name="title">Artist</property>
               </object>

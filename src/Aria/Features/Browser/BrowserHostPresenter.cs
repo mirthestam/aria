@@ -53,7 +53,10 @@ public partial class BrowserHostPresenter : IRootPresenter<BrowserHost>, IRecipi
     {
         try
         {
-            await DeterminePageAsync();
+            if (message.Value.HasFlag(LibraryChangedFlags.Library))
+            {
+                await DeterminePageAsync();
+            }
         }
         catch 
         {

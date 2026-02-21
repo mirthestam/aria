@@ -9,10 +9,14 @@ public static class GtkBuilderExtensions
     {
         public void WithPlayerGTypes()
         {
+            // Queue
+            builder.WithGType<Queue.Queue>();
+            builder.WithGType<SaveQueueDialog>();
+            
+            // Common
             builder.WithGType<MediaControls>();
             builder.WithGType<PlaybackControls>();
             builder.WithGType<Player>();
-            builder.WithGType<Queue.Queue>();
             builder.WithGType<TrackListItem>();
         }
     }

@@ -29,6 +29,7 @@
         <EmbeddedResource Include="Features\Browser\Playlists\PlaylistNameCell.ui" />
         <EmbeddedResource Include="Features\Browser\Playlists\PlaylistsEmptyPage.ui" />
         <EmbeddedResource Include="Features\Browser\Playlists\PlaylistsPage.ui" />
+        <EmbeddedResource Include="Features\Browser\Playlists\RenamePlaylistDialog.ui" />
         <EmbeddedResource Include="Features\Browser\Search\SearchPage.ui" />
         <EmbeddedResource Include="Features\Browser\Shared\AlbumListItem.ui" />
         <EmbeddedResource Include="Features\Browser\Shared\AlbumsGrid.ui" />
@@ -37,6 +38,7 @@
         <EmbeddedResource Include="Features\Player\PlaybackControls.ui"/>
         <EmbeddedResource Include="Features\Player\Player.ui"/>
         <EmbeddedResource Include="Features\Player\MediaControls.ui"/>
+        <EmbeddedResource Include="Features\Player\Queue\SaveQueueDialog.ui" />
         <EmbeddedResource Include="Features\Player\Queue\TrackListItem.ui" />
         <EmbeddedResource Include="Features\Player\Queue\Queue.ui" />
         <EmbeddedResource Include="Features\Shell\ConnectingPage.ui" />

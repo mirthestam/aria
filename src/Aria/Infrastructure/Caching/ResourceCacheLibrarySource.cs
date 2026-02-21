@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Core.Queue;
 using GdkPixbuf;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -79,6 +80,11 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
     public Task DeletePlaylistAsync(Id id, CancellationToken cancellationToken = default)
     {
         return _innerLibrary.DeletePlaylistAsync(id, cancellationToken);
+    }
+
+    public Task RenamePlaylistAsync(Id id, string newName, CancellationToken cancellationToken = default)
+    {
+        return _innerLibrary.RenamePlaylistAsync(id, newName, cancellationToken);
     }
 
     public Task BeginRefreshAsync()
@@ -266,7 +272,7 @@ public sealed partial class ResourceCacheLibrarySource : ILibrarySource
         }
     }
 
-    public event EventHandler? Updated
+    public event EventHandler<LibraryChangedEventArgs>? Updated
     {
         add => _innerLibrary.Updated += value;
         remove => _innerLibrary.Updated -= value;

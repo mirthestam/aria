@@ -88,7 +88,7 @@ public partial class CreditBox
         if (artist.AdditionalInformation == null) return box;
 
         var additionalInfoLabel = Label.New($"({artist.AdditionalInformation})");
-        additionalInfoLabel.AddCssClass("dimmed");
+        additionalInfoLabel.AddCssClass(AdwStyles.Dimmed);
         box.Append(additionalInfoLabel);
 
         return box;
@@ -102,7 +102,7 @@ public partial class CreditBox
         //button.AddCssClass("link");
         button.AddCssClass("flat");
         button.AddCssClass("artist-link");
-        button.AddCssClass("accent");
+        button.AddCssClass(AdwStyles.Colors.Accent);
         
         if (!artist.IsFeatured) button.AddCssClass("artist-link-common");
 

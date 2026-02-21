@@ -23,6 +23,7 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
     private readonly QueuePresenter _queuePresenter;
     private readonly ResourceTextureLoader _resourceTextureLoader;
     private readonly IMessenger _messenger;
+    private readonly IPlaylistNameValidator _playlistNameValidator;
     
     private CancellationTokenSource? _coverArtCancellationTokenSource;
     private Texture? _currentCoverTexture;    
@@ -30,13 +31,14 @@ public partial class PlayerPresenter : IRootPresenter<Player>,  IRecipient<Playe
     public Player? View { get; private set; }
     
     public PlayerPresenter(ILogger<PlayerPresenter> logger, IMessenger messenger, IAria aria,
-        ResourceTextureLoader resourceTextureLoader, QueuePresenter queuePresenter, IAriaControl ariaControl)
+        ResourceTextureLoader resourceTextureLoader, QueuePresenter queuePresenter, IAriaControl ariaControl, IPlaylistNameValidator playlistNameValidator)
     {
         _messenger = messenger;
         _logger = logger;
         _resourceTextureLoader = resourceTextureLoader;
         _queuePresenter = queuePresenter;
         _ariaControl = ariaControl;
+        _playlistNameValidator = playlistNameValidator;
         _aria = aria;
         messenger.RegisterAll(this);
     }

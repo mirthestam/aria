@@ -40,6 +40,12 @@
       <object class="AdwShortcutsSection">
         <child>
           <object class="AdwShortcutsItem">
+            <property name="action-name">aria-queue.save</property>
+            <property name="title">Save to Playlist</property>
+          </object>
+        </child>
+        <child>
+          <object class="AdwShortcutsItem">
             <property name="action-name">aria-queue.clear</property>
             <property name="title">Clear Queue</property>
           </object>

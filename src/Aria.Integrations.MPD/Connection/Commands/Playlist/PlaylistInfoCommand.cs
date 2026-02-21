@@ -1,6 +1,6 @@
 using MpcNET;
 
-namespace Aria.Backends.MPD.Connection.Commands;
+namespace Aria.Backends.MPD.Connection.Commands.Playlist;
 
 public class PlaylistInfoCommand : IMpcCommand<IEnumerable<KeyValuePair<string,string>>>
 {

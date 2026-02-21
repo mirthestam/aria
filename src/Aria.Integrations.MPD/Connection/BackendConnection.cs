@@ -1,5 +1,7 @@
 using Aria.Core.Connection;
 using Aria.Core.Extraction;
+using Aria.Core.Library;
+using Aria.Core.Queue;
 using Aria.Infrastructure.Connection;
 using Aria.Infrastructure.Inspection;
 using Microsoft.Extensions.Logging;
@@ -93,13 +95,19 @@ public partial class BackendConnection(
         if (!subsystems.Contains("playlist") && !subsystems.Contains("player") && !subsystems.Contains("mixer") &&
             !subsystems.Contains("output") && !subsystems.Contains("options") && !subsystems.Contains("update")) return;
 
+        var flags = LibraryChangedFlags.None;
         if (subsystems.Contains("playlist"))
         {
-            // Playlist changes!
+            flags |= LibraryChangedFlags.Playlists;
         }
 
         if (subsystems.Contains("update"))
-            library.ServerUpdated();
+            flags |= LibraryChangedFlags.Library;
+
+        if (flags != LibraryChangedFlags.None)
+        {
+            library.ServerUpdated(flags);
+        }
 
         _ = client.UpdateStatusAsync(ConnectionType.Idle);
     }

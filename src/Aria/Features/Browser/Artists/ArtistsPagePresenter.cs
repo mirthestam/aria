@@ -48,7 +48,10 @@ public partial class ArtistsPagePresenter : IRecipient<LibraryUpdatedMessage>
 
     public void Receive(LibraryUpdatedMessage message)
     {
-        _ = RefreshArtistsAsync();
+        if (message.Value.HasFlag(LibraryChangedFlags.Library))
+        {
+            _ = RefreshArtistsAsync();
+        }
     }
 
     public void Attach(ArtistsPage view)

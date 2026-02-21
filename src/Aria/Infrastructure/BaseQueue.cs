@@ -39,7 +39,9 @@ public abstract class BaseQueue : IQueueSource
     public virtual Task MoveAsync(Id sourceTrackId, uint targetPlaylistIndex) => Task.CompletedTask;
 
     public virtual Task ClearAsync() => Task.CompletedTask;
-    
+
+    public abstract Task SaveOrAppendToPlaylistAsync(string playlistName);
+
     public virtual Task RemoveTrackAsync(Id id) => Task.CompletedTask;
 
     protected void OnStateChanged(QueueStateChangedFlags flags)

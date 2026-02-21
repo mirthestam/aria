@@ -58,7 +58,7 @@ playlist</property>
                             no-drop-highlight
                         </property>
             <property name="icon-name">documentinfo-symbolic</property>
-            <property name="title">Playlist is Empty</property>
+            <property name="title">Queue is Empty</property>
           </object>
         </property>
         <property name="name">empty-playlist-page</property>

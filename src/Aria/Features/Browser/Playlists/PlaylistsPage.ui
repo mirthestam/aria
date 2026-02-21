@@ -3,7 +3,7 @@
 <interface>
   <!-- interface-name MainWindow.ui -->
   <requires lib="gtk" version="4.0"/>
-  <requires lib="libadwaita" version="1.4"/>
+  <requires lib="libadwaita" version="1.5"/>
   <template class="AriaFeaturesBrowserPlaylistsPlaylistsPage" parent="AdwNavigationPage">
     <property name="title">Playlists</property>
     <child>
@@ -11,7 +11,16 @@
         <property name="content">
           <object class="GtkStack" id="playlists-stack">
             <child>
-              <object class="GtkStackPage" id="playlist-stack-page">
+              <object class="GtkStackPage" id="empty-stack-page">
+                <property name="child">
+                  <object class="AriaFeaturesBrowserPlaylistsPlaylistsEmptyPage"/>
+                </property>
+                <property name="name">empty-stack-page</property>
+                <property name="title">No Playlists</property>
+              </object>
+            </child>
+            <child>
+              <object class="GtkStackPage" id="playlists-stack-page">
                 <property name="child">
                   <object class="GtkScrolledWindow">
                     <property name="child">
@@ -19,16 +28,10 @@
                         <property name="css-classes">navigation-sidebar</property>
                         <property name="show-column-separators">False</property>
                         <property name="show-row-separators">False</property>
-                        <property name="single-click-activate">True</property>
                         <child>
                           <object class="GtkPopoverMenu" id="playlist-popover-menu">
                             <property name="halign">start</property>
                             <property name="has-arrow">false</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkGestureClick" id="gesture-click">
-                            <property name="button">3</property>
                           </object>
                         </child>
                         <child>
@@ -49,18 +52,13 @@
                             <property name="title" translatable="yes">Modified</property>
                           </object>
                         </child>
-                        <child>
-                          <object class="GtkGestureLongPress" id="gesture-long-press">
-                            <property name="touch-only">True</property>
-                          </object>
-                        </child>
                       </object>
                     </property>
                     <property name="hscrollbar-policy">never</property>
                   </object>
                 </property>
-                <property name="name">artist-stack-page</property>
-                <property name="title">Artist</property>
+                <property name="name">playlists-stack-page</property>
+                <property name="title">Playlists</property>
               </object>
             </child>
           </object>

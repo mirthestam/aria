@@ -41,6 +41,11 @@ public class QueueProxy : IQueueSource
     public Task EnqueueAsync(Info item, uint index) => _innerQueue?.EnqueueAsync(item, index) ?? Task.CompletedTask;
     public Task MoveAsync(Id sourceTrackId, uint targetPlaylistIndex) => _innerQueue?.MoveAsync(sourceTrackId, targetPlaylistIndex) ?? Task.CompletedTask;
     public Task ClearAsync() => _innerQueue?.ClearAsync() ?? Task.CompletedTask;
+    public Task SaveOrAppendToPlaylistAsync(string playlistName)
+    {
+        return _innerQueue?.SaveOrAppendToPlaylistAsync(playlistName) ?? Task.CompletedTask;
+    }
+
     public Task RemoveTrackAsync(Id id) => _innerQueue?.RemoveTrackAsync(id) ?? Task.CompletedTask;
 
     internal void Attach(IQueueSource queue)

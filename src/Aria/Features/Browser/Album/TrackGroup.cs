@@ -90,14 +90,14 @@ public partial class TrackGroup
             
             var prefixLabel = Label.New(trackNumberText);
             prefixLabel.AddCssClass("numeric");
-            prefixLabel.AddCssClass("dimmed");
+            prefixLabel.AddCssClass(AdwStyles.Dimmed);
             prefixLabel.SetXalign(1);
             prefixLabel.WidthChars = 4;
             row.AddPrefix(prefixLabel);
 
             var suffixLabel = Label.New(track.Duration.ToString(@"mm\:ss"));
             suffixLabel.AddCssClass("numeric");
-            suffixLabel.AddCssClass("dimmed");
+            suffixLabel.AddCssClass(AdwStyles.Dimmed);
 
             row.AddSuffix(suffixLabel);
             row.SetUseMarkup(false);

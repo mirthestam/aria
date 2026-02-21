@@ -8,10 +8,10 @@
         <property name="hexpand">False</property>
         <child>
             <object class="AdwStatusPage">
-                <property name="description">There are no playlists saved.</property>
+                <property name="description">You have no saved playlists.</property>
                 <property name="hexpand">True</property>
                 <property name="icon-name">folder-music-symbolic</property>
-                <property name="title">Nothing to show.</property>
+                <property name="title">No playlists</property>
                 <property name="vexpand">False</property>
             </object>
         </child>

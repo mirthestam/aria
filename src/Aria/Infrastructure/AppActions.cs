@@ -32,6 +32,7 @@ public static class AppActions
         public static readonly string Key = "aria-queue";
         
         public static readonly AppAction Clear = new("clear", "<Control>Delete");
+        public static readonly AppAction Save = new("save", "<Control>s");
         
         public static readonly AppAction EnqueueDefault = new("enqueue-default");
         public static readonly AppAction EnqueueReplace = new("enqueue-replace");
@@ -40,9 +41,9 @@ public static class AppActions
         
         public static readonly AppAction RemoveTrack = new("remove-track", "delete");
         
-        public static readonly AppAction Shuffle = new("shuffle", "<Control>s");
+        public static readonly AppAction Shuffle = new("shuffle", "<Control><Shift>s");
         public static readonly AppAction Repeat = new("repeat");
-        public static readonly AppAction Consume = new("consume", "<Control>r");
+        public static readonly AppAction Consume = new("consume", "<Control><Shift>r");
     }
 
     public static class Player

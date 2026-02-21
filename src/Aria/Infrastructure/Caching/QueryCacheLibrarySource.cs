@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Core.Queue;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Aria.Infrastructure.Caching;
@@ -20,7 +21,7 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
 
     private readonly ConcurrentDictionary<string, SemaphoreSlim> _gates = new();
 
-    public event EventHandler? Updated;
+    public event EventHandler<LibraryChangedEventArgs>? Updated;
     
     public Task InspectLibraryAsync(CancellationToken ct = default)
     {
@@ -35,7 +36,7 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
         _inner.Updated += InnerOnUpdated;
     }
 
-    private void InnerOnUpdated(object? sender, EventArgs e)
+    private void InnerOnUpdated(object? sender, LibraryChangedEventArgs e)
     {
         Clear();
         Updated?.Invoke(sender, e);
@@ -66,6 +67,11 @@ public sealed class QueryCacheLibrarySource : ILibrarySource, IDisposable
     public Task DeletePlaylistAsync(Id id, CancellationToken cancellationToken = default)
     {
         return _inner.DeletePlaylistAsync(id, cancellationToken);
+    }
+
+    public Task RenamePlaylistAsync(Id id, string newName, CancellationToken cancellationToken = default)
+    {
+        return _inner.RenamePlaylistAsync(id, newName, cancellationToken);
     }
 
     public Task BeginRefreshAsync()

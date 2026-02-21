@@ -6,8 +6,8 @@ using MpcNET.Commands.Database;
 using MpcNET.Tags;
 using MpcNET.Types;
 using MpcNET.Types.Filters;
-using FindCommand = Aria.Backends.MPD.Connection.Commands.FindCommand;
-using SearchCommand = Aria.Backends.MPD.Connection.Commands.SearchCommand;
+using FindCommand = Aria.Backends.MPD.Connection.Commands.Find.FindCommand;
+using SearchCommand = Aria.Backends.MPD.Connection.Commands.Search.SearchCommand;
 
 namespace Aria.Backends.MPD;
 

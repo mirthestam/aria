@@ -2,6 +2,7 @@ using Aria.Backends.MPD.Connection;
 using Aria.Backends.MPD.Extraction;
 using Aria.Core.Extraction;
 using Aria.Core.Library;
+using Aria.Core.Queue;
 using Aria.Infrastructure;
 using Aria.Infrastructure.Extraction;
 using Aria.Infrastructure.Inspection;
@@ -10,6 +11,7 @@ using MpcNET.Commands.Database;
 using MpcNET.Tags;
 using MpcNET.Types;
 using MpcNET.Types.Filters;
+using FindCommand = Aria.Backends.MPD.Connection.Commands.Find.FindCommand;
 
 namespace Aria.Backends.MPD;
 
@@ -36,7 +38,7 @@ public partial class Library
             {
                 ct.ThrowIfCancellationRequested();
                 
-                var command = new Aria.Backends.MPD.Connection.Commands.FindCommand(new FilterFile(file.Path, FilterOperator.Equal));
+                var command = new FindCommand(new FilterFile(file.Path, FilterOperator.Equal));
                 var response = await scope.SendCommandAsync(command).ConfigureAwait(false);
                 if (!response.IsSuccess) continue;
                 var tags = response.Content!.Select(x => new Tag(x.Key, x.Value)).ToList();
@@ -72,9 +74,9 @@ public partial class Library
 
 public partial class Library(Client client, ITagParser tagParser, ITagInspector tagInspector, MPDTagParser mpdTagParser, ILogger<Library> logger) : BaseLibrary
 {
-    public void ServerUpdated()
+    public void ServerUpdated(LibraryChangedFlags flags)
     {
-        OnUpdated();
+        OnUpdated(flags);
     }
 
     public override async Task<Info?> GetItemAsync(Id id, CancellationToken cancellationToken = default)
@@ -107,7 +109,7 @@ public partial class Library(Client client, ITagParser tagParser, ITagInspector 
         async Task<SearchResults> AppendFindAsync(ITag tag, ConnectionScope innerScope, SearchResults existingResults)
         {
             var filter = new List<IFilter> { new FilterTag(tag, query, FilterOperator.Contains) };
-            var command = new Connection.Commands.FindCommand(filter);
+            var command = new FindCommand(filter);
             var response = await innerScope.SendCommandAsync(command).ConfigureAwait(false);
             return AppendResults(response, ref existingResults);
         }
